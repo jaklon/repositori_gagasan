@@ -1,0 +1,205 @@
+# Upload Project Flow Fix - Dokumentasi
+
+## Masalah yang Diperbaiki
+
+Setelah user klik submit pada form upload project, popup/dialog tidak tertutup otomatis meskipun project berhasil disubmit.
+
+## Root Cause
+
+**Mismatch antara prop name yang dikirim dan prop yang diterima:**
+
+### Di Dashboard Components:
+- `StudentDashboardNew.tsx` memanggil: `<UploadProjectForm onClose={...} />`
+- `DosenDashboardNew.tsx` memanggil: `<UploadProjectForm onClose={...} />`
+
+### Di UploadProjectForm:
+```typescript
+interface UploadProjectFormProps {
+  onSuccess?: () => void;  // ✅ Correct prop name
+  onCancel?: () => void;
+}
+```
+
+❌ **Problem:** Dashboard mengirim `onClose`, tetapi UploadProjectForm menerima `onSuccess`
+❌ **Result:** Callback tidak pernah terpanggil karena prop name tidak match
+
+## Solusi yang Diimplementasikan
+
+### 1. **Perbaiki StudentDashboardNew.tsx**
+
+**SEBELUM:**
+```tsx
+<UploadProjectForm onClose={() => setIsSubmitDialogOpen(false)} />
+```
+
+**SESUDAH:**
+```tsx
+<UploadProjectForm 
+  onSuccess={() => setIsSubmitDialogOpen(false)} 
+  onCancel={() => setIsSubmitDialogOpen(false)}
+/>
+```
+
+### 2. **Perbaiki DosenDashboardNew.tsx**
+
+**SEBELUM:**
+```tsx
+<UploadProjectForm onClose={() => setIsUploadDialogOpen(false)} isDosenUpload={true} />
+```
+
+**SESUDAH:**
+```tsx
+<UploadProjectForm 
+  onSuccess={() => setIsUploadDialogOpen(false)} 
+  onCancel={() => setIsUploadDialogOpen(false)}
+/>
+```
+
+## Flow Upload Project yang Benar
+
+### 1. **User membuka dialog upload project**
+```tsx
+// Di StudentDashboard
+<Button onClick={() => setIsSubmitDialogOpen(true)}>
+  Upload Project
+</Button>
+```
+
+### 2. **User mengisi form dan klik Submit**
+```tsx
+// Di UploadProjectForm.tsx
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  // Validasi
+  if (!formData.title.trim()) {
+    toast.error('Please enter a project title');
+    return; // ❌ Dialog tetap terbuka
+  }
+  
+  // ... validasi lainnya
+  
+  setIsSubmitting(true);
+  
+  try {
+    // Submit project
+    addProject({...formData});
+    
+    toast.success('✅ Project berhasil disubmit!');
+    
+    // Reset form
+    setFormData({...});
+    setProjectImagePreview('');
+    setUploadedFiles([]);
+    
+    // ✅ KUNCI: Panggil callback onSuccess
+    if (onSuccess) {
+      onSuccess(); // Ini akan menutup dialog
+    }
+  } catch (error) {
+    toast.error('Failed to submit project');
+    // ❌ Dialog tetap terbuka karena error
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+```
+
+### 3. **Dialog otomatis tertutup setelah submit berhasil**
+```tsx
+// onSuccess callback dijalankan
+() => setIsSubmitDialogOpen(false)  // Dialog tertutup ✅
+```
+
+## Validasi Flow
+
+### ✅ Success Flow:
+1. User klik "Upload Project" → Dialog terbuka
+2. User isi semua field yang required
+3. User klik "Submit Project"
+4. Validasi passed → Project ditambahkan ke context
+5. Toast success muncul
+6. Form direset
+7. `onSuccess()` dipanggil → **Dialog tertutup** ✅
+8. User kembali ke dashboard
+
+### ❌ Error Flow:
+1. User klik "Upload Project" → Dialog terbuka
+2. User tidak isi field yang required
+3. User klik "Submit Project"
+4. Validasi failed → Toast error muncul
+5. `onSuccess()` TIDAK dipanggil → **Dialog tetap terbuka** ✅
+6. User bisa perbaiki form dan submit lagi
+
+### ⚪ Cancel Flow:
+1. User klik "Upload Project" → Dialog terbuka
+2. User klik "Cancel" button
+3. `onCancel()` dipanggil → **Dialog tertutup** ✅
+4. Form tidak direset (jika user buka lagi, data masih ada)
+
+## Props Interface
+
+```typescript
+interface UploadProjectFormProps {
+  onSuccess?: () => void;  // Dipanggil setelah berhasil submit
+  onCancel?: () => void;   // Dipanggil saat user cancel
+}
+```
+
+### Perbedaan `onSuccess` vs `onCancel`:
+- **`onSuccess`**: 
+  - Dipanggil SETELAH project berhasil disubmit
+  - Form sudah direset
+  - Toast success sudah muncul
+  - Digunakan untuk menutup dialog dan refresh data
+  
+- **`onCancel`**: 
+  - Dipanggil saat user klik tombol Cancel
+  - Form TIDAK direset (data masih tersimpan)
+  - Tidak ada toast
+  - Hanya menutup dialog
+
+## Testing Checklist
+
+### ✅ Student Upload:
+- [ ] Dialog terbuka saat klik "Upload Project"
+- [ ] Validasi bekerja (toast error jika field kosong)
+- [ ] Dialog tetap terbuka saat ada error validasi
+- [ ] Submit berhasil → Toast success muncul
+- [ ] Dialog tertutup otomatis setelah submit berhasil
+- [ ] Project muncul di "My Projects"
+- [ ] Cancel button menutup dialog
+
+### ✅ Dosen Upload:
+- [ ] Dialog terbuka saat klik "Upload Proyek Dosen"
+- [ ] Validasi bekerja sama seperti student
+- [ ] Dialog tertutup otomatis setelah submit berhasil
+- [ ] Project muncul di "My Projects" (Dosen)
+- [ ] Cancel button menutup dialog
+
+## Files yang Dimodifikasi
+
+1. `/components/StudentDashboardNew.tsx` - Fix prop name dari `onClose` ke `onSuccess` & `onCancel`
+2. `/components/DosenDashboardNew.tsx` - Fix prop name dari `onClose` ke `onSuccess` & `onCancel`
+
+## Files yang TIDAK Perlu Diubah
+
+- `/components/UploadProjectForm.tsx` - Sudah benar, menerima `onSuccess` dan `onCancel`
+- `/components/ProjectsContext.tsx` - Context untuk manage projects
+- `/components/ui/dialog.tsx` - ShadCN dialog component
+
+## Result
+
+✅ **Dialog sekarang tertutup otomatis setelah submit berhasil**
+✅ **Dialog tetap terbuka jika ada error validasi**
+✅ **Cancel button juga menutup dialog**
+✅ **Form direset setelah submit berhasil**
+✅ **User experience lebih smooth dan intuitive**
+
+## Notes
+
+- UploadProjectForm menggunakan `toast` dari sonner untuk notifikasi
+- Form validation dilakukan sebelum submit
+- Source code link harus dari GitHub atau Google Drive
+- Project image adalah required field
+- Setelah submit, project masuk tahap seleksi kurasi oleh Unit Bisnis

@@ -1,0 +1,270 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - gagasan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Semua style kustom Anda kita biarkan */
+      .bg-grid-pattern {
+        background-image: linear-gradient(
+            to right,
+            rgb(0 0 0 / 0.05) 1px,
+            transparent 1px
+          ),
+          linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 min-h-screen relative overflow-hidden"
+  >
+    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+    <div
+      class="absolute -top-20 -left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+    ></div>
+    <div
+      class="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+    ></div>
+
+    <div class="absolute top-6 left-6 z-10">
+      <a
+        href="#"
+        class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
+      >
+        <i class="fas fa-arrow-left"></i>
+        Kembali ke Katalog
+      </a>
+    </div>
+
+    <div
+      class="min-h-screen flex items-center justify-center p-4 relative z-10"
+    >
+      <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+        <div class="hidden lg:block space-y-8">
+          <div>
+            <div class="flex items-center gap-3 mb-6">
+              <div
+                class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl"
+              >
+                <i class="fas fa-book-open text-white text-2xl"></i>
+              </div>
+              <div>
+                <h1
+                  class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
+                >
+                  gagasan
+                </h1>
+                <p class="text-gray-600">Repository Produk Digital</p>
+              </div>
+            </div>
+            <p class="text-lg text-gray-600 mb-8">
+              Platform terpercaya untuk mengelola dan berbagi proyek digital
+              berkualitas tinggi dari Fakultas Ilmu Komputer PNJ
+            </p>
+          </div>
+          <div class="space-y-4">
+            <div
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+            >
+              <div
+                class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0"
+              >
+                <i class="fas fa-shield-alt text-purple-600"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold mb-1">Kurasi Profesional</h4>
+                <p class="text-sm text-gray-600">
+                  Setiap proyek dinilai oleh dosen dan praktisi industri
+                </p>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+            >
+              <div
+                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0"
+              >
+                <i class="fas fa-users text-blue-600"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold mb-1">Kolaborasi Tim</h4>
+                <p class="text-sm text-gray-600">
+                  Kelola proyek bersama dosen dan mitra industri
+                </p>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+            >
+              <div
+                class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0"
+              >
+                <i class="fas fa-sparkles text-indigo-600"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold mb-1">Showcase Portofolio</h4>
+                <p class="text-sm text-gray-600">
+                  Publikasikan karya terbaik Anda ke katalog publik
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="relative rounded-2xl overflow-hidden shadow-2xl hidden xl:block"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1693011142814-aa33d7d1535c?w=1080"
+              alt="University Campus"
+              class="w-full h-48 object-cover"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-purple-900/50 to-transparent"
+            ></div>
+          </div>
+        </div>
+
+        <div class="w-full">
+          <div class="lg:hidden text-center mb-8"></div>
+
+          <div
+            class="border-0 shadow-2xl bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden"
+          >
+            <div class="p-6 space-y-1 pb-6">
+              <h2 class="text-2xl font-semibold">Selamat Datang Kembali</h2>
+              <p class="text-gray-600">
+                Masuk untuk mengakses proyek dan tugas Anda
+              </p>
+            </div>
+
+            <form
+              method="POST"
+              action="{% url 'login' %}"
+              class="px-6 pb-6 space-y-4"
+            >
+              {% csrf_token %} {% if messages %} {% for message in messages %}
+              <div
+                class="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700"
+              >
+                <i class="fas fa-exclamation-circle mt-0.5"></i>
+                <span>{{ message }}</span>
+              </div>
+              {% endfor %} {% endif %}
+
+              <div class="space-y-2">
+                <label for="email" class="block font-medium"
+                  >Email Universitas</label
+                >
+                <div class="relative">
+                  <i
+                    class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  ></i>
+                  <input
+                    id="email"
+                    type="email"
+                    name="username"
+                    placeholder="nama@pnj.ac.id"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="space-y-2 pb-2">
+                <label for="password" class="block font-medium">Password</label>
+                <div class="relative">
+                  <i
+                    class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  ></i>
+                  <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    placeholder="Masukkan password"
+                    class="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onclick="togglePassword()"
+                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <i id="eyeIcon" class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                  id="submitBtn"
+                >
+                  <i class="fas fa-lock"></i>
+                  <span id="btnText">Masuk</span>
+                </button>
+              </div>
+
+              <div class="text-center pt-2">
+                <span class="text-sm text-gray-600"> Belum punya akun? </span>
+                <a
+                  href="{% url 'register' %}"
+                  class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Daftar di sini
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <div
+            class="mt-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200"
+          >
+            <div class="text-center mb-3">
+              <span class="text-sm font-medium text-gray-700"
+                >🔑 Demo Accounts</span
+              >
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Toggle password visibility (Fungsi ini tetap berguna)
+      function togglePassword() {
+        const passwordInput = document.getElementById("password");
+        const eyeIcon = document.getElementById("eyeIcon");
+
+        if (passwordInput.type === "password") {
+          passwordInput.type = "text";
+          eyeIcon.classList.remove("fa-eye");
+          eyeIcon.classList.add("fa-eye-slash");
+        } else {
+          passwordInput.type = "password";
+          eyeIcon.classList.remove("fa-eye-slash");
+          eyeIcon.classList.add("fa-eye");
+        }
+      }
+    </script>
+  </body>
+</html>
