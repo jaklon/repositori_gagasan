@@ -1,0 +1,386 @@
+{% extends "_base_dashboard.html" %}
+{% load static %}
+{% load repository_extras %} {# Muat custom tag #}
+
+{% block title %}Tahap 4: Publikasi Katalog - Gagasan{% endblock %}
+
+{% block dashboard_content %}
+<div class="p-8"> {# Hapus x-data #}
+  <!-- Header Halaman -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+      <i class="fas fa-upload text-purple-600 text-xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Tahap 4: Publikasi Katalog</h1>
+      <p class="text-sm text-gray-600">Publikasikan produk terkurasi yang sudah final ke katalog digital publik.</p>
+    </div>
+  </div>
+
+  <!-- Indikator Tahapan (Tahap 4 Aktif) -->
+   <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 text-xs text-center">
+      <div class="text-green-600"> <!-- Seleksi -->
+          <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Seleksi Proyek
+      </div>
+      <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+      <div class="text-green-600"> <!-- Penugasan -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Penugasan Kurator
+      </div>
+      <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+      <div class="text-green-600"> <!-- Monitoring -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Monitoring Penilaian
+      </div>
+       <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+       <div class="text-green-600"> <!-- Review -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Review & Keputusan
+      </div>
+       <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+      <div class="text-purple-600 font-semibold"> <!-- Publikasi -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-purple-100 ring-2 ring-purple-300 flex items-center justify-center mb-1"><i class="fas fa-upload"></i></div> Publikasi Katalog
+      </div>
+  </div>
+
+  <!-- Statistik -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
+      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+         <i class="fas fa-paper-plane text-blue-600"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Siap Dipublikasi</p>
+        <p class="text-3xl font-bold text-gray-900">{{ projects_ready_to_publish.count }}</p>
+         <p class="text-xs text-gray-400">Produk menunggu publikasi</p>
+      </div>
+    </div>
+     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
+       <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+         <i class="fas fa-check-circle text-green-600"></i>
+       </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Sudah Terpublikasi</p>
+        <p class="text-3xl font-bold text-green-600">{{ projects_published.count }}</p>
+        <p class="text-xs text-gray-400">Tersedia di katalog</p>
+      </div>
+    </div>
+     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
+       <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+         <i class="fas fa-award text-purple-600"></i>
+       </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Total Produk Terkurasi</p>
+        {# Hitung total dari kedua list #}
+        <p class="text-3xl font-bold text-gray-900">{{ projects_ready_to_publish.count|add:projects_published.count }}</p>
+         <p class="text-xs text-gray-400">Semua produk dengan keputusan layak</p>
+      </div>
+    </div>
+  </div>
+
+   <!-- Search -->
+  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+     <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input type="text" placeholder="Cari produk untuk dipublikasi..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
+      </div>
+  </div>
+
+  <!-- Tampilkan Pesan Sukses/Error -->
+  {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-md text-sm {% if message.tags == 'success' %} bg-green-50 border border-green-200 text-green-800 {% elif message.tags == 'error' %} bg-red-50 border border-red-200 text-red-800 {% else %} bg-blue-50 border border-blue-200 text-blue-800 {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Tabel Produk Siap Dipublikasi -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b">
+      <h2 class="text-lg font-semibold">Produk Siap Dipublikasi ({{ projects_ready_to_publish.count }})</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Produk</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahasiswa</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Akhir</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keputusan</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Keputusan</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for project in projects_ready_to_publish %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ project.title }}</div>
+                <div class="text-xs text-gray-500">
+                    {% for cat in project.kategori.all %}{{ cat.nama }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ project.id_pemilik.username }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold
+                 {% if project.kurasi.nilai_akhir_final >= 3.5 %} text-green-600
+                 {% elif project.kurasi.nilai_akhir_final >= 2.75 %} text-blue-600
+                 {% else %} text-gray-600 {% endif %}">
+                 {{ project.kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }} / 4.00
+            </td>
+             <td class="px-6 py-4 whitespace-nowrap text-sm">
+                 {% if project.final_decision == 'Sangat Layak' %} <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Layak</span>
+                 {% elif project.final_decision == 'Revisi Minor' %} <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Layak</span>
+                 {% else %} <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{{ project.final_decision|default:"-" }}</span>
+                 {% endif %}
+             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ project.updated_at|date:"d M Y" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+               {# Tombol Preview #}
+               {# Ganti @click dengan onclick biasa #}
+               <button type="button" onclick="openPublishModal({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.id_pemilik.username|escapejs }}', '{{ project.kategori.first.nama|default:"N/A"|escapejs }}', '{{ project.kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }}', '{{ project.final_decision|default:"-"|escapejs }}', '{{ project.description|escapejs|truncatechars:150 }}', '{{ project.kurasi.id_kurator_dosen.get_full_name|default:"N/A"|escapejs }}', '{{ project.kurasi.id_kurator_mitra.get_full_name|default:"N/A"|escapejs }}' )" class="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md hover:bg-gray-200 transition-colors">
+                  <i class="fas fa-eye mr-1"></i> Preview
+              </button>
+              {# Tombol Publikasikan #}
+              <button
+                type="button"
+                {# Ganti @click dengan onclick biasa #}
+                onclick="openPublishModal({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.id_pemilik.username|escapejs }}', '{{ project.kategori.first.nama|default:"N/A"|escapejs }}', '{{ project.kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }}', '{{ project.final_decision|default:"-"|escapejs }}', '{{ project.description|escapejs|truncatechars:150 }}', '{{ project.kurasi.id_kurator_dosen.get_full_name|default:"N/A"|escapejs }}', '{{ project.kurasi.id_kurator_mitra.get_full_name|default:"N/A"|escapejs }}' )"
+                class="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors"
+              >
+                <i class="fas fa-upload mr-1"></i> Publikasikan
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
+              Tidak ada produk yang siap untuk dipublikasikan.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+   <!-- Tabel Produk Sudah Terpublikasi -->
+   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <!-- ... (Kode tabel produk terpublikasi tetap sama) ... -->
+     <div class="px-6 py-4 border-b">
+      <h2 class="text-lg font-semibold">Produk yang Sudah Terpublikasi ({{ projects_published.count }})</h2>
+    </div>
+    <div class="overflow-x-auto">
+       <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+           <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Produk</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahasiswa</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Akhir</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Publikasi</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+          </tr>
+        </thead>
+         <tbody class="bg-white divide-y divide-gray-200">
+           {% for project in projects_published %}
+           <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ project.title }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ project.id_pemilik.username }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold
+                 {% if project.kurasi.nilai_akhir_final >= 3.5 %} text-green-600
+                 {% elif project.kurasi.nilai_akhir_final >= 2.75 %} text-blue-600
+                 {% else %} text-gray-600 {% endif %}">
+                 {{ project.kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }} / 4.00
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ project.updated_at|date:"d M Y" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                   <a href="{% url 'catalog' %}" target="_blank" class="px-3 py-1.5 bg-green-100 text-green-700 text-xs font-medium rounded-md hover:bg-green-200 transition-colors">
+                      <i class="fas fa-eye mr-1"></i> Lihat di Katalog
+                   </a>
+                   {# TODO: Tambahkan tombol Unpublish jika perlu #}
+              </td>
+           </tr>
+           {% empty %}
+             <tr>
+               <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">
+                 Belum ada produk yang dipublikasi ke katalog.
+               </td>
+             </tr>
+           {% endfor %}
+         </tbody>
+       </table>
+    </div>
+   </div>
+
+
+  <!-- === MODAL KONFIRMASI PUBLIKASI (Gunakan ID dan class modal-vjs) === -->
+  <div id="publishModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-50 items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+      <div id="publishModalBox" class="modal-box-vjs bg-white rounded-xl max-w-2xl w-full shadow-xl transform transition-all max-h-[90vh] flex flex-col">
+          <!-- Header Modal -->
+          <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-xl z-10">
+              <h2 class="text-xl font-semibold" id="publishModalTitle">Konfirmasi Publikasi</h2>
+              {# Ganti @click dengan onclick biasa #}
+              <button onclick="closePublishModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          </div>
+
+          <!-- Form Konfirmasi -->
+          {# Action di set oleh JS #}
+          <form id="publishForm" method="POST" action="#" class="flex flex-col flex-grow">
+               {% csrf_token %}
+               <!-- Konten Modal (Scrollable) -->
+              <div class="p-6 space-y-5 overflow-y-auto flex-grow">
+                  <!-- Detail Singkat (Gunakan ID) -->
+                   <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                        <div><span class="text-gray-500">Mahasiswa:</span> <strong class="block text-gray-800" id="modalStudentName"></strong></div>
+                        <div><span class="text-gray-500">Kategori:</span> <strong class="block text-gray-800" id="modalCategoryName"></strong></div>
+                        <div><span class="text-gray-500">Nilai Akhir:</span> <strong class="block text-gray-800" id="modalNilaiAkhir"></strong></div>
+                        <div><span class="text-gray-500">Status Keputusan:</span> <strong class="block text-gray-800" id="modalDecisionStatus"></strong></div>
+                        <div class="col-span-2"><span class="text-gray-500">Deskripsi:</span> <p class="text-xs text-gray-700 mt-1 line-clamp-3" id="modalDescription"></p></div>
+                   </div>
+
+                  <!-- Preview Badge Kurasi (Gunakan ID) -->
+                   <div>
+                       <h3 class="text-sm font-medium text-gray-600 mb-2">Badge Kurasi (akan ditampilkan di katalog)</h3>
+                       <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 bg-purple-50">
+                           <div class="flex items-center gap-3">
+                               <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white text-lg ring-4 ring-purple-200">
+                                   <i class="fas fa-award"></i>
+                               </div>
+                               <div>
+                                   <p class="font-semibold text-purple-800">Produk Terkurasi</p>
+                                   <span id="modalBadgeNilai" class="mt-1 px-2 py-0.5 inline-block text-xs font-semibold rounded-full"></span>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Konfirmasi Checkbox -->
+                   <div class="bg-gray-100 p-4 rounded-lg border">
+                       {# Render checkbox dari form Django #}
+                       <label for="{{ confirmation_form.confirm_publish.id_for_label }}" class="flex items-start cursor-pointer">
+                          {{ confirmation_form.confirm_publish }}
+                          <span class="ml-2 text-sm text-gray-700 select-none">
+                            <strong>Saya konfirmasi untuk mempublikasikan produk ini.</strong><br>
+                            Produk akan langsung muncul di Katalog Digital Gagasan PNJ dan dapat diakses oleh publik. Pastikan semua informasi sudah benar sebelum publikasi.
+                          </span>
+                       </label>
+                       {% if confirmation_form.confirm_publish.errors %} {# Mungkin tidak tampil #}
+                           <p class="text-xs text-red-600 mt-2">{{ confirmation_form.confirm_publish.errors|striptags }}</p>
+                       {% endif %}
+                       {# Simpan referensi ke checkbox untuk JS #}
+                       <input type="checkbox" id="confirmCheckboxRef" class="hidden">
+                   </div>
+              </div>
+              <!-- Footer Modal -->
+              <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl sticky bottom-0">
+                   {# Ganti @click dengan onclick biasa #}
+                  <button type="button" onclick="closePublishModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+                      Batal
+                  </button>
+                   {# Tombol submit perlu ID #}
+                   <button type="submit" id="publishSubmitButton" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5 disabled:opacity-50" disabled>
+                      <i class="fas fa-paper-plane"></i> Publikasikan ke Katalog
+                  </button>
+              </div>
+          </form>
+      </div>
+  </div>
+  <!-- === AKHIR MODAL === -->
+
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    // === VANILLA JAVASCRIPT UNTUK MODAL PUBLIKASI ===
+
+    // Ambil elemen-elemen modal
+    const publishModal = document.getElementById('publishModal');
+    const publishModalBox = document.getElementById('publishModalBox');
+    const publishModalTitle = document.getElementById('publishModalTitle');
+    const modalStudentName = document.getElementById('modalStudentName');
+    const modalCategoryName = document.getElementById('modalCategoryName');
+    const modalNilaiAkhir = document.getElementById('modalNilaiAkhir');
+    const modalDecisionStatus = document.getElementById('modalDecisionStatus');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalBadgeNilai = document.getElementById('modalBadgeNilai');
+    const publishForm = document.getElementById('publishForm');
+    const confirmCheckbox = document.getElementById('{{ confirmation_form.confirm_publish.id_for_label }}'); // ID dari Django
+    const publishSubmitButton = document.getElementById('publishSubmitButton');
+
+    // Fungsi untuk membuka modal
+    function openPublishModal(projectId, title, studentName, categoryName, nilaiAkhir, decision, description, kuratorDosen, kuratorMitra) {
+        // Isi data ke elemen modal
+        publishModalTitle.textContent = title || 'Konfirmasi Publikasi';
+        modalStudentName.textContent = studentName || '-';
+        modalCategoryName.textContent = categoryName || '-';
+
+        // Format dan tampilkan nilai akhir + warna
+        const nilaiFloat = parseFloat(nilaiAkhir);
+        modalNilaiAkhir.textContent = !isNaN(nilaiFloat) ? `${nilaiFloat.toFixed(2)} / 4.00` : '-';
+        modalNilaiAkhir.className = 'block text-gray-800'; // Reset class
+        if (nilaiFloat >= 3.5) modalNilaiAkhir.classList.add('text-green-600');
+        else if (nilaiFloat >= 2.75) modalNilaiAkhir.classList.add('text-blue-600');
+        else modalNilaiAkhir.classList.add('text-gray-600'); // Default
+
+        modalDecisionStatus.textContent = decision || '-';
+        modalDecisionStatus.className = 'block text-gray-800'; // Reset class
+        if (decision === 'Sangat Layak') modalDecisionStatus.classList.add('text-green-600');
+        else if (decision === 'Revisi Minor') modalDecisionStatus.classList.add('text-blue-600');
+
+        modalDescription.textContent = description || '-';
+
+        // Badge Nilai
+        if (!isNaN(nilaiFloat)) {
+            modalBadgeNilai.textContent = `Nilai: ${nilaiFloat.toFixed(2)} / 4.00`;
+            modalBadgeNilai.className = 'mt-1 px-2 py-0.5 inline-block text-xs font-semibold rounded-full '; // Reset
+            if (nilaiFloat >= 3.5) modalBadgeNilai.classList.add('text-green-800', 'bg-green-200');
+            else if (nilaiFloat >= 2.75) modalBadgeNilai.classList.add('text-blue-800', 'bg-blue-200');
+            else modalBadgeNilai.classList.add('hidden'); // Sembunyikan jika < 2.75
+        } else {
+            modalBadgeNilai.textContent = '';
+            modalBadgeNilai.classList.add('hidden');
+        }
+
+
+        // Set action form
+        publishForm.action = `/publish/${projectId}/`;
+
+        // Reset checkbox dan tombol submit
+        if (confirmCheckbox) confirmCheckbox.checked = false;
+        publishSubmitButton.disabled = true;
+
+        // Tampilkan modal
+        publishModal.classList.add('flex');
+    }
+
+    // Fungsi untuk menutup modal
+    function closePublishModal() {
+        publishModal.classList.remove('flex');
+        // Optional: Reset form saat ditutup
+        if (publishForm) publishForm.action = '#';
+        if (confirmCheckbox) confirmCheckbox.checked = false;
+        publishSubmitButton.disabled = true;
+    }
+
+     // Event listener untuk menutup modal saat klik background
+    publishModal.addEventListener('click', function(event) {
+        if (event.target === publishModal) {
+            closePublishModal();
+        }
+    });
+
+     // Event listener untuk checkbox konfirmasi -> enable/disable tombol submit
+    if (confirmCheckbox) {
+        confirmCheckbox.addEventListener('change', function() {
+            publishSubmitButton.disabled = !this.checked;
+        });
+    }
+
+</script>
+{% endblock %}
+

@@ -35,16 +35,6 @@
   }
 }
 
-/* Style Tombol Utama */
-.btn-primary {
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-}
-
 /* Animasi Fade In */
 .fade-in {
   animation: fadeIn 0.6s ease-in;
@@ -61,16 +51,7 @@
   }
 }
 
-/* Style untuk scroll animation di JS */
-.scroll-animate {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s ease;
-}
-
-/* ... [Kode CSS sebelumnya untuk Inter, float, fadeIn] ... */
-
-/* Tambahan untuk Halaman Login/Register */
+/* Tambahan untuk Halaman Register */
 
 .spinner {
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -83,7 +64,7 @@
 
 @keyframes spin {
   to {
-    transform: rotate(360deg);
+    transform: rotate(306deg);
   }
 }
 

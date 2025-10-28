@@ -1,0 +1,490 @@
+{% extends "_base_dashboard.html" %}
+{% load static %}
+{% load repository_extras %} {# Muat custom tag (get_item masih dipakai) #}
+
+{% block title %}Tahap 2: Monitoring Penilaian - Gagasan{% endblock %}
+
+{% block dashboard_content %}
+<div class="p-8"> {# Hapus x-data #}
+  <!-- Header Halaman -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+      <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Tahap 2: Monitoring Penilaian</h1>
+      <p class="text-sm text-gray-600">Pantau progres penilaian produk oleh kurator dosen dan industri.</p>
+    </div>
+  </div>
+
+  <!-- Indikator Tahapan -->
+   <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 text-xs text-center">
+      <div class="text-green-600"> <!-- Seleksi -->
+          <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Seleksi Proyek
+      </div>
+      <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+      <div class="text-green-600"> <!-- Penugasan -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Penugasan Kurator
+      </div>
+      <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
+      <div class="text-purple-600 font-semibold"> <!-- Monitoring -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-purple-100 ring-2 ring-purple-300 flex items-center justify-center mb-1"><i class="fas fa-chart-line"></i></div> Monitoring Penilaian
+      </div>
+       <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+       <div class="text-gray-400"> <!-- Review -->
+           <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-gavel"></i></div> Review & Keputusan
+      </div>
+       <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+      <div class="text-gray-400"> <!-- Publikasi -->
+          <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-upload"></i></div> Publikasi Katalog
+      </div>
+  </div>
+
+   <!-- Info Langkah Selanjutnya -->
+   <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 mb-6 shadow-sm">
+    <i class="fas fa-arrow-right text-green-600 mt-1"></i>
+    <div>
+      <h3 class="font-semibold text-green-800">Langkah Selanjutnya</h3>
+      <p class="text-sm text-green-700">Setelah penilaian selesai (kedua kurator), buat keputusan final di <strong>Tahap 3: Review & Keputusan</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Alert Deadline (Contoh Statis) -->
+  <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3 mb-8 shadow-sm">
+    <i class="fas fa-exclamation-triangle text-orange-500 mt-1"></i>
+    <div>
+      <h3 class="font-semibold text-orange-800">Peringatan Deadline</h3>
+      <p class="text-sm text-orange-700">Terdapat produk yang mendekati deadline penilaian. Harap hubungi kurator terkait untuk memastikan penilaian selesai tepat waktu.</p>
+    </div>
+  </div>
+
+  <!-- Statistik Monitoring -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-500">Total Dalam Penilaian</p>
+            <i class="fas fa-tasks text-gray-400"></i>
+        </div>
+        <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_in_assessment }}</p>
+    </div>
+     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+         <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-500">Penilaian Selesai</p>
+            <i class="fas fa-check-double text-green-500"></i>
+        </div>
+        <p class="text-3xl font-bold text-green-600 mt-2">{{ assessment_complete_count }}</p>
+    </div>
+     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+         <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-500">Sedang Berlangsung</p>
+             <i class="fas fa-spinner fa-spin text-blue-500"></i>
+        </div>
+        <p class="text-3xl font-bold text-blue-600 mt-2">{{ assessment_ongoing_count }}</p>
+    </div>
+     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-500">Belum Dimulai (?)</p>
+            <i class="far fa-clock text-yellow-500"></i>
+        </div>
+        <p class="text-3xl font-bold text-yellow-600 mt-2">0</p>
+    </div>
+  </div>
+
+
+   <!-- Search -->
+  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+     <div class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input type="text" placeholder="Cari produk dalam penilaian..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
+      </div>
+  </div>
+
+  <!-- Tampilkan Pesan Sukses/Error -->
+  {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+         <div class="p-4 rounded-md text-sm {% if message.tags == 'success' %} bg-green-50 border border-green-200 text-green-800 {% elif message.tags == 'error' %} bg-red-50 border border-red-200 text-red-800 {% else %} bg-blue-50 border border-blue-200 text-blue-800 {% endif %}">
+             {{ message }}
+         </div>
+        {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Tabel Daftar Produk Dalam Penilaian -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b">
+      <h2 class="text-lg font-semibold">Daftar Produk Dalam Penilaian ({{ projects_in_assessment|length }})</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Produk</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Kurator</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Waktu</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for kurasi in projects_in_assessment %}
+            {% with project=kurasi.id_produk %}
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ project.title }}</div>
+                  <div class="text-xs text-gray-500">{{ project.id_pemilik.username }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
+                   {# Status Dosen #}
+                   <div>
+                       <i class="fas fa-user-tie mr-1"></i> Dosen:
+                       <span class="font-medium
+                           {% if kurasi.tanggal_selesai_dosen %} text-green-600 {% else %} text-yellow-600 {% endif %}">
+                           {% if kurasi.tanggal_selesai_dosen %} Selesai {% else %} Menunggu {% endif %}
+                       </span>
+                   </div>
+                    {# Status Mitra #}
+                   <div class="mt-1">
+                       <i class="fas fa-building mr-1"></i> Industri:
+                       <span class="font-medium
+                           {% if kurasi.tanggal_selesai_mitra %} text-green-600 {% else %} text-yellow-600 {% endif %}">
+                          {% if kurasi.tanggal_selesai_mitra %} Selesai {% else %} Menunggu {% endif %}
+                       </span>
+                   </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {# --- PROGRESS BAR (Nilai dari view) --- #}
+                  <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                      <div class="bg-purple-600 h-1.5 rounded-full" style="width: {{ kurasi.progress_percentage }}%"></div>
+                  </div>
+                  <span class="text-xs">{{ kurasi.progress_percentage }}% selesai</span>
+                  {# --- AKHIR PROGRESS BAR --- #}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  {# --- PERBAIKAN SISA WAKTU (Hapus filter add_days) --- #}
+                  {# Kita hanya butuh tanggal penugasan, perhitungan di JS #}
+                  {% with assigned_date_str=kurasi.tanggal_penugasan|date:"Y-m-d" %}
+                     {# Placeholder untuk JS mengisi sisa waktu #}
+                     <span class="time-left-placeholder" data-assigned-date="{{ assigned_date_str }}">Memuat...</span>
+                  {% endwith %}
+                  {# --- AKHIR PERBAIKAN SISA WAKTU --- #}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <!-- Tombol Detail (gunakan onclick biasa) -->
+                <button
+                  type="button"
+                  onclick="openMonitoringDetailModal({{ kurasi.id }})"
+                  class="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-md hover:bg-blue-200 transition-colors"
+                >
+                  <i class="fas fa-info-circle mr-1"></i> Detail
+                </button>
+              </td>
+            </tr>
+            {% endwith %}
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">
+              Tidak ada produk yang sedang dalam proses penilaian.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+ <!-- === MODAL DETAIL MONITORING (Gunakan ID dan class modal-vjs) === -->
+ <div id="monitoringModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-50 items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+      <div id="monitoringModalBox" class="modal-box-vjs bg-white rounded-xl max-w-lg w-full shadow-xl transform transition-all max-h-[90vh] flex flex-col">
+          <!-- Header Modal -->
+          <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-xl z-10">
+              <h2 class="text-xl font-semibold" id="monitoringModalTitle">Memuat...</h2>
+              <button onclick="closeMonitoringDetailModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          </div>
+           <!-- Konten Modal (Scrollable) -->
+          <div id="monitoringModalContent" class="p-6 space-y-5 overflow-y-auto flex-grow">
+               <!-- Loading State -->
+               <div id="monitoringModalLoading" class="text-center py-10">
+                   <i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i>
+                   <p class="mt-3 text-gray-500">Memuat detail progress...</p>
+               </div>
+               <!-- Konten Detail (Sembunyikan awal) -->
+                <div id="monitoringModalDetail" class="hidden space-y-5">
+                     <!-- Info Dasar (Gunakan ID) -->
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                        <div><span class="text-gray-500">Mahasiswa:</span> <strong class="block text-gray-800" id="modalDetailOwner"></strong></div>
+                        <div><span class="text-gray-500">Kategori:</span> <strong class="block text-gray-800" id="modalDetailCategory"></strong></div>
+                        <div><span class="text-gray-500">Tanggal Penugasan:</span> <strong class="block text-gray-800" id="modalDetailAssignedDate"></strong></div>
+                        <div><span class="text-gray-500">Deadline Penilaian:</span> <strong class="block text-gray-800" id="modalDetailDeadline"></strong></div>
+                    </div>
+                    <!-- Progress Keseluruhan (Gunakan ID) -->
+                     <div>
+                         <label class="block text-sm font-medium text-gray-700 mb-1">Progress Keseluruhan</label>
+                         <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="modalDetailProgressBar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
+                         </div>
+                         <p class="text-xs text-gray-500 mt-1" id="modalDetailProgressText">0% selesai</p>
+                     </div>
+                     <!-- Status Kurator (Gunakan ID) -->
+                     <div>
+                         <h3 class="text-md font-semibold mb-2 text-gray-800">Status Kurator</h3>
+                         <div class="space-y-3">
+                             <!-- Kurator Dosen -->
+                             <div class="bg-gray-50 p-4 rounded-lg border flex justify-between items-center">
+                                 <div>
+                                     <p class="font-medium" id="modalDetailDosenName"></p>
+                                     <p class="text-xs text-gray-500">Kurator Dosen</p>
+                                 </div>
+                                 <span class="px-2.5 py-0.5 text-xs font-medium rounded-full" id="modalDetailDosenStatus"></span>
+                             </div>
+                              <!-- Kurator Mitra -->
+                             <div class="bg-gray-50 p-4 rounded-lg border flex justify-between items-center">
+                                 <div>
+                                     <p class="font-medium" id="modalDetailMitraName"></p>
+                                     <p class="text-xs text-gray-500">Kurator Industri</p>
+                                 </div>
+                                  <span class="px-2.5 py-0.5 text-xs font-medium rounded-full" id="modalDetailMitraStatus"></span>
+                             </div>
+                         </div>
+                     </div>
+                     <!-- Sisa Waktu (Gunakan ID) -->
+                      <div class="bg-gray-50 p-4 rounded-lg border text-center">
+                          <p class="text-sm font-medium text-gray-700">Sisa Waktu Penilaian</p>
+                          <p class="text-2xl font-bold mt-1" id="modalDetailDaysLeftText"></p>
+                          <span class="px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block hidden" id="modalDetailDeadlineBadge"></span>
+                      </div>
+                </div>
+          </div>
+          <!-- Footer Modal -->
+          <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl sticky bottom-0">
+              <button type="button" onclick="closeMonitoringDetailModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+                  Tutup
+              </button>
+          </div>
+      </div>
+  </div>
+ <!-- === AKHIR MODAL === -->
+
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    // === VANILLA JAVASCRIPT UNTUK MODAL MONITORING ===
+
+    // Ambil elemen modal
+    const monitoringModal = document.getElementById('monitoringModal');
+    const monitoringModalBox = document.getElementById('monitoringModalBox');
+    const monitoringModalTitle = document.getElementById('monitoringModalTitle');
+    const monitoringModalContent = document.getElementById('monitoringModalContent');
+    const monitoringModalLoading = document.getElementById('monitoringModalLoading');
+    const monitoringModalDetail = document.getElementById('monitoringModalDetail');
+    // Elemen detail di dalam modal
+    const modalDetailOwner = document.getElementById('modalDetailOwner');
+    const modalDetailCategory = document.getElementById('modalDetailCategory');
+    const modalDetailAssignedDate = document.getElementById('modalDetailAssignedDate');
+    const modalDetailDeadline = document.getElementById('modalDetailDeadline');
+    const modalDetailProgressBar = document.getElementById('modalDetailProgressBar');
+    const modalDetailProgressText = document.getElementById('modalDetailProgressText');
+    const modalDetailDosenName = document.getElementById('modalDetailDosenName');
+    const modalDetailDosenStatus = document.getElementById('modalDetailDosenStatus');
+    const modalDetailMitraName = document.getElementById('modalDetailMitraName');
+    const modalDetailMitraStatus = document.getElementById('modalDetailMitraStatus');
+    const modalDetailDaysLeftText = document.getElementById('modalDetailDaysLeftText');
+    const modalDetailDeadlineBadge = document.getElementById('modalDetailDeadlineBadge');
+
+
+    // Fungsi helper format tanggal
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "-";
+        try {
+            const date = new Date(dateStr);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        } catch (e) { return "Invalid Date"; }
+    };
+
+     // Fungsi helper hitung sisa hari
+     const calculateDaysLeft = (assignedDateStr) => {
+        let daysLeft = null;
+        let deadlineDate = null;
+        if (assignedDateStr) {
+            try {
+                const assignedDate = new Date(assignedDateStr);
+                deadlineDate = new Date(assignedDate);
+                deadlineDate.setDate(assignedDate.getDate() + 10); // Tambah 10 hari
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const deadlineCheckDate = new Date(deadlineDate);
+                deadlineCheckDate.setHours(0, 0, 0, 0);
+                const diffTime = deadlineCheckDate - today;
+                daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            } catch (e) { console.error("Error calculating deadline", e); }
+        }
+        return { daysLeft, deadlineDate }; // Kembalikan objek
+     };
+
+    // Fungsi untuk membuka modal dan fetch data
+    async function openMonitoringDetailModal(kurasiId) {
+        monitoringModal.classList.add('flex'); // Tampilkan modal
+        monitoringModalLoading.classList.remove('hidden');
+        monitoringModalDetail.classList.add('hidden');
+        monitoringModalTitle.textContent = 'Memuat...';
+
+        try {
+            const url = `/curation/monitoring/details/${kurasiId}/`;
+            const response = await fetch(url);
+            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+            const data = await response.json();
+
+            // Isi data ke elemen modal
+            monitoringModalTitle.textContent = data.project.title || 'Detail Progress';
+            modalDetailOwner.textContent = data.project.owner || '-';
+            modalDetailCategory.textContent = data.project.category || '-';
+
+            const assignedDateStr = data.kurasi.tanggal_penugasan;
+            modalDetailAssignedDate.textContent = formatDate(assignedDateStr);
+
+            // Hitung Deadline & Sisa Hari menggunakan fungsi helper
+            const { daysLeft, deadlineDate } = calculateDaysLeft(assignedDateStr);
+            modalDetailDeadline.textContent = deadlineDate ? formatDate(deadlineDate) : "N/A";
+
+            // Progress Bar
+            let progress = 0;
+            if (data.kurasi.tanggal_selesai_dosen) progress += 50;
+            if (data.kurasi.tanggal_selesai_mitra) progress += 50;
+            modalDetailProgressBar.style.width = `${progress}%`;
+            modalDetailProgressText.textContent = `${progress}% selesai`;
+
+            // Status Kurator Dosen & Mitra (logika sama seperti sebelumnya)
+            modalDetailDosenName.textContent = data.kurasi.kurator_dosen_name || 'Dosen Belum Ditugaskan';
+            modalDetailDosenStatus.textContent = data.kurasi.tanggal_selesai_dosen ? 'Selesai' : 'Menunggu';
+            modalDetailDosenStatus.className = 'px-2.5 py-0.5 text-xs font-medium rounded-full ';
+            modalDetailDosenStatus.classList.add(...(data.kurasi.tanggal_selesai_dosen ? ['bg-green-100', 'text-green-800'] : ['bg-yellow-100', 'text-yellow-800']));
+
+            modalDetailMitraName.textContent = data.kurasi.kurator_mitra_name || 'Mitra Belum Ditugaskan';
+            modalDetailMitraStatus.textContent = data.kurasi.tanggal_selesai_mitra ? 'Selesai' : 'Menunggu';
+            modalDetailMitraStatus.className = 'px-2.5 py-0.5 text-xs font-medium rounded-full ';
+            modalDetailMitraStatus.classList.add(...(data.kurasi.tanggal_selesai_mitra ? ['bg-green-100', 'text-green-800'] : ['bg-yellow-100', 'text-yellow-800']));
+
+
+            // Sisa Waktu
+            if (daysLeft != null) {
+                modalDetailDaysLeftText.textContent = `${Math.abs(daysLeft)} Hari`;
+                modalDetailDaysLeftText.className = 'text-2xl font-bold mt-1 ';
+                if (daysLeft < 0) modalDetailDaysLeftText.classList.add('text-red-600');
+                else if (daysLeft <= 3) modalDetailDaysLeftText.classList.add('text-orange-600');
+                else modalDetailDaysLeftText.classList.add('text-gray-800');
+
+                modalDetailDeadlineBadge.className = 'px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block ';
+                if (daysLeft < 0) {
+                    modalDetailDeadlineBadge.classList.add('bg-red-100', 'text-red-800');
+                    modalDetailDeadlineBadge.textContent = 'Terlambat';
+                } else if (daysLeft <= 3) {
+                    modalDetailDeadlineBadge.classList.add('bg-orange-100', 'text-orange-800');
+                    modalDetailDeadlineBadge.textContent = 'Mendekati Deadline';
+                } else {
+                    modalDetailDeadlineBadge.classList.add('hidden');
+                }
+            } else {
+                modalDetailDaysLeftText.textContent = '- Hari';
+                modalDetailDaysLeftText.className = 'text-2xl font-bold mt-1 text-gray-500';
+                modalDetailDeadlineBadge.classList.add('hidden');
+            }
+
+            monitoringModalLoading.classList.add('hidden');
+            monitoringModalDetail.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error fetching monitoring details:', error);
+            monitoringModalTitle.textContent = 'Error Memuat Data';
+            monitoringModalContent.innerHTML = `<div class="p-6 text-red-600">Gagal mengambil detail progress: ${error.message}. Coba refresh halaman.</div>`;
+            monitoringModalLoading.classList.add('hidden');
+            monitoringModalDetail.classList.add('hidden');
+        }
+    }
+
+    // Fungsi untuk menutup modal
+    function closeMonitoringDetailModal() {
+        monitoringModal.classList.remove('flex');
+        // Reset konten untuk loading berikutnya
+         monitoringModalLoading.classList.remove('hidden');
+         monitoringModalDetail.classList.add('hidden');
+         // Kembalikan innerHTML content jika diubah saat error
+         monitoringModalContent.innerHTML = `
+             <div id="monitoringModalLoading" class="text-center py-10">...</div>
+             <div id="monitoringModalDetail" class="hidden space-y-5">...</div>
+         `;
+         // Re-assign variabel elemen detail (karena innerHTML diubah)
+         // (Atau cara lebih baik: jangan ubah innerHTML container utama saat error)
+    }
+
+     // Event listener untuk menutup modal saat klik background
+    monitoringModal.addEventListener('click', function(event) {
+        if (event.target === monitoringModal) {
+            closeMonitoringDetailModal();
+        }
+    });
+
+    // --- PERBAIKAN SISA WAKTU DI TABEL ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const placeholders = document.querySelectorAll('.time-left-placeholder');
+        placeholders.forEach(span => {
+            const assignedDateStr = span.getAttribute('data-assigned-date');
+            if (assignedDateStr) {
+                // Parse tanggal YYYY-MM-DD dari Django
+                 const assignedDateParts = assignedDateStr.split('-');
+                 if(assignedDateParts.length === 3) {
+                     const assignedYear = parseInt(assignedDateParts[0]);
+                     const assignedMonth = parseInt(assignedDateParts[1]) - 1; // Bulan JS 0-indexed
+                     const assignedDay = parseInt(assignedDateParts[2]);
+
+                     const assignedDate = new Date(assignedYear, assignedMonth, assignedDay);
+                     const deadlineDate = new Date(assignedDate);
+                     deadlineDate.setDate(assignedDate.getDate() + 10);
+
+                     const today = new Date();
+                     today.setHours(0, 0, 0, 0);
+                     deadlineDate.setHours(0, 0, 0, 0);
+                     const diffTime = deadlineDate - today;
+                     const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                     span.classList.remove('text-gray-400'); // Hapus style default
+                     if (daysLeft < 0) {
+                         span.textContent = 'Terlambat';
+                         span.classList.add('text-red-600');
+                     } else if (daysLeft == 0) {
+                         span.textContent = 'Hari Ini';
+                         span.classList.add('text-orange-600');
+                     } else {
+                         span.textContent = `${daysLeft} hari`;
+                         span.classList.add('text-gray-700');
+                     }
+                 } else {
+                      span.textContent = '-';
+                      span.classList.add('text-gray-400');
+                 }
+
+            } else {
+                span.textContent = '-';
+                span.classList.add('text-gray-400');
+            }
+        });
+    });
+    // --- AKHIR PERBAIKAN SISA WAKTU DI TABEL ---
+
+</script>
+
+{# Template Tags Tambahan #}
+{% block template_tags %}
+{# Definisikan custom tag jika diperlukan #}
+{# Pastikan tag add_days, parse_datetime, timeuntil_days, timediff ada di repository_extras.py #}
+{% endblock %}
+
+{% endblock %}
+

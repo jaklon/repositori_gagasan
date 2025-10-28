@@ -3,18 +3,33 @@ from django.contrib import messages
 from .models import CustomUser
 # Import fungsi-fungsi autentikasi
 from django.contrib.auth import authenticate, login, logout
+# --- TAMBAHKAN IMPORT INI ---
+from django.contrib.auth.decorators import login_required
+
 
 def login_view(request):
     # Logika untuk memproses data login (method POST)
     if request.method == 'POST':
-        username = request.POST.get('username')
+        # --- PERUBAHAN 1: Ambil 'email' dari form, bukan 'username' ---
+        email = request.POST.get('username') # Biarkan 'username' karena <input> di login.html masih name="username"
         password = request.POST.get('password')
 
-        if not username or not password:
+        if not email or not password:
             messages.error(request, 'Email dan Password harus diisi!')
             return redirect('login')
 
-        # 'authenticate' mengecek data ke database
+        # --- PERUBAHAN 2: Cari user berdasarkan email ---
+        try:
+            # Coba temukan user berdasarkan email
+            user_obj = CustomUser.objects.get(email=email)
+            # Dapatkan username dari user yang ditemukan
+            username = user_obj.username
+        except CustomUser.DoesNotExist:
+            # Jika email tidak ditemukan, kirim pesan error
+            messages.error(request, 'Email atau Password salah!')
+            return redirect('login')
+        
+        # --- PERUBAHAN 3: Authenticate menggunakan username yang sudah kita temukan ---
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -22,11 +37,22 @@ def login_view(request):
             login(request, user)
             messages.success(request, f'Selamat datang kembali, {user.username}!')
             
-            # TODO: Nanti kita arahkan ke dashboard yang sesuai
-            # Untuk tes, kita bisa arahkan ke halaman admin
-            return redirect('admin:index') 
+            # --- LOGIKA REDIRECT (Sudah benar) ---
+            if user.peran == 'mahasiswa':
+                return redirect('dashboard_mahasiswa')
+            elif user.peran == 'dosen':
+                return redirect('dashboard_dosen')
+            elif user.peran == 'mitra':
+                return redirect('dashboard_mitra')
+            elif user.peran == 'unit_bisnis':
+                return redirect('dashboard_unit_bisnis')
+            elif user.is_superuser:
+                return redirect('admin:index')
+            else:
+                return redirect('catalog')
+            
         else:
-            # Jika user tidak valid
+            # Jika user tidak valid (password salah)
             messages.error(request, 'Email atau Password salah!')
             return redirect('login')
     
@@ -69,5 +95,12 @@ def register_view(request):
 
     # Jika method adalah GET, cukup tampilkan halaman registrasi
     else:
-        # TODO: Kita perlu membuat file 'register.html'
         return render(request, 'register.html')
+
+# --- TAMBAHKAN FUNGSI LOGOUT BARU ---
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.info(request, "Anda telah berhasil logout.")
+    return redirect('login')
+

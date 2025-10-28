@@ -1,0 +1,164 @@
+{% extends "_base_dashboard.html" %} {% load static %} {% block title%}
+Dashboard Unit Bisnis - Gagasan{% endblock %} {% block dashboard_content %}
+<div class="p-8">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-6">
+    <div
+      class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+    >
+      <!-- Menggunakan ikon Font Awesome yang lebih sesuai -->
+      <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard Unit Bisnis</h1>
+      <p class="text-sm text-gray-600">
+        Selamat datang, {{ request.user.username }}!
+      </p>
+    </div>
+  </div>
+
+  <!-- Statistik (dari views.py) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div
+      class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4"
+    >
+      <div
+        class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center"
+      >
+        <i class="fas fa-hourglass-half text-yellow-600"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Proyek Menunggu Seleksi</p>
+        <p class="text-3xl font-bold text-gray-900">{{ proyek_menunggu }}</p>
+      </div>
+    </div>
+    <div
+      class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4"
+    >
+      <div
+        class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+      >
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">
+          Proyek Terkurasi (Dipublikasikan)
+        </p>
+        <p class="text-3xl font-bold text-green-600">{{ proyek_terkurasi }}</p>
+      </div>
+    </div>
+    <div
+      class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4"
+    >
+      <div
+        class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"
+      >
+        <i class="fas fa-folder text-blue-600"></i>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-500">Total Semua Proyek</p>
+        <p class="text-3xl font-bold text-gray-900">{{ total_proyek }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alur Kerja Kurasi -->
+  <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
+    <h2 class="text-xl font-semibold mb-4">Alur Kerja Kurasi</h2>
+    <p class="text-gray-600 mb-6">
+      Gunakan link di bawah ini untuk mengelola alur kurasi proyek sesuai
+      panduan.
+    </p>
+    <div class="space-y-4">
+      <!-- Tautan ini sekarang menunjuk ke URL 'repository' yang benar -->
+      <a
+        href="{% url 'repository' %}"
+        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border border-purple-200 ring-2 ring-purple-500 transition-all"
+      >
+        <div
+          class="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center text-purple-600 font-bold"
+        >
+          1
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg text-purple-700">
+            Repository (Seleksi Awal)
+          </h3>
+          <p class="text-sm text-gray-500">
+            Tinjau semua proyek yang masuk dan pilih untuk kurasi.
+          </p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-400 ml-auto"></i>
+      </a>
+      <a
+        href="#"
+        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all"
+      >
+        <div
+          class="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold"
+        >
+          2
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Penugasan Kurator</h3>
+          <p class="text-sm text-gray-500">
+            Tugaskan Dosen dan Mitra untuk menilai proyek terpilih.
+          </p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-400 ml-auto opacity-50"></i>
+      </a>
+      <a
+        href="#"
+        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all"
+      >
+        <div
+          class="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold"
+        >
+          3
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Monitoring Penilaian</h3>
+          <p class="text-sm text-gray-500">
+            Pantau progres penilaian dari semua kurator.
+          </p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-400 ml-auto opacity-50"></i>
+      </a>
+      <a
+        href="#"
+        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all"
+      >
+        <div
+          class="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold"
+        >
+          4
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Review & Keputusan</h3>
+          <p class="text-sm text-gray-500">
+            Tinjau nilai akhir dan berikan keputusan (Layak/Tidak).
+          </p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-400 ml-auto opacity-50"></i>
+      </a>
+      <a
+        href="#"
+        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all"
+      >
+        <div
+          class="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold"
+        >
+          5
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">Publikasi Katalog</h3>
+          <p class="text-sm text-gray-500">
+            Publikasikan proyek yang layak ke katalog publik.
+          </p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-400 ml-auto opacity-50"></i>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

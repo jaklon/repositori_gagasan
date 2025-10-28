@@ -32,6 +32,13 @@
       .animate-spin {
         animation: spin 1s linear infinite;
       }
+      /* Fokus Input */
+      input:focus, select:focus {
+          outline: none;
+          /* purple-600 with 10% opacity */
+          border-color: rgb(147, 51, 234);
+          box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+      }
     </style>
   </head>
   <body
@@ -47,7 +54,7 @@
 
     <div class="absolute top-6 left-6 z-10">
       <a
-        href="#"
+        href="{% url 'catalog' %}" <!-- Mengarah ke catalog -->
         class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
       >
         <i class="fas fa-arrow-left"></i>
@@ -59,13 +66,15 @@
       class="min-h-screen flex items-center justify-center p-4 relative z-10"
     >
       <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+        <!-- Kolom Kiri (Info) -->
         <div class="hidden lg:block space-y-8">
           <div>
             <div class="flex items-center gap-3 mb-6">
               <div
                 class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl"
               >
-                <i class="fas fa-book-open text-white text-2xl"></i>
+                 <!-- Menggunakan logo dari static -->
+                 <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-8 w-8 object-contain"/>
               </div>
               <div>
                 <h1
@@ -128,23 +137,10 @@
               </div>
             </div>
           </div>
-          <div
-            class="relative rounded-2xl overflow-hidden shadow-2xl hidden xl:block"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1693011142814-aa33d7d1535c?w=1080"
-              alt="University Campus"
-              class="w-full h-48 object-cover"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-purple-900/50 to-transparent"
-            ></div>
-          </div>
         </div>
 
+        <!-- Kolom Kanan (Form Login) -->
         <div class="w-full">
-          <div class="lg:hidden text-center mb-8"></div>
-
           <div
             class="border-0 shadow-2xl bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden"
           >
@@ -160,23 +156,36 @@
               action="{% url 'login' %}"
               class="px-6 pb-6 space-y-4"
             >
-              {% csrf_token %} {% if messages %} {% for message in messages %}
-              <div
-                class="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700"
-              >
-                <i class="fas fa-exclamation-circle mt-0.5"></i>
-                <span>{{ message }}</span>
-              </div>
-              {% endfor %} {% endif %}
+              <!-- === PASTIKAN CSRF TOKEN ADA DI SINI === -->
+              {% csrf_token %}
+
+              <!-- Menampilkan pesan error dari Django -->
+              {% if messages %}
+                {% for message in messages %}
+                  <div
+                    class="p-3
+                      {% if message.tags == 'error' %} bg-red-50 border border-red-200 text-red-700
+                      {% elif message.tags == 'success' %} bg-green-50 border border-green-200 text-green-700
+                      {% else %} bg-blue-50 border border-blue-200 text-blue-700 {% endif %}
+                      rounded-lg flex items-start gap-2 text-sm"
+                  >
+                    {% if message.tags == 'error' %} <i class="fas fa-exclamation-circle mt-0.5"></i>
+                    {% elif message.tags == 'success' %} <i class="fas fa-check-circle mt-0.5"></i>
+                    {% else %} <i class="fas fa-info-circle mt-0.5"></i> {% endif %}
+                    <span>{{ message }}</span>
+                  </div>
+                {% endfor %}
+              {% endif %}
 
               <div class="space-y-2">
-                <label for="email" class="block font-medium"
+                <label for="email" class="block font-medium text-sm text-gray-700"
                   >Email Universitas</label
                 >
                 <div class="relative">
                   <i
                     class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   ></i>
+                  <!-- Ingat: name="username" digunakan untuk mengambil email di view -->
                   <input
                     id="email"
                     type="email"
@@ -189,7 +198,7 @@
               </div>
 
               <div class="space-y-2 pb-2">
-                <label for="password" class="block font-medium">Password</label>
+                <label for="password" class="block font-medium text-sm text-gray-700">Password</label>
                 <div class="relative">
                   <i
                     class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -206,6 +215,7 @@
                     type="button"
                     onclick="togglePassword()"
                     class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Toggle password visibility"
                   >
                     <i id="eyeIcon" class="fas fa-eye"></i>
                   </button>
@@ -220,6 +230,10 @@
                 >
                   <i class="fas fa-lock"></i>
                   <span id="btnText">Masuk</span>
+                  <!-- Tambahkan spinner untuk feedback (opsional) -->
+                  <span id="btnLoading" class="hidden animate-spin">
+                     <i class="fas fa-spinner"></i>
+                  </span>
                 </button>
               </div>
 
@@ -235,22 +249,15 @@
             </form>
           </div>
 
-          <div
-            class="mt-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200"
-          >
-            <div class="text-center mb-3">
-              <span class="text-sm font-medium text-gray-700"
-                >🔑 Demo Accounts</span
-              >
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
-          </div>
+          <!-- Demo Accounts (jika perlu) -->
+          <!-- <div class="mt-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200"> ... </div> -->
+
         </div>
       </div>
     </div>
 
     <script>
-      // Toggle password visibility (Fungsi ini tetap berguna)
+      // Toggle password visibility
       function togglePassword() {
         const passwordInput = document.getElementById("password");
         const eyeIcon = document.getElementById("eyeIcon");
@@ -265,6 +272,21 @@
           eyeIcon.classList.add("fa-eye");
         }
       }
+
+      // Menampilkan spinner saat form disubmit (opsional)
+      const loginForm = document.querySelector('form');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnLoading = document.getElementById('btnLoading');
+
+      if (loginForm && submitBtn) {
+          loginForm.addEventListener('submit', function() {
+              btnText.classList.add('hidden');
+              btnLoading.classList.remove('hidden');
+              submitBtn.disabled = true; // Mencegah double submit
+          });
+      }
     </script>
   </body>
 </html>
+

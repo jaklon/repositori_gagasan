@@ -1,0 +1,164 @@
+{% extends "_base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Unggah Proyek Baru - Gagasan{% endblock %}
+
+{% block dashboard_content %}
+<div class="p-8">
+  <!-- Header Halaman -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+      <i class="fas fa-cloud-upload-alt text-purple-600 text-xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Unggah Proyek Baru</h1>
+      <p class="text-sm text-gray-600">Bagikan karya inovatif Anda ke repository.</p>
+    </div>
+  </div>
+
+  <!-- Form Unggah -->
+  <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+    <form method="POST" enctype="multipart/form-data" action="{% url 'upload_project' %}" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Menampilkan error form non-field (jika ada) -->
+        {% if form.non_field_errors %}
+            <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Menampilkan error umum (jika form tidak valid) -->
+        {% if form.errors and not form.is_bound %} <!-- Tampilkan hanya jika ada error global -->
+           <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
+               Terdapat kesalahan pada form. Silakan periksa kembali isian Anda.
+           </div>
+        {% endif %}
+
+        <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-gray-800">1. Informasi Dasar Proyek</h2>
+
+        <!-- Judul Proyek -->
+        <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.title.label }} <span class="text-red-500">*</span></label>
+            {{ form.title }}
+            {% if form.title.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.title.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Deskripsi Proyek -->
+        <div>
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.description.label }} <span class="text-red-500">*</span></label>
+            {{ form.description }}
+             {% if form.description.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.description.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Gambar Poster (Wajib) -->
+        <div>
+            <label for="{{ form.poster_image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.poster_image.label }} <span class="text-red-500">*</span></label>
+            {{ form.poster_image }}
+             <p class="text-xs text-gray-500 mt-1">{{ form.poster_image.help_text }}</p>
+            {% if form.poster_image.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.poster_image.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <h2 class="text-lg font-semibold border-b pb-2 mb-4 pt-4 text-gray-800">2. Tautan & Dokumentasi</h2>
+
+        <!-- Link Source Code (Wajib) -->
+        <div>
+            <label for="{{ form.source_code_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.source_code_link.label }} <span class="text-red-500">*</span></label>
+            {{ form.source_code_link }}
+             <p class="text-xs text-gray-500 mt-1">{{ form.source_code_link.help_text }}</p>
+             {% if form.source_code_link.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.source_code_link.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Link Demo (Wajib) -->
+        <div>
+            <label for="{{ form.demo_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.demo_link.label }} <span class="text-red-500">*</span></label>
+            {{ form.demo_link }}
+            <p class="text-xs text-gray-500 mt-1">{{ form.demo_link.help_text }}</p>
+             {% if form.demo_link.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.demo_link.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Dokumentasi Proyek (Placeholder) -->
+        <div>
+            <label for="project_documentation" class="block text-sm font-medium text-gray-700 mb-1">Dokumentasi Proyek (Opsional)</label>
+            <input type="file" name="project_documentation" id="project_documentation" multiple class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 border border-gray-300 rounded-md p-1">
+            <p class="text-xs text-gray-500 mt-1">Anda bisa unggah maks 5 file (PDF, DOC, PPT, dll), maks 10MB per file. (Fitur ini belum aktif)</p>
+            <!-- Tampilkan pesan error jika ada -->
+        </div>
+
+        <h2 class="text-lg font-semibold border-b pb-2 mb-4 pt-4 text-gray-800">3. Kategorisasi Proyek</h2>
+
+        <!-- Program Studi (Wajib) -->
+        <div>
+            <label for="{{ form.program_studi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.program_studi.label }} <span class="text-red-500">*</span></label>
+            {{ form.program_studi }}
+             {% if form.program_studi.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.program_studi.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Kategori (Wajib, Dropdown) -->
+        <div>
+            <label for="{{ form.kategori.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.kategori.label }} <span class="text-red-500">*</span></label>
+            {{ form.kategori }}
+            <p class="text-xs text-gray-500 mt-1">Pilihan kategori mungkin akan disesuaikan berdasarkan Program Studi (fitur ini belum aktif).</p>
+             {% if form.kategori.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.kategori.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+
+        <!-- Tags (Opsional) -->
+        <div>
+            <label for="{{ form.tags_input.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.tags_input.label }}</label>
+            {{ form.tags_input }}
+            <p class="text-xs text-gray-500 mt-1">{{ form.tags_input.help_text }}</p>
+             {% if form.tags_input.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.tags_input.errors|striptags }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Tombol Submit -->
+        <div class="pt-6 flex justify-end gap-3 border-t">
+             <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Batal
+             </a>
+             <button type="submit" class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
+                <i class="fas fa-save mr-1"></i> Simpan Proyek
+             </button>
+        </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+    // Script sederhana untuk preview gambar (opsional)
+    const imageInput = document.getElementById('{{ form.poster_image.id_for_label }}');
+    if (imageInput) {
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Anda bisa menambahkan preview gambar di sini jika mau
+                console.log('Gambar dipilih:', file.name);
+            }
+        });
+    }
+
+    // TODO: Tambahkan script untuk dropdown kategori dinamis jika diperlukan nanti
+</script>
+{% endblock %}
+
+{% endblock %}
+

@@ -1,15 +1,11 @@
 # users/urls.py
 from django.urls import path
-# Import kedua view dari views.py
-from .views import login_view, register_view
+# Import view logout
+from .views import login_view, register_view, logout_view
 
 urlpatterns = [
-    # Jika login adalah halaman utama Anda
     path('', login_view, name='login'), 
-    
-    # Jika login diakses lewat /login/
-    # path('login/', login_view, name='login'), 
-
-    # --- TAMBAHKAN URL BARU DI BAWAH INI ---
     path('register/', register_view, name='register'),
+    # --- TAMBAHKAN URL LOGOUT ---
+    path('logout/', logout_view, name='logout'),
 ]
