@@ -18,8 +18,7 @@
     </div>
   </div>
 
-  <!-- ... (Indikator Tahapan, Info, Search, Pesan) ... -->
-   <!-- Indikator Tahapan -->
+  <!-- Indikator Tahapan -->
   <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 text-xs text-center">
       <div class="text-green-600 font-semibold"> <!-- Seleksi -->
           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Seleksi Proyek
@@ -41,6 +40,7 @@
           <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-upload"></i></div> Publikasi Katalog
       </div>
   </div>
+
    <!-- Info Langkah Selanjutnya -->
    <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 mb-8 shadow-sm">
     <i class="fas fa-arrow-right text-green-600 mt-1"></i>
@@ -49,6 +49,7 @@
       <p class="text-sm text-green-700">Setelah keputusan dibuat, produk yang layak dapat dipublikasikan melalui <strong>Tahap 4: Publikasi Katalog</strong>.</p>
     </div>
   </div>
+
    <!-- Search -->
   <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
      <div class="relative">
@@ -56,6 +57,7 @@
         <input type="text" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
       </div>
   </div>
+
   <!-- Tampilkan Pesan Sukses/Error -->
   {% if messages %}
     <div class="mb-6 space-y-2">
@@ -70,7 +72,6 @@
         {% endfor %}
     </div>
   {% endif %}
-
 
   <!-- Tabel Produk Menunggu Keputusan -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -98,11 +99,12 @@
                 {% if kurasi.nilai_akhir_final >= 3.5 %} text-green-600
                 {% elif kurasi.nilai_akhir_final >= 2.75 %} text-blue-600
                 {% elif kurasi.nilai_akhir_final >= 2.0 %} text-orange-600
-                {% elif kurasi.nilai_akhir_final is not None %} text-red-600
+                {% elif kurasi.nilai_akhir_final is not None %} text-red-600 {# Tambahkan kondisi not None #}
                 {% else %} text-gray-500 {% endif %}">
                 {{ kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }} / 4.00
             </td>
              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                {# Tampilkan kategori otomatis berdasarkan nilai #}
                 {% with nilai=kurasi.nilai_akhir_final %}
                     {% if nilai >= 3.5 %} <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Sangat Layak</span>
                     {% elif nilai >= 2.75 %} <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Layak (Revisi Minor)</span>
@@ -112,6 +114,7 @@
                 {% endwith %}
              </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <!-- TODO: Hitung sisa waktu -->
                 4 hari
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -138,21 +141,16 @@
     </div>
   </div>
 
-  <!-- === MODAL REVIEW & KEPUTUSAN (Hapus atribut Alpine) === -->
-  {# Tambahkan ID untuk modal wrapper dan konten #}
-  <div id="reviewModal" class="modal fixed inset-0 bg-black bg-opacity-60 z-50 items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
-      {# Tambahkan ID untuk modal box #}
-      <div id="reviewModalBox" class="bg-white rounded-xl max-w-3xl w-full shadow-xl transform transition-all max-h-[90vh] flex flex-col">
+  <!-- === MODAL REVIEW & KEPUTUSAN (Gunakan ID dan class modal-vjs) === -->
+  <div id="reviewModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-50 items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+      <div id="reviewModalBox" class="modal-box-vjs bg-white rounded-xl max-w-3xl w-full shadow-xl transform transition-all max-h-[90vh] flex flex-col">
           <!-- Header Modal -->
           <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-xl z-10">
-              {# Tambahkan ID untuk judul #}
               <h2 class="text-xl font-semibold" id="modalTitle">Memuat...</h2>
-              {# Ganti @click dengan onclick biasa #}
               <button onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
           </div>
 
           <!-- Konten Modal (Scrollable) -->
-          {# Tambahkan ID untuk kontainer konten #}
           <div id="modalContent" class="p-6 space-y-6 overflow-y-auto flex-grow">
                <!-- Loading State (Akan diganti oleh JS) -->
                <div id="modalLoadingState" class="text-center py-10">
@@ -164,11 +162,8 @@
                    <!-- Ringkasan Nilai -->
                    <div class="bg-gray-50 p-6 rounded-lg border text-center mb-6">
                         <p class="text-sm text-gray-500">Nilai Akhir Produk</p>
-                        {# Tambahkan ID #}
                         <p class="text-4xl font-bold mt-1" id="modalNilaiAkhir"></p>
-                        {# Tambahkan ID #}
                         <span class="px-3 py-1 text-sm font-semibold rounded-full inline-block mt-2" id="modalSuggestedDecisionBadge"></span>
-                        {# Tambahkan ID #}
                         <p class="text-xs text-gray-500 mt-2" id="modalDecisionDescription"></p>
                    </div>
 
@@ -184,18 +179,14 @@
                                     <th class="px-4 py-2 text-center font-medium text-gray-500 uppercase">Rata-rata Aspek</th>
                                 </tr>
                             </thead>
-                            {# Tambahkan ID untuk tbody #}
                             <tbody id="modalScoreTableBody" class="bg-white divide-y divide-gray-200">
                                 <!-- Baris akan diisi oleh JS -->
                             </tbody>
                              <tfoot class="bg-gray-50 font-semibold">
                                  <tr>
                                      <td class="px-4 py-2 text-left">Rata-rata Total</td>
-                                     {# Tambahkan ID #}
                                      <td class="px-4 py-2 text-center" id="modalAvgDosen"></td>
-                                     {# Tambahkan ID #}
                                      <td class="px-4 py-2 text-center" id="modalAvgMitra"></td>
-                                     {# Tambahkan ID #}
                                      <td class="px-4 py-2 text-center text-lg font-bold" id="modalAvgFinal"></td>
                                  </tr>
                             </tfoot>
@@ -206,12 +197,10 @@
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="bg-gray-50 p-4 rounded-lg border h-32 overflow-y-auto">
                             <h4 class="font-semibold mb-2 text-gray-800 text-sm sticky top-0 bg-gray-50 pb-1">Catatan Kurator Dosen</h4>
-                            {# Tambahkan ID #}
                             <p class="text-xs text-gray-600 leading-relaxed" id="modalCatatanDosen"></p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg border h-32 overflow-y-auto">
                             <h4 class="font-semibold mb-2 text-gray-800 text-sm sticky top-0 bg-gray-50 pb-1">Catatan Kurator Mitra</h4>
-                            {# Tambahkan ID #}
                             <p class="text-xs text-gray-600 leading-relaxed" id="modalCatatanMitra"></p>
                         </div>
                    </div>
@@ -227,7 +216,7 @@
                                 <label for="{{ decision_form.decision.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ decision_form.decision.label }} <span class="text-red-500">*</span></label>
                                 {# Render <select> (ID sudah ada) #}
                                 {{ decision_form.decision }}
-                                 {% if decision_form.decision.errors %} {# Error ini mungkin tidak tampil karena reload halaman #}
+                                 {% if decision_form.decision.errors %} {# Mungkin tidak tampil #}
                                     <p class="text-xs text-red-600 mt-1">{{ decision_form.decision.errors|striptags }}</p>
                                 {% endif %}
                                  <p class="text-xs text-gray-500 mt-2"><strong>Catatan:</strong> Produk dengan keputusan "Layak" atau "Revisi Minor" akan muncul di halaman publikasi.</p>
@@ -240,14 +229,13 @@
                                     <p class="text-xs text-red-600 mt-1">{{ decision_form.catatan_unit_bisnis.errors|striptags }}</p>
                                 {% endif %}
                             </div>
-                            <!-- Tombol Simpan Keputusan di Footer Modal (dipindah) -->
-                       </form>
+                            <!-- Tombol Simpan Keputusan di Footer Modal (dipindah ke bawah) -->
+                       </form> {# Penutup form dipindah ke setelah footer #}
                    </div>
                </div>
           </div>
           <!-- Footer Modal (dengan tombol) -->
            <div id="modalFooter" class="p-4 bg-gray-50 flex gap-3 justify-end rounded-b-xl border-t">
-               {# Ganti @click dengan onclick biasa #}
                <button type="button" onclick="closeReviewModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
                    Batal
                </button>
@@ -256,6 +244,7 @@
                    <i class="fas fa-save"></i> Simpan Keputusan
                </button>
            </div>
+          {# </form> #} {# Penutup form seharusnya di sini jika tombol di dalam form #}
       </div>
   </div>
   <!-- === AKHIR MODAL === -->
@@ -272,9 +261,10 @@
     const reviewModal = document.getElementById('reviewModal');
     const reviewModalBox = document.getElementById('reviewModalBox');
     const modalTitle = document.getElementById('modalTitle');
-    const modalContent = document.getElementById('modalContent');
+    const modalContent = document.getElementById('modalContent'); // Kontainer utama konten
     const modalLoadingState = document.getElementById('modalLoadingState');
     const modalDetailContent = document.getElementById('modalDetailContent');
+    // Elemen di dalam detail content
     const modalNilaiAkhir = document.getElementById('modalNilaiAkhir');
     const modalSuggestedDecisionBadge = document.getElementById('modalSuggestedDecisionBadge');
     const modalDecisionDescription = document.getElementById('modalDecisionDescription');
@@ -284,14 +274,16 @@
     const modalAvgFinal = document.getElementById('modalAvgFinal');
     const modalCatatanDosen = document.getElementById('modalCatatanDosen');
     const modalCatatanMitra = document.getElementById('modalCatatanMitra');
+    // Elemen form
     const decisionForm = document.getElementById('decisionForm');
-    const decisionSelect = document.getElementById('{{ decision_form.decision.id_for_label }}'); // ID dari Django Form
-    const catatanUnitBisnis = document.getElementById('{{ decision_form.catatan_unit_bisnis.id_for_label }}'); // ID dari Django Form
+    const decisionSelect = document.getElementById('{{ decision_form.decision.id_for_label }}');
+    const catatanUnitBisnis = document.getElementById('{{ decision_form.catatan_unit_bisnis.id_for_label }}');
     const modalSubmitButton = document.getElementById('modalSubmitButton');
+
 
     // Fungsi untuk membuka modal dan fetch data
     async function openReviewModal(kurasiId) {
-        reviewModal.classList.add('flex'); // Tampilkan modal (gunakan 'flex' sesuai Tailwind)
+        reviewModal.classList.add('flex'); // Tampilkan modal
         modalLoadingState.classList.remove('hidden'); // Tampilkan loading
         modalDetailContent.classList.add('hidden'); // Sembunyikan konten detail
         modalTitle.textContent = 'Memuat...';
@@ -301,7 +293,10 @@
             // Ambil data dari backend
             const response = await fetch(`/curation/review/details/${kurasiId}/`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Coba baca pesan error dari JSON jika ada
+                let errorData = { message: `HTTP error! status: ${response.status}`};
+                try { errorData = await response.json(); } catch(e){}
+                throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
 
@@ -311,7 +306,6 @@
             // Ringkasan Nilai
             const nilaiFinal = data.kurasi.nilai_akhir_final;
             modalNilaiAkhir.textContent = nilaiFinal != null ? `${nilaiFinal.toFixed(2)} / 4.00` : 'N/A';
-            // Set class warna berdasarkan nilai
             modalNilaiAkhir.className = 'text-4xl font-bold mt-1 '; // Reset class
             if (nilaiFinal >= 3.5) modalNilaiAkhir.classList.add('text-green-600');
             else if (nilaiFinal >= 2.75) modalNilaiAkhir.classList.add('text-blue-600');
@@ -327,7 +321,6 @@
             else if (nilaiFinal != null) modalSuggestedDecisionBadge.classList.add('text-red-800', 'bg-red-100');
             else modalSuggestedDecisionBadge.classList.add('text-gray-600', 'bg-gray-100');
 
-
              // Tambahkan deskripsi keputusan
             let decisionDesc = "Nilai belum valid atau belum dihitung.";
             if (nilaiFinal !== null) {
@@ -341,7 +334,7 @@
 
             // Tabel Skor Aspek
             modalScoreTableBody.innerHTML = ''; // Kosongkan tabel dulu
-            const aspekKeys = Object.keys(data.aspek_details); // Ambil nama-nama aspek
+            const aspekKeys = Object.keys(data.aspek_details || {}); // Handle jika aspek_details null
             aspekKeys.forEach(aspek => {
                 const scores = data.aspek_details[aspek];
                 const skorDosen = scores.dosen != null ? scores.dosen.toFixed(0) : '-';
@@ -372,7 +365,7 @@
             modalAvgDosen.textContent = data.kurasi.nilai_akhir_dosen != null ? data.kurasi.nilai_akhir_dosen.toFixed(2) : '-';
             modalAvgMitra.textContent = data.kurasi.nilai_akhir_mitra != null ? data.kurasi.nilai_akhir_mitra.toFixed(2) : '-';
             modalAvgFinal.textContent = nilaiFinal != null ? nilaiFinal.toFixed(2) : '-';
-            // Set class warna avg final (sama seperti nilai akhir di atas)
+            // Set class warna avg final
             modalAvgFinal.className = 'px-4 py-2 text-center text-lg font-bold ';
             if (nilaiFinal >= 3.5) modalAvgFinal.classList.add('text-green-600');
             else if (nilaiFinal >= 2.75) modalAvgFinal.classList.add('text-blue-600');
@@ -408,7 +401,8 @@
             }
              // Reset catatan unit bisnis
             if (catatanUnitBisnis) {
-                catatanUnitBisnis.value = ''; // Selalu kosongkan saat modal dibuka
+                // Jika ada field catatan di data JSON, isi. Jika tidak, kosongkan.
+                catatanUnitBisnis.value = data.kurasi.catatan_unit_bisnis || '';
             }
 
 
@@ -419,27 +413,41 @@
         } catch (error) {
             console.error('Error fetching review details:', error);
             modalTitle.textContent = 'Error Memuat Data';
-            modalContent.innerHTML = `<p class="text-red-600 p-6">Gagal mengambil detail penilaian: ${error.message}. Coba refresh halaman.</p>`;
-            modalLoadingState.classList.add('hidden');
-            modalDetailContent.classList.remove('hidden'); // Tampilkan area konten error
-            modalSubmitButton.disabled = true; // Disable tombol submit
+            // Ganti innerHTML dari modalContent utama untuk menampilkan error
+             modalContent.innerHTML = `<div class="p-6 text-red-600">Gagal mengambil detail penilaian: ${error.message}. Coba refresh halaman atau periksa koneksi.</div>`;
+             modalLoadingState.classList.add('hidden'); // Pastikan loading hilang
+             modalDetailContent.classList.add('hidden'); // Pastikan detail (kosong) hilang
+             modalSubmitButton.disabled = true; // Disable tombol submit
         }
     }
 
     // Fungsi untuk menutup modal
     function closeReviewModal() {
         reviewModal.classList.remove('flex'); // Sembunyikan modal
-        // Optional: Reset konten modal saat ditutup
-        modalLoadingState.classList.remove('hidden');
-        modalDetailContent.classList.add('hidden');
-        modalScoreTableBody.innerHTML = '';
-        if (decisionSelect) decisionSelect.value = '';
-        if (catatanUnitBisnis) catatanUnitBisnis.value = '';
-        if (decisionForm) decisionForm.action = '#';
+        // === PENTING: Reset konten modal ke state loading awal ===
+         modalContent.innerHTML = `
+             <div id="modalLoadingState" class="text-center py-10">
+                 <i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i>
+                 <p class="mt-3 text-gray-500">Memuat detail penilaian...</p>
+             </div>
+             <div id="modalDetailContent" class="hidden space-y-6">
+                 <!-- Konten detail akan diisi ulang saat dibuka lagi -->
+             </div>
+         `;
+         // Re-assign variabel elemen detail (karena innerHTML diubah)
+         // Perlu dilakukan lagi setelah innerHTML di-reset
+         // Pindahkan assignment variabel global ke luar fungsi jika memungkinkan
+         // Atau assign ulang di sini (kurang ideal tapi bisa)
+         // modalNilaiAkhir = document.getElementById('modalNilaiAkhir');
+         // ... dan seterusnya untuk elemen lain ...
+
+         // Reset form action
+         if (decisionForm) decisionForm.action = '#';
     }
 
      // Event listener untuk menutup modal saat klik background
     reviewModal.addEventListener('click', function(event) {
+        // Hanya tutup jika target klik adalah background modal, bukan isinya
         if (event.target === reviewModal) {
             closeReviewModal();
         }
