@@ -3,20 +3,29 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-
 # --- Models ---
-# Pastikan semua model yang dibutuhkan diimpor
 from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian
 from users.models import CustomUser # Import CustomUser
 # --- Utils ---
-from django.db.models import Q
+from django.db.models import Q, Count, Case, When, IntegerField
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.utils import timezone # Import timezone
-# --- Tambahkan JsonResponse ---
+from django.utils import timezone
+import datetime
 from django.http import JsonResponse
+# --- Tambahkan Template Tag Loader ---
+from django.template.defaulttags import register
+
+
+# === TEMPLATE TAGS ===
+# Filter sederhana untuk mengakses item dictionary di template
+# Pindahkan ini ke repository/templatetags/repository_extras.py
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+# === AKHIR TEMPLATE TAGS ===
 
 
 # === FORMS ===
@@ -154,6 +163,7 @@ class AssessmentForm(forms.Form):
         'Desain UI/UX & Aksesibilitas': 15, 'Teknologi & Kesesuaian Tren': 15,
         'Kelayakan Bisnis & Potensi Pasar': 20, 'Dokumentasi Teknis & Panduan Pengguna': 15,
     }
+    # Ambil choices skor dari model AspekPenilaian
     SCORE_CHOICES = [('', 'Pilih Skor')] + list(AspekPenilaian._meta.get_field('skor').choices)
 
     def __init__(self, *args, **kwargs):
@@ -171,228 +181,60 @@ class AssessmentForm(forms.Form):
     )
 # --- AKHIR FORM PENILAIAN ---
 
-# --- FORM BARU: KEPUTUSAN UNIT BISNIS ---
+
+# --- FORM KEPUTUSAN UNIT BISNIS ---
 class DecisionForm(forms.Form):
-    # Sesuaikan choices value & label agar lebih deskriptif dan cocok dengan model/logika
     DECISION_CHOICES = [
-        ('', 'Pilih keputusan final...'), # Placeholder
-        ('ready-for-publication', '🟢 Layak - Siap Publikasi'),
-        ('revision-minor', '🔵 Revisi Minor - Publikasi Setelah Perbaikan'),
-        ('needs-coaching', '🟡 Perlu Pembinaan - Tidak Dipublikasi'),
-        ('rejected', '🔴 Tidak Layak - Ditolak'),
+        ('', 'Pilih keputusan final...'),
+        ('Sangat Layak', '🟢 Layak - Siap Publikasi (Nilai >= 3.50)'),
+        ('Revisi Minor', '🔵 Revisi Minor - Publikasi Setelah Perbaikan (2.75 - 3.49)'),
+        ('Perlu Pembinaan', '🟡 Perlu Pembinaan - Tidak Dipublikasi (2.00 - 2.74)'),
+        ('Tidak Layak', '🔴 Tidak Layak - Ditolak (Nilai < 2.00)'),
     ]
-    # Beri ID unik untuk elemen form di modal
     decision = forms.ChoiceField(
         choices=DECISION_CHOICES,
         required=True,
         label="Tetapkan Keputusan",
-        # Beri ID agar bisa diakses JS dan style Tailwind
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white appearance-none', 'id':'id_decision_modal', 'x-ref':'decisionSelect'})
     )
     catatan_unit_bisnis = forms.CharField(
         label="Catatan Tambahan Unit Bisnis (Opsional)",
         required=False,
-        # Beri ID agar bisa diakses JS dan style Tailwind
         widget=forms.Textarea(attrs={'rows': 3, 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent', 'id':'id_catatan_unit_bisnis_modal'})
     )
 
-    # Simpan instance kurasi untuk validasi nilai
     def __init__(self, *args, **kwargs):
         self.kurasi_instance = kwargs.pop('kurasi_instance', None)
         super().__init__(*args, **kwargs)
+
+    def clean_decision(self):
+        decision = self.cleaned_data.get("decision")
+        nilai = self.kurasi_instance.nilai_akhir_final if self.kurasi_instance else None
+        if nilai is not None and decision:
+            can_decide = False
+            if decision == 'Sangat Layak' and nilai >= 3.5: can_decide = True
+            elif decision == 'Revisi Minor' and 2.75 <= nilai < 3.5: can_decide = True
+            elif decision == 'Perlu Pembinaan' and 2.0 <= nilai < 2.75: can_decide = True
+            elif decision == 'Tidak Layak' and nilai < 2.0: can_decide = True
+            if not can_decide:
+                 raise ValidationError(f"Keputusan '{decision}' tidak valid untuk Nilai Akhir Final ({nilai:.2f}).")
+        elif not decision:
+             raise ValidationError("Keputusan harus dipilih.")
+        elif nilai is None and decision:
+             raise ValidationError("Nilai Akhir Final belum dihitung, keputusan belum bisa dibuat.")
+        return decision
 # --- AKHIR FORM KEPUTUSAN ---
 
-# --- FORM BARU: KONFIRMASI PUBLIKASI ---
+
+# --- FORM KONFIRMASI PUBLIKASI ---
 class PublishConfirmationForm(forms.Form):
     confirm_publish = forms.BooleanField(
         required=True,
-        label="Saya konfirmasi untuk mempublikasikan produk ini.",
-        # Beri ID agar bisa diakses JS dan style Tailwind
-        widget=forms.CheckboxInput(attrs={'class': 'h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500', 'id': 'id_confirm_publish'})
+        label="",
+        error_messages={'required': 'Anda harus menyetujui konfirmasi ini.'},
+        widget=forms.CheckboxInput(attrs={'class': 'h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer', 'id': 'id_confirm_publish'})
     )
 # --- AKHIR FORM KONFIRMASI ---
-
-# --- VIEW BARU: DAFTAR PUBLIKASI KATALOG ---
-@login_required
-def publish_catalog_list_view(request):
-    if request.user.peran != 'unit_bisnis':
-        messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
-        return redirect('catalog')
-
-    # Ambil proyek yang siap dipublikasi (status 'ready-for-publication' atau 'revision-minor' yang sudah oke)
-    # Untuk 'revision-minor', perlu logika tambahan jika revisi sudah diverifikasi
-    projects_ready = Produk.objects.filter(
-        Q(curation_status='ready-for-publication') | Q(curation_status='revision-minor') # Sesuaikan jika revisi perlu verifikasi
-    ).filter(dipublikasikan=False).select_related('id_pemilik', 'kurasi').order_by('-updated_at')
-
-    # Ambil proyek yang sudah dipublikasi
-    projects_published = Produk.objects.filter(dipublikasikan=True).select_related('id_pemilik', 'kurasi').order_by('-updated_at')
-
-    # Form kosong untuk modal konfirmasi
-    confirmation_form = PublishConfirmationForm()
-
-    context = {
-        'projects_ready_to_publish': projects_ready,
-        'projects_published': projects_published,
-        'confirmation_form': confirmation_form, # Kirim form ke template
-    }
-    return render(request, 'publish_catalog_list.html', context)
-
-
-# --- VIEW BARU: TANGANI AKSI PUBLIKASI (POST dari Modal) ---
-@login_required
-@require_POST
-def handle_publish_project(request, project_id):
-    if request.user.peran != 'unit_bisnis':
-        messages.error(request, "Anda tidak memiliki izin untuk melakukan aksi ini.")
-        return redirect('publish_catalog_list')
-
-    # Ambil proyek yang siap dipublikasi
-    project = get_object_or_404(Produk, id=project_id, dipublikasikan=False)
-    # Pastikan statusnya memang siap publish
-    if project.curation_status not in ['ready-for-publication', 'revision-minor']:
-        messages.warning(request, f"Proyek '{project.title}' belum siap untuk dipublikasikan.")
-        return redirect('publish_catalog_list')
-
-    # Validasi form konfirmasi
-    form = PublishConfirmationForm(request.POST)
-    if form.is_valid():
-        # Update status produk
-        project.dipublikasikan = True
-        project.curation_status = 'published' # Update status akhir
-        project.save()
-
-        messages.success(request, f"Proyek '{project.title}' berhasil dipublikasikan ke katalog.")
-        return redirect('publish_catalog_list')
-    else:
-        # Jika checkbox tidak dicentang
-        messages.error(request, "Anda harus mencentang kotak konfirmasi untuk mempublikasikan.")
-        return redirect('publish_catalog_list')
-
-
-# --- VIEW DAFTAR REVIEW & KEPUTUSAN (DIMODIFIKASI) ---
-@login_required
-def review_decision_list_view(request):
-    if request.user.peran != 'unit_bisnis':
-        messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
-        return redirect('catalog')
-
-    projects_to_review = Kurasi.objects.filter(
-        status='Penilaian Lengkap',
-        id_produk__curation_status='assessment-complete'
-    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('id_produk__updated_at')
-
-    # Buat instance form kosong untuk dikirim ke template (dibutuhkan untuk render field di modal & CSRF)
-    decision_form = DecisionForm()
-
-    context = {
-        'projects_to_review': projects_to_review,
-        'decision_form': decision_form, # Kirim form kosong
-    }
-    return render(request, 'review_decision_list.html', context)
-
-# --- VIEW AMBIL DETAIL REVIEW JSON (Hapus suggested_decision_value) ---
-@login_required
-def get_review_details_json(request, kurasi_id):
-    if request.user.peran != 'unit_bisnis':
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-
-    try:
-        kurasi = Kurasi.objects.select_related('id_produk', 'id_produk__id_pemilik').get(id=kurasi_id)
-        project = kurasi.id_produk
-    except Kurasi.DoesNotExist:
-        return JsonResponse({'error': 'Kurasi not found'}, status=404)
-
-    if kurasi.status != 'Penilaian Lengkap' or project.curation_status != 'assessment-complete':
-         return JsonResponse({'error': 'Penilaian belum lengkap atau status proyek tidak sesuai'}, status=400)
-
-    aspek_penilaian = AspekPenilaian.objects.filter(id_kurasi=kurasi)
-    aspek_details = {}
-    for aspek_nama in AssessmentForm.ASPEK_CHOICES.keys():
-        aspek_details[aspek_nama] = {'dosen': None, 'mitra': None}
-    for ap in aspek_penilaian:
-        if ap.aspek in aspek_details:
-             aspek_details[ap.aspek][ap.tipe_kurator] = ap.skor
-
-    # Tentukan teks kategori otomatis
-    suggested_decision_text = "Belum Dinilai"
-    nilai = kurasi.nilai_akhir_final
-    if nilai is not None:
-        if nilai >= 3.5: suggested_decision_text = "Sangat Layak"
-        elif nilai >= 2.75: suggested_decision_text = "Layak (Revisi Minor)"
-        elif nilai >= 2.0: suggested_decision_text = "Perlu Pembinaan"
-        else: suggested_decision_text = "Tidak Layak"
-
-    data = {
-        'kurasi': { 'id': kurasi.id, 'nilai_akhir_dosen': kurasi.nilai_akhir_dosen,
-                    'nilai_akhir_mitra': kurasi.nilai_akhir_mitra, 'nilai_akhir_final': kurasi.nilai_akhir_final,
-                    'catatan_dosen': kurasi.catatan_dosen or "", 'catatan_mitra': kurasi.catatan_mitra or "" },
-        'project': { 'title': project.title },
-        'aspek_details': aspek_details,
-        'suggested_decision': suggested_decision_text, # Teks kategori otomatis
-        # Hapus suggested_decision_value, tidak diperlukan lagi
-        'decision_choices': [{'value': val, 'label': label} for val, label in DecisionForm.DECISION_CHOICES if val]
-    }
-    return JsonResponse(data)
-
-
-# --- VIEW TANGANI SUBMIT KEPUTUSAN (DIMODIFIKASI) ---
-@login_required
-@require_POST
-def handle_project_decision(request, kurasi_id):
-    if request.user.peran != 'unit_bisnis':
-        messages.error(request, "Anda tidak memiliki izin untuk melakukan aksi ini.")
-        return redirect('review_decision_list')
-
-    kurasi = get_object_or_404(Kurasi, id=kurasi_id)
-    project = kurasi.id_produk
-
-    if kurasi.status != 'Penilaian Lengkap' or project.curation_status != 'assessment-complete':
-         messages.warning(request, "Status proyek atau penilaian tidak sesuai untuk membuat keputusan.")
-         return redirect('review_decision_list')
-
-    # Gunakan DecisionForm untuk validasi input POST (tanpa validasi nilai)
-    form = DecisionForm(request.POST) # Tidak perlu kurasi_instance lagi
-
-    if form.is_valid():
-        # --- PERUBAHAN LOGIKA ---
-        # Ambil status kurasi yang dipilih dari form
-        selected_status = form.cleaned_data['decision']
-        catatan_unit_bisnis = form.cleaned_data['catatan_unit_bisnis']
-
-        # Update status Produk LANGSUNG berdasarkan pilihan
-        project.curation_status = selected_status
-
-        # Update final_decision (teks) berdasarkan pilihan status
-        # Cari label yang cocok dari choices form
-        decision_label = dict(DecisionForm.DECISION_CHOICES).get(selected_status, selected_status) # Fallback ke value jika label tidak ketemu
-        project.final_decision = decision_label # Simpan teks keputusan
-
-        # Atur status publikasi berdasarkan keputusan
-        if selected_status in ['ready-for-publication', 'revision-minor']:
-             project.dipublikasikan = False # Masih false, akan diubah di tahap publikasi
-        else:
-             project.dipublikasikan = False # Pastikan false untuk status lain
-
-        project.save()
-
-        # Simpan catatan unit bisnis (jika ada fieldnya di model Kurasi)
-        # kurasi.catatan_unit_bisnis = catatan_unit_bisnis
-        # kurasi.save()
-        # --- AKHIR PERUBAHAN LOGIKA ---
-
-        messages.success(request, f"Keputusan '{decision_label}' berhasil disimpan untuk proyek '{project.title}'.")
-        return redirect('review_decision_list')
-
-    else: # Form tidak valid (misal, decision kosong)
-        error_msg = "Gagal menyimpan keputusan. "
-        first_field_errors = next(iter(form.errors.values()), None)
-        if first_field_errors:
-            error_msg += first_field_errors[0]
-        else:
-             error_msg += "Periksa kembali pilihan keputusan Anda."
-        messages.error(request, error_msg)
-        return redirect('review_decision_list')
 
 
 # === VIEWS ===
@@ -423,9 +265,149 @@ def dashboard_mahasiswa(request):
 
 @login_required
 def dashboard_dosen(request):
-    tugas_penilaian = Kurasi.objects.filter(id_kurator_dosen=request.user).exclude(status='Menunggu Penugasan').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
+    # Ambil queryset dasar untuk semua tugas yang ditugaskan ke dosen ini
+    tugas_penilaian_qs = Kurasi.objects.filter(
+        id_kurator_dosen=request.user
+    ).exclude(
+        status='Menunggu Penugasan' # Kecualikan yang belum ditugaskan
+    ).select_related('id_produk', 'id_produk__id_pemilik') # Optimasi query
+
+    # Hitung Statistik
+    total_tugas = tugas_penilaian_qs.count()
+    
+    # Pisahkan daftar berdasarkan status tanggal selesai
+    belum_dinilai_list = tugas_penilaian_qs.filter(
+        tanggal_selesai_dosen__isnull=True
+    ).order_by('tanggal_penugasan') # Tampilkan yang terlama (mendekati deadline) dulu
+    
+    sudah_selesai_list = tugas_penilaian_qs.filter(
+        tanggal_selesai_dosen__isnull=False
+    ).order_by('-tanggal_selesai_dosen') # Tampilkan yang terbaru selesai
+    
+    # Hitung count
+    belum_dinilai_count = belum_dinilai_list.count()
+    sudah_selesai_count = sudah_selesai_list.count()
+
+    context = {
+        'total_tugas': total_tugas,
+        'belum_dinilai_count': belum_dinilai_count,
+        'sudah_selesai_count': sudah_selesai_count,
+        'belum_dinilai_list': belum_dinilai_list, # Kirim daftar yang belum dinilai
+        'sudah_selesai_list': sudah_selesai_list, # Kirim daftar yang sudah selesai
+    }
     return render(request, 'dashboard/dosen.html', context)
+
+# --- DASHBOARD STATS BARU UNTUK DOSEN ---
+@login_required
+def dashboard_dosen_main(request):
+    # Pastikan hanya dosen
+    if request.user.peran != 'dosen':
+        # TODO: Arahkan ke dashboard yang sesuai
+        return redirect('catalog')
+    
+    # Query untuk statistik (contoh, perlu disesuaikan dengan model Anda)
+    # 1. Supervised: (Perlu relasi Dosen-Mahasiswa, saat ini tidak ada di model)
+    supervised_count = 0 
+    # 2. My Projects: Proyek yang diupload oleh dosen
+    my_projects_count = Produk.objects.filter(id_pemilik=request.user).count()
+    # 3. Curated: Tugas kurasi yang sudah selesai
+    curated_count = Kurasi.objects.filter(id_kurator_dosen=request.user, status='Penilaian Lengkap').count()
+    # 4. Pending Tasks: Tugas kurasi yang belum selesai
+    pending_tasks_count = Kurasi.objects.filter(id_kurator_dosen=request.user, status__in=['Penilaian Berlangsung', 'Penilaian Mitra Selesai']).count()
+    
+    # Query untuk daftar proyek (contoh)
+    recently_supervised_projects = [] # (Perlu relasi Dosen-Mahasiswa)
+
+    context = {
+        'supervised_count': supervised_count,
+        'my_projects_count': my_projects_count,
+        'curated_count': curated_count,
+        'pending_tasks_count': pending_tasks_count,
+        'recently_supervised_projects': recently_supervised_projects,
+    }
+    return render(request, 'dashboard/dosen_main.html', context)
+
+# --- VIEW TUGAS PENILAIAN DOSEN (Nama view lama) ---
+@login_required
+def dashboard_dosen(request):
+# ... (existing code) ...
+    # Ambil semua tugas penilaian (termasuk yang selesai)
+    tugas_penilaian = Kurasi.objects.filter(id_kurator_dosen=request.user).exclude(status='Menunggu Penugasan').order_by('status', 'tanggal_penugasan')
+
+    # Hitung statistik untuk halaman ini
+    belum_dinilai_list = tugas_penilaian.exclude(tanggal_selesai_dosen__isnull=False)
+    sudah_selesai_list = tugas_penilaian.filter(tanggal_selesai_dosen__isnull=False)
+
+    belum_dinilai_count = belum_dinilai_list.count()
+    sudah_selesai_count = sudah_selesai_list.count()
+    total_tugas = belum_dinilai_count + sudah_selesai_count
+
+    context = {
+        'total_tugas': total_tugas,
+        'belum_dinilai_count': belum_dinilai_count,
+        'sudah_selesai_count': sudah_selesai_count,
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
+    return render(request, 'dashboard/dosen.html', context)
+
+# --- DASHBOARD STATS BARU UNTUK MITRA ---
+@login_required
+def dashboard_mitra_main(request):
+    # Pastikan hanya mitra
+    if request.user.peran != 'mitra':
+        return redirect('catalog')
+
+    # Query untuk statistik (contoh)
+    # 1. Mahasiswa: (Perlu relasi Mitra-Mahasiswa, tidak ada)
+    mahasiswa_count = 12 # Hardcoded sesuai desain
+    # 2. Proyek Mahasiswa: (Tugas kurasi total?)
+    proyek_mahasiswa_count = Kurasi.objects.filter(id_kurator_mitra=request.user).count()
+    # 3. Curated: Tugas kurasi yang sudah selesai
+    curated_count = Kurasi.objects.filter(id_kurator_mitra=request.user, status='Penilaian Lengkap').count()
+    # 4. Not Curated: Tugas kurasi yang belum selesai
+    not_curated_count = Kurasi.objects.filter(id_kurator_mitra=request.user).exclude(status='Penilaian Lengkap').count()
+
+    # Query daftar proyek (semua proyek terbaru, bukan hanya milik mitra)
+    proyek_mahasiswa_terbaru = Produk.objects.filter(
+        curation_status='pending' # Tampilkan proyek yang baru diupload
+    ).order_by('-created_at')[:5] # Ambil 5 terbaru
+
+    context = {
+        'mahasiswa_count': mahasiswa_count,
+        'proyek_mahasiswa_count': proyek_mahasiswa_count,
+        'curated_count': curated_count,
+        'not_curated_count': not_curated_count,
+        'proyek_mahasiswa_terbaru': proyek_mahasiswa_terbaru,
+    }
+    return render(request, 'dashboard/mitra_main.html', context)
+
+# --- VIEW TUGAS PENILAIAN MITRA (Nama view lama) ---
+@login_required
+def dashboard_mitra(request):
+# ... (existing code) ...
+    # Ambil semua tugas penilaian (termasuk yang selesai)
+    tugas_penilaian = Kurasi.objects.filter(id_kurator_mitra=request.user).exclude(status='Menunggu Penugasan').order_by('status', 'tanggal_penugasan')
+    
+    # Hitung statistik (mirip dosen)
+    belum_dinilai_list = tugas_penilaian.exclude(tanggal_selesai_mitra__isnull=False)
+    sudah_selesai_list = tugas_penilaian.filter(tanggal_selesai_mitra__isnull=False)
+
+    belum_dinilai_count = belum_dinilai_list.count()
+    sudah_selesai_count = sudah_selesai_list.count()
+    total_tugas = belum_dinilai_count + sudah_selesai_count
+
+    context = {
+        'total_tugas': total_tugas,
+        'belum_dinilai_count': belum_dinilai_count,
+        'sudah_selesai_count': sudah_selesai_count,
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
+    # TODO: Buat template 'dashboard/mitra_tugas.html' yang mirip 'dosen.html'
+    # Untuk sementara, kita bisa render template dosen jika tampilannya sama
+    return render(request, 'dashboard/mitra.html', context) # Asumsi 'mitra.html' adalah halaman tugas
+
 
 @login_required
 def dashboard_mitra(request):
@@ -448,14 +430,33 @@ def dashboard_unit_bisnis(request):
 @login_required
 def repository_view(request):
     current_tab = request.GET.get('tab', 'pending')
-    projects_pending = Produk.objects.filter(curation_status='pending').order_by('-created_at')
+    
+    # Tab "Terpilih untuk Kurasi" (hanya 'selected')
     projects_selected = Produk.objects.filter(curation_status='selected').order_by('-created_at')
-    total_proyek = Produk.objects.count()
-    projects_to_show = projects_selected if current_tab == 'selected' else projects_pending
-    current_tab = 'selected' if current_tab == 'selected' else 'pending'
+
+    # Tab "Repository" (semua status lain kecuali 'published' dan 'selected')
+    projects_all_other = Produk.objects.exclude(
+        curation_status__in=['selected', 'published']
+    ).select_related('id_pemilik').order_by('-created_at')
+
+    # Hitung statistik
+    total_proyek_repo_count = projects_all_other.count()
+    total_proyek_selected_count = projects_selected.count()
+    total_proyek = total_proyek_repo_count + total_proyek_selected_count # Total di repository (non-published)
+
+    if current_tab == 'selected':
+        projects_to_show = projects_selected
+    else:
+        projects_to_show = projects_all_other
+        current_tab = 'pending'
+
     context = {
-        'projects_pending': projects_pending, 'projects_selected': projects_selected,
-        'total_proyek': total_proyek, 'current_tab': current_tab,
+        'projects_all_other': projects_all_other, # Untuk data tab
+        'projects_selected': projects_selected, # Untuk data tab
+        'total_proyek_repo_count': total_proyek_repo_count,
+        'total_proyek_selected_count': total_proyek_selected_count,
+        'total_proyek': total_proyek,
+        'current_tab': current_tab,
         'projects_to_show': projects_to_show,
     }
     return render(request, 'repository.html', context)
@@ -482,7 +483,6 @@ def select_for_curation(request, project_id):
 def upload_project_view(request):
     if request.user.peran not in ['mahasiswa', 'dosen']:
          messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
-         # Redirect logic...
          if request.user.peran == 'mitra': return redirect('dashboard_mitra')
          if request.user.peran == 'unit_bisnis': return redirect('dashboard_unit_bisnis')
          return redirect('catalog')
@@ -506,7 +506,6 @@ def upload_project_view(request):
 def assign_curator_view(request):
     if request.user.peran != 'unit_bisnis':
         messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
-        # Redirect logic...
         return redirect('catalog')
     projects_selected = Produk.objects.filter(curation_status='selected').order_by('updated_at')
     assign_form = AssignCuratorForm()
@@ -543,7 +542,6 @@ def handle_assign_curator(request, project_id):
         messages.success(request, f"Kurator berhasil ditugaskan untuk proyek '{project.title}'.")
         return redirect('assign_curator_list')
     else:
-        # Tampilkan error form yang lebih detail
         error_message = "Gagal menugaskan kurator."
         if form.errors:
              first_field = next(iter(form.errors))
@@ -571,13 +569,13 @@ def assess_project_view(request, kurasi_id):
         existing_note = kurasi.catatan_mitra
     if not tipe_kurator:
         messages.error(request, "Anda tidak ditugaskan untuk menilai proyek ini atau peran Anda tidak sesuai.")
-        # Redirect logic...
         return redirect('catalog')
 
     existing_scores = AspekPenilaian.objects.filter(id_kurasi=kurasi, tipe_kurator=tipe_kurator)
     initial_scores_dict = {score.aspek: score.skor for score in existing_scores if score.skor is not None}
     initial_form_data = {'catatan': existing_note}
     for aspek_nama, skor in initial_scores_dict.items():
+        # Pastikan nama field konsisten
         field_name = f"aspek_{aspek_nama.lower().replace('& ', '').replace(' ', '_').replace('/', '_')}"
         initial_form_data[field_name] = skor
 
@@ -626,6 +624,7 @@ def assess_project_view(request, kurasi_id):
 
                 if kurasi.status == 'Penilaian Lengkap':
                      if kurasi.nilai_akhir_dosen is not None and kurasi.nilai_akhir_mitra is not None:
+                         # Hitung nilai akhir final berdasarkan rata-rata
                          kurasi.nilai_akhir_final = round((kurasi.nilai_akhir_dosen + kurasi.nilai_akhir_mitra) / 2.0, 2)
                      project.curation_status = 'assessment-complete'
                      project.save()
@@ -641,17 +640,168 @@ def assess_project_view(request, kurasi_id):
     return render(request, 'assess_project.html', context)
 # --- AKHIR ASSESSMENT VIEW ---
 
-# --- VIEW MONITORING PENILAIAN (DAFTAR - DIMODIFIKASI) ---
+
+# --- REVIEW & DECISION VIEWS ---
+@login_required
+def review_decision_list_view(request):
+    if request.user.peran != 'unit_bisnis':
+        messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
+        return redirect('catalog')
+    projects_to_review = Kurasi.objects.filter(
+        status='Penilaian Lengkap',
+        id_produk__curation_status='assessment-complete'
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('id_produk__updated_at')
+    decision_form = DecisionForm()
+    context = {'projects_to_review': projects_to_review, 'decision_form': decision_form}
+    return render(request, 'review_decision_list.html', context)
+
+@login_required
+def get_review_details_json(request, kurasi_id):
+    if request.user.peran != 'unit_bisnis':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    try:
+        kurasi = Kurasi.objects.select_related('id_produk', 'id_produk__id_pemilik').get(id=kurasi_id)
+        project = kurasi.id_produk
+    except Kurasi.DoesNotExist:
+        return JsonResponse({'error': 'Kurasi not found'}, status=404)
+    if kurasi.status != 'Penilaian Lengkap' or project.curation_status != 'assessment-complete':
+         return JsonResponse({'error': 'Penilaian belum lengkap atau status proyek tidak sesuai'}, status=400)
+    aspek_penilaian = AspekPenilaian.objects.filter(id_kurasi=kurasi)
+    aspek_details = {}
+    for aspek_nama in AssessmentForm.ASPEK_CHOICES.keys():
+        aspek_details[aspek_nama] = {'dosen': None, 'mitra': None}
+    for ap in aspek_penilaian:
+        if ap.aspek in aspek_details:
+             aspek_details[ap.aspek][ap.tipe_kurator] = ap.skor
+    suggested_decision_value = ""
+    suggested_decision_text = "Belum Dinilai"
+    nilai = kurasi.nilai_akhir_final
+    if nilai is not None:
+        if nilai >= 3.5:
+            suggested_decision_value = "Sangat Layak"
+            suggested_decision_text = "Sangat Layak"
+        elif nilai >= 2.75:
+             suggested_decision_value = "Revisi Minor"
+             suggested_decision_text = "Layak (Revisi Minor)"
+        elif nilai >= 2.0:
+             suggested_decision_value = "Perlu Pembinaan"
+             suggested_decision_text = "Perlu Pembinaan"
+        else:
+             suggested_decision_value = "Tidak Layak"
+             suggested_decision_text = "Tidak Layak"
+    data = {
+        'kurasi': {
+            'id': kurasi.id, 'nilai_akhir_dosen': kurasi.nilai_akhir_dosen,
+            'nilai_akhir_mitra': kurasi.nilai_akhir_mitra, 'nilai_akhir_final': kurasi.nilai_akhir_final,
+            'catatan_dosen': kurasi.catatan_dosen or "", 'catatan_mitra': kurasi.catatan_mitra or "",
+        },
+        'project': {'title': project.title},
+        'aspek_details': aspek_details,
+        'suggested_decision': suggested_decision_text,
+        'suggested_decision_value': suggested_decision_value,
+    }
+    return JsonResponse(data)
+
+@login_required
+@require_POST
+def handle_project_decision(request, kurasi_id):
+    if request.user.peran != 'unit_bisnis':
+        messages.error(request, "Anda tidak memiliki izin untuk melakukan aksi ini.")
+        return redirect('review_decision_list')
+    kurasi = get_object_or_404(Kurasi, id=kurasi_id)
+    project = kurasi.id_produk
+    if kurasi.status != 'Penilaian Lengkap' or project.curation_status != 'assessment-complete':
+         messages.warning(request, "Status proyek atau penilaian tidak sesuai untuk membuat keputusan.")
+         return redirect('review_decision_list')
+    form = DecisionForm(request.POST, kurasi_instance=kurasi)
+    if form.is_valid():
+        decision = form.cleaned_data['decision']
+        catatan_unit_bisnis = form.cleaned_data['catatan_unit_bisnis']
+        if decision == 'Sangat Layak':
+            project.curation_status = 'ready-for-publication'
+        elif decision == 'Revisi Minor':
+            project.curation_status = 'revision-minor'
+        elif decision == 'Perlu Pembinaan':
+            project.curation_status = 'needs-coaching'
+        elif decision == 'Tidak Layak':
+            project.curation_status = 'rejected'
+        project.final_decision = decision
+        project.dipublikasikan = False
+        project.save()
+        # Simpan catatan unit bisnis (jika ada fieldnya di model Kurasi)
+        # kurasi.catatan_unit_bisnis = catatan_unit_bisnis
+        # kurasi.save()
+        messages.success(request, f"Keputusan '{decision}' berhasil disimpan untuk proyek '{project.title}'.")
+        return redirect('review_decision_list')
+    else:
+        error_msg = "Gagal menyimpan keputusan. "
+        if 'decision' in form.errors:
+            error_msg += form.errors['decision'][0]
+        else:
+            first_field_errors = next(iter(form.errors.values()), None)
+            if first_field_errors:
+                error_msg += first_field_errors[0]
+            else:
+                 error_msg += "Periksa kembali pilihan keputusan dan catatan Anda."
+        messages.error(request, error_msg)
+        return redirect('review_decision_list')
+# --- AKHIR REVIEW & DECISION VIEWS ---
+
+
+# --- PUBLISH CATALOG VIEWS ---
+@login_required
+def publish_catalog_list_view(request):
+    if request.user.peran != 'unit_bisnis':
+        messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
+        return redirect('catalog')
+    projects_ready = Produk.objects.filter(
+        Q(curation_status='ready-for-publication') | Q(curation_status='revision-minor')
+    ).filter(dipublikasikan=False).select_related('id_pemilik', 'kurasi').order_by('-updated_at')
+    projects_published = Produk.objects.filter(dipublikasikan=True).select_related('id_pemilik', 'kurasi').order_by('-updated_at')
+    confirmation_form = PublishConfirmationForm()
+    context = {
+        'projects_ready_to_publish': projects_ready,
+        'projects_published': projects_published,
+        'confirmation_form': confirmation_form,
+    }
+    return render(request, 'publish_catalog_list.html', context)
+
+@login_required
+@require_POST
+def handle_publish_project(request, project_id):
+    if request.user.peran != 'unit_bisnis':
+        messages.error(request, "Anda tidak memiliki izin untuk melakukan aksi ini.")
+        return redirect('publish_catalog_list')
+    project = get_object_or_404(Produk, id=project_id, dipublikasikan=False)
+    if project.curation_status not in ['ready-for-publication', 'revision-minor']:
+        messages.warning(request, f"Proyek '{project.title}' belum siap untuk dipublikasikan (status: {project.curation_status}).")
+        return redirect('publish_catalog_list')
+    form = PublishConfirmationForm(request.POST)
+    if form.is_valid():
+        project.dipublikasikan = True
+        project.curation_status = 'published'
+        project.save()
+        messages.success(request, f"Proyek '{project.title}' berhasil dipublikasikan ke katalog.")
+        return redirect('publish_catalog_list')
+    else:
+        error_msg = "Gagal mempublikasikan. "
+        if 'confirm_publish' in form.errors:
+             error_msg += form.errors['confirm_publish'][0]
+        else:
+             error_msg += "Terjadi kesalahan validasi."
+        messages.error(request, error_msg)
+        return redirect('publish_catalog_list')
+# --- AKHIR PUBLISH CATALOG VIEWS ---
+
+
+# --- MONITORING PENILAIAN VIEWS ---
 @login_required
 def monitoring_penilaian_list_view(request):
     if request.user.peran != 'unit_bisnis':
         messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
         return redirect('catalog')
-
     assessment_statuses = [
-        'Penilaian Berlangsung',
-        'Penilaian Dosen Selesai',
-        'Penilaian Mitra Selesai',
+        'Penilaian Berlangsung', 'Penilaian Dosen Selesai', 'Penilaian Mitra Selesai',
     ]
     projects_in_assessment_qs = Kurasi.objects.filter(
         status__in=assessment_statuses
@@ -659,27 +809,17 @@ def monitoring_penilaian_list_view(request):
         'id_produk', 'id_produk__id_pemilik',
         'id_kurator_dosen', 'id_kurator_mitra'
     ).order_by('tanggal_penugasan')
-
-    # --- HITUNG PROGRESS DI SINI ---
     projects_in_assessment_list = []
     for kurasi in projects_in_assessment_qs:
         progress = 0
-        if kurasi.tanggal_selesai_dosen:
-            progress += 50
-        if kurasi.tanggal_selesai_mitra:
-            progress += 50
-        kurasi.progress_percentage = progress # Tambahkan atribut baru
+        if kurasi.tanggal_selesai_dosen: progress += 50
+        if kurasi.tanggal_selesai_mitra: progress += 50
+        kurasi.progress_percentage = progress
         projects_in_assessment_list.append(kurasi)
-    # --- AKHIR HITUNG PROGRESS ---
-
-    # Hitung statistik
-    total_in_assessment = len(projects_in_assessment_list) # Gunakan list yg sudah dihitung
+    total_in_assessment = len(projects_in_assessment_list)
     assessment_complete_count = Kurasi.objects.filter(status='Penilaian Lengkap').count()
-    # Sedang berlangsung = Total (gunakan len dari list)
-    assessment_ongoing_count = total_in_assessment # Semua yg difilter dianggap ongoing
-
+    assessment_ongoing_count = total_in_assessment
     context = {
-        # Gunakan list yang sudah ada progress_percentage
         'projects_in_assessment': projects_in_assessment_list,
         'total_in_assessment': total_in_assessment,
         'assessment_complete_count': assessment_complete_count,
@@ -687,14 +827,11 @@ def monitoring_penilaian_list_view(request):
     }
     return render(request, 'monitoring_penilaian.html', context)
 
-# --- VIEW BARU: DETAIL MONITORING (JSON untuk Modal) ---
 @login_required
 def get_monitoring_details_json(request, kurasi_id):
     if request.user.peran != 'unit_bisnis':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
-
     try:
-        # Ambil data kurasi lengkap dengan relasi terkait
         kurasi = Kurasi.objects.select_related(
             'id_produk', 'id_produk__id_pemilik',
             'id_kurator_dosen', 'id_kurator_mitra'
@@ -702,12 +839,9 @@ def get_monitoring_details_json(request, kurasi_id):
         project = kurasi.id_produk
     except Kurasi.DoesNotExist:
         return JsonResponse({'error': 'Kurasi not found'}, status=404)
-
-    # Siapkan data JSON
     data = {
         'kurasi': {
-            'id': kurasi.id,
-            'tanggal_penugasan': kurasi.tanggal_penugasan,
+            'id': kurasi.id, 'tanggal_penugasan': kurasi.tanggal_penugasan,
             'tanggal_selesai_dosen': kurasi.tanggal_selesai_dosen,
             'tanggal_selesai_mitra': kurasi.tanggal_selesai_mitra,
             'status': kurasi.status,
@@ -715,10 +849,10 @@ def get_monitoring_details_json(request, kurasi_id):
             'kurator_mitra_name': kurasi.id_kurator_mitra.get_full_name() if kurasi.id_kurator_mitra else "N/A",
         },
         'project': {
-            'title': project.title,
-            'owner': project.id_pemilik.username,
-            'category': project.kategori.first().nama if project.kategori.exists() else "N/A", # Ambil kategori pertama
+            'title': project.title, 'owner': project.id_pemilik.username,
+            'category': project.kategori.first().nama if project.kategori.exists() else "N/A",
         },
-        # Tambahkan field lain jika perlu
     }
     return JsonResponse(data)
+# --- AKHIR MONITORING PENILAIAN VIEWS ---
+
