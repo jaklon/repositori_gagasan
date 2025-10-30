@@ -286,17 +286,35 @@ def dashboard_mahasiswa(request):
     context = {'my_projects': my_projects}
     return render(request, 'dashboard/mahasiswa.html', context)
 
+# Kode BARU di repository/views.py
 @login_required
 def dashboard_dosen(request):
     if request.user.peran != 'dosen':
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
-    tugas_penilaian = Kurasi.objects.filter(
+    
+    # 1. Kueri Dasar (Semua tugas yang ditugaskan dan sudah bukan 'Menunggu Penugasan')
+    tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_dosen=request.user
     ).exclude(
         status='Menunggu Penugasan'
-    ).select_related('id_produk').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
+    
+    # 2. Pisahkan ke daftar Belum Dinilai (tanggal_selesai_dosen = NULL)
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=True)
+    
+    # 3. Pisahkan ke daftar Sudah Selesai (tanggal_selesai_dosen IS NOT NULL)
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=False)
+
+    context = {
+        # Statistik
+        'total_tugas': tugas_penilaian_qs.count(),
+        'belum_dinilai_count': belum_dinilai_list.count(),
+        'sudah_selesai_count': sudah_selesai_list.count(),
+        # Daftar Tugas
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
     return render(request, 'dashboard/dosen.html', context)
 
 @login_required
