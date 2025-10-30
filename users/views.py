@@ -8,36 +8,43 @@ from django.contrib.auth.decorators import login_required
 
 
 def login_view(request):
-    # Logika untuk memproses data login (method POST)
     if request.method == 'POST':
-        # --- PERUBAHAN 1: Ambil 'email' dari form, bukan 'username' ---
-        email = request.POST.get('username') # Biarkan 'username' karena <input> di login.html masih name="username"
+        email = request.POST.get('username') # Tetap 'username' sesuai name di HTML
         password = request.POST.get('password')
 
         if not email or not password:
             messages.error(request, 'Email dan Password harus diisi!')
             return redirect('login')
 
-        # --- PERUBAHAN 2: Cari user berdasarkan email ---
+        # Cari user berdasarkan email (case-insensitive bisa lebih baik)
         try:
-            # Coba temukan user berdasarkan email
-            user_obj = CustomUser.objects.get(email=email)
-            # Dapatkan username dari user yang ditemukan
+            user_obj = CustomUser.objects.get(email__iexact=email) # Gunakan __iexact
             username = user_obj.username
         except CustomUser.DoesNotExist:
-            # Jika email tidak ditemukan, kirim pesan error
             messages.error(request, 'Email atau Password salah!')
             return redirect('login')
-        
-        # --- PERUBAHAN 3: Authenticate menggunakan username yang sudah kita temukan ---
+
+        # Authenticate menggunakan username
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Jika user valid, loginkan ke sistem
+            # === CEK is_active bawaan, is_approved, dan status ===
+            if not user.is_active: # Cek field is_active bawaan (misal diban admin)
+                 messages.error(request, 'Akun Anda dinonaktifkan oleh administrator.')
+                 return redirect('login')
+            elif not user.is_approved: # Cek approval Unit Bisnis
+                 messages.error(request, 'Akun Anda belum disetujui oleh Unit Bisnis.')
+                 return redirect('login')
+            elif user.status == 'nonaktif': # Cek status internal
+                 messages.error(request, 'Akun Anda saat ini tidak aktif. Hubungi Unit Bisnis.')
+                 return redirect('login')
+            # === AKHIR CEK ===
+
+            # Jika semua cek lolos, baru login
             login(request, user)
             messages.success(request, f'Selamat datang kembali, {user.username}!')
-            
-            # --- LOGIKA REDIRECT (Sudah benar) ---
+
+            # --- LOGIKA REDIRECT ---
             if user.peran == 'mahasiswa':
                 return redirect('dashboard_mahasiswa')
             elif user.peran == 'dosen':
@@ -46,17 +53,17 @@ def login_view(request):
                 return redirect('dashboard_mitra')
             elif user.peran == 'unit_bisnis':
                 return redirect('dashboard_unit_bisnis')
-            elif user.is_superuser:
-                return redirect('admin:index')
+            elif user.is_superuser: # Cek superuser
+                return redirect('admin:index') # Arahkan ke admin Django
             else:
-                return redirect('catalog')
-            
+                return redirect('catalog') # Fallback
+
         else:
-            # Jika user tidak valid (password salah)
+            # Jika authenticate gagal (username/password salah ATAU user.is_active bawaan = False)
             messages.error(request, 'Email atau Password salah!')
             return redirect('login')
-    
-    # Jika method-nya GET, tampilkan halaman login
+
+    # Jika method GET
     return render(request, 'login.html')
 
 
@@ -70,10 +77,14 @@ def register_view(request):
         password2 = request.POST.get('password2')
 
         # 2. Lakukan Validasi
+        if not all([username, email, peran, password, password2]):
+             messages.error(request, 'Semua field wajib diisi!')
+             return redirect('register') # Kembali dengan pesan error
+
         if password != password2:
             messages.error(request, 'Password tidak cocok!')
             return redirect('register')
-        
+
         if CustomUser.objects.filter(username=username).exists():
             messages.error(request, 'Username sudah digunakan!')
             return redirect('register')
@@ -83,24 +94,31 @@ def register_view(request):
             return redirect('register')
 
         # 3. Jika validasi lolos, buat user baru
-        user = CustomUser.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            peran=peran
-        )
-        
-        messages.success(request, 'Akun berhasil dibuat! Silakan login.')
-        return redirect('login') 
+        try:
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                peran=peran
+                # is_approved akan otomatis False (default model)
+                # is_active akan otomatis True (default AbstractUser)
+                # status akan otomatis 'aktif' (default model)
+            )
+            # Pesan sukses yang baru
+            messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujui oleh Unit Bisnis sebelum bisa login.')
+            return redirect('login')
+        except Exception as e:
+             # Tangkap error tak terduga saat pembuatan user
+             messages.error(request, f'Terjadi kesalahan saat membuat akun: {e}')
+             return redirect('register')
 
     # Jika method adalah GET, cukup tampilkan halaman registrasi
     else:
         return render(request, 'register.html')
 
-# --- TAMBAHKAN FUNGSI LOGOUT BARU ---
+# Fungsi Logout (Sudah benar)
 @login_required
 def logout_view(request):
     logout(request)
     messages.info(request, "Anda telah berhasil logout.")
     return redirect('login')
-
