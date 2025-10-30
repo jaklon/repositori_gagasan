@@ -17,7 +17,15 @@ class CustomUser(AbstractUser):
 
     # Menambahkan field baru sesuai ERD
     peran = models.CharField(max_length=20, choices=PERAN_CHOICES, default='mahasiswa')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='aktif')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='aktif') # Default 'aktif'
+
+    # --- TAMBAHKAN FIELD INI ---
+    is_approved = models.BooleanField(default=False, verbose_name='Disetujui') # Defaultnya False
+
+    # JANGAN override is_active property
+    # @property
+    # def is_active(self):
+    #     ...
 
     def __str__(self):
         return self.username
