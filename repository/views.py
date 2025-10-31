@@ -19,12 +19,12 @@ from django.http import JsonResponse
 from django.urls import reverse # Import reverse jika digunakan untuk redirect
 
 
-# --- PINDAHKAN FUNGSI HELPER INI KE ATAS ---
+# --- FUNGSI HELPER (Sudah benar di atas) ---
 # Helper function untuk mengecek apakah user adalah Unit Bisnis
 def is_unit_bisnis(user):
     # Pastikan user sudah login sebelum cek peran
     return user.is_authenticated and user.peran == 'unit_bisnis'
-# --- AKHIR PEMINDAHAN ---
+# --- AKHIR HELPER ---
 
 
 # === FORMS ===
@@ -49,8 +49,6 @@ class ProjectForm(forms.ModelForm):
         required=True, # Jadikan wajib
         label="Kategori Proyek (Pilih satu atau lebih)",
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'category-checkbox-list'}) # Gunakan checkbox jika ingin multiple
-        # Atau gunakan Select jika hanya satu
-        # widget=forms.Select(attrs={'class': '...'})
     )
 
     source_code_link = forms.URLField(
@@ -69,7 +67,7 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Produk
-        # Masukkan semua field yang relevan dari form ke model
+        # fields HANYA menyertakan apa yang ada di Model Produk
         fields = [
             'title', 'description', 'poster_image', 'source_code_link', # 'source_code_link' tidak ada di model Produk
             'demo_link', #'program_studi' tidak ada di model Produk
@@ -84,7 +82,7 @@ class ProjectForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'}),
             'poster_image': forms.ClearableFileInput(attrs={'class': 'w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 border border-gray-300 rounded-md p-1'}),
             'demo_link': forms.URLInput(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent', 'placeholder': 'https://proyek-anda.vercel.app atau https://youtube.com/...'}),
-            # Kategori sudah didefinisikan di atas field
+            'kategori': forms.CheckboxSelectMultiple(attrs={'class': 'category-checkbox-list'}), # Tetap gunakan widget kustom jika diperlukan
         }
         help_texts = {
              'poster_image': 'Wajib diisi. Max 5MB.',
@@ -108,52 +106,40 @@ class ProjectForm(forms.ModelForm):
 
     def clean_poster_image(self):
         image = self.cleaned_data.get('poster_image', False)
-        # Cek jika image tidak ada SAAT MEMBUAT objek baru
         if not image and (not self.instance or not self.instance.pk):
              raise ValidationError("Gambar overview proyek wajib diisi.")
         if image:
             if image.size > 5 * 1024 * 1024: # 5MB limit
                 raise ValidationError("Ukuran gambar tidak boleh melebihi 5MB.")
-            # Bisa tambahkan validasi tipe file jika perlu
-            # main, sub = image.content_type.split('/')
-            # if not (main == 'image' and sub in ['jpeg', 'png', 'gif']):
-            #     raise ValidationError("Tipe file gambar tidak valid.")
         return image
 
     def clean_source_code_link(self):
         link = self.cleaned_data.get('source_code_link')
         if link:
-            # Validasi URL secara umum
             validate = URLValidator()
             try:
                 validate(link)
             except ValidationError:
                  raise ValidationError("URL Source Code tidak valid.")
-            # Validasi spesifik domain
             if not ('github.com' in link or 'drive.google.com' in link):
                 raise ValidationError("Link harus berasal dari github.com atau drive.google.com.")
-        # else: # Seharusnya tidak terjadi karena required=True
-        #    raise ValidationError("Link Source Code wajib diisi.")
         return link
 
     def clean_tags_input(self):
         tags_string = self.cleaned_data.get('tags_input', '')
-        # Bersihkan nama tag: hapus spasi ekstra, jadikan lowercase
         tag_names = [name.strip().lower() for name in tags_string.split(',') if name.strip()]
         tags_list = []
-        # Buat atau ambil objek Tag
         if tag_names:
             for name in tag_names:
-                if name: # Pastikan nama tidak kosong setelah strip
+                if name:
                     tag, created = Tag.objects.get_or_create(nama=name)
                     tags_list.append(tag)
         return tags_list # Kembalikan list objek Tag
 
     def save(self, commit=True, owner=None):
-        instance = super().save(commit=False) # Jangan simpan dulu
+        instance = super().save(commit=False)
         if owner:
             instance.id_pemilik = owner
-        # Set status awal saat object baru dibuat
         if not instance.pk:
             instance.curation_status = 'pending'
             instance.dipublikasikan = False
@@ -164,16 +150,15 @@ class ProjectForm(forms.ModelForm):
         # -----------------------------------------------------------------
 
         if commit:
-            instance.save() # Simpan instance utama ke DB
-            # Setelah instance tersimpan (punya ID), baru simpan relasi ManyToMany
+            instance.save() # Simpan instance utama
+            # Simpan M2M setelah instance utama disimpan
             kategori_list = self.cleaned_data.get('kategori')
             if kategori_list is not None:
-                instance.kategori.set(kategori_list) # Gunakan set() untuk M2M
-
-            tags_list = self.cleaned_data.get('tags_input') # ini adalah list objek Tag
+                instance.kategori.set(kategori_list)
+            
+            tags_list = self.cleaned_data.get('tags_input')
             if tags_list is not None:
-                instance.tags.set(tags_list) # Gunakan set() untuk M2M
-
+                instance.tags.set(tags_list)
         return instance
 # --- AKHIR FORM UNGGAH ---
 
@@ -181,12 +166,12 @@ class ProjectForm(forms.ModelForm):
 # --- FORM PENUGASAN KURATOR ---
 class AssignCuratorForm(forms.Form):
     kurator_dosen = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(peran='dosen', is_active=True, status='aktif'), # Tambah cek status aktif
+        queryset=CustomUser.objects.filter(peran='dosen', is_active=True, status='aktif'),
         required=True, label="Kurator Dosen", empty_label="Pilih Dosen",
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
     kurator_mitra = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(peran='mitra', is_active=True, status='aktif'), # Tambah cek status aktif
+        queryset=CustomUser.objects.filter(peran='mitra', is_active=True, status='aktif'),
         required=True, label="Kurator Mitra Industri", empty_label="Pilih Mitra",
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
@@ -195,7 +180,6 @@ class AssignCuratorForm(forms.Form):
 
 # --- FORM PENILAIAN ASPEK ---
 class AssessmentForm(forms.Form):
-    # Bobot bisa disimpan di sini atau di model AspekPenilaian jika lebih dinamis
     ASPEK_CHOICES = {
         'Orisinalitas & Inovasi': 15,
         'Fungsionalitas Produk': 20,
@@ -204,27 +188,21 @@ class AssessmentForm(forms.Form):
         'Kelayakan Bisnis & Potensi Pasar': 20,
         'Dokumentasi Teknis & Panduan Pengguna': 15,
     }
-    # Ambil choices skor dari model AspekPenilaian
-    # Pastikan field 'skor' di model AspekPenilaian punya choices
     skor_choices_from_model = list(AspekPenilaian._meta.get_field('skor').choices or [])
     SCORE_CHOICES = [('', 'Pilih Skor')] + skor_choices_from_model
 
-    # Buat field untuk setiap aspek
     def __init__(self, *args, **kwargs):
-        initial_scores = kwargs.pop('initial_scores', {}) # Ambil skor awal jika ada (untuk edit)
+        initial_scores = kwargs.pop('initial_scores', {})
         super().__init__(*args, **kwargs)
         for aspek_nama in self.ASPEK_CHOICES.keys():
-            # Buat nama field yang valid (lowercase, underscore)
             field_name = f"aspek_{aspek_nama.lower().replace('& ', '').replace(' ', '_').replace('/', '_')}"
             self.fields[field_name] = forms.ChoiceField(
                 label=aspek_nama,
                 choices=self.SCORE_CHOICES,
-                # Gunakan RadioSelect agar terlihat seperti tombol
                 widget=forms.RadioSelect(attrs={'class': 'assessment-radio'}),
-                required=True, # Wajib diisi
-                initial=initial_scores.get(aspek_nama) # Set nilai awal jika ada
+                required=True,
+                initial=initial_scores.get(aspek_nama)
             )
-    # Field catatan terpisah
     catatan = forms.CharField(
         label="Catatan Keseluruhan (Opsional)",
         required=False,
@@ -236,7 +214,7 @@ class AssessmentForm(forms.Form):
 # --- FORM KEPUTUSAN UNIT BISNIS ---
 class DecisionForm(forms.Form):
     DECISION_CHOICES = [
-        ('', 'Pilih keputusan final...'), # Placeholder
+        ('', 'Pilih keputusan final...'),
         ('ready-for-publication', '泙 Layak - Siap Publikasi'),
         ('revision-minor', '鳩 Revisi Minor - Publikasi Setelah Perbaikan'),
         ('needs-coaching', '泯 Perlu Pembinaan - Tidak Dipublikasi'),
@@ -308,17 +286,35 @@ def dashboard_mahasiswa(request):
     context = {'my_projects': my_projects}
     return render(request, 'dashboard/mahasiswa.html', context)
 
+# Kode BARU di repository/views.py
 @login_required
 def dashboard_dosen(request):
     if request.user.peran != 'dosen':
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
-    tugas_penilaian = Kurasi.objects.filter(
+    
+    # 1. Kueri Dasar (Semua tugas yang ditugaskan dan sudah bukan 'Menunggu Penugasan')
+    tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_dosen=request.user
     ).exclude(
         status='Menunggu Penugasan'
-    ).select_related('id_produk').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
+    
+    # 2. Pisahkan ke daftar Belum Dinilai (tanggal_selesai_dosen = NULL)
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=True)
+    
+    # 3. Pisahkan ke daftar Sudah Selesai (tanggal_selesai_dosen IS NOT NULL)
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=False)
+
+    context = {
+        # Statistik
+        'total_tugas': tugas_penilaian_qs.count(),
+        'belum_dinilai_count': belum_dinilai_list.count(),
+        'sudah_selesai_count': sudah_selesai_list.count(),
+        # Daftar Tugas
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
     return render(request, 'dashboard/dosen.html', context)
 
 @login_required
@@ -576,7 +572,9 @@ def select_for_curation(request, project_id):
         messages.success(request, f"Proyek '{project.title}' telah berhasil dipilih untuk kurasi.")
         return redirect('repository')
     else:
-        messages.warning(request, f"Proyek '{project.title}' tidak dalam status 'pending' (Status saat ini: {project.get_curation_status_display()}).")
+        # Coba dapatkan status display yang 'human-readable'
+        status_display = project.get_curation_status_display() if hasattr(project, 'get_curation_status_display') else project.curation_status
+        messages.warning(request, f"Proyek '{project.title}' tidak dalam status 'pending' (Status saat ini: {status_display}).")
         referer = request.META.get('HTTP_REFERER', reverse('repository'))
         return redirect(referer)
 # --- AKHIR REPOSITORY VIEWS ---
@@ -590,18 +588,31 @@ def upload_project_view(request):
          if request.user.peran == 'mitra': return redirect('dashboard_mitra')
          if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
          return redirect('catalog')
+
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 project = form.save(commit=True, owner=request.user)
+                # Simpan field non-model (source_code_link, program_studi) di tempat lain jika perlu
+                # Misalnya, di model terpisah atau di session (jika hanya sementara)
+                # Saat ini, data 'source_code_link' dan 'program_studi' dari form HILANG setelah ini
+                
                 messages.success(request, f"Proyek '{project.title}' berhasil diunggah dan menunggu seleksi.")
                 if request.user.peran == 'mahasiswa': return redirect('dashboard_mahasiswa')
                 elif request.user.peran == 'dosen': return redirect('dashboard_dosen')
             except Exception as e:
+                # Tangkap error validasi atau database
                 messages.error(request, f"Terjadi kesalahan saat menyimpan proyek: {e}")
+                # Jangan redirect, biarkan form ditampilkan lagi dengan error
+        # else:
+            # Jika form.is_valid() gagal, biarkan view me-render form di bawah
+            # Error per field akan otomatis ditampilkan oleh template `upload_project.html`
+            # (Asumsi template-nya menampilkan {{ form.field.errors }})
+            pass
     else:
-        form = ProjectForm()
+        form = ProjectForm() # Form kosong untuk GET request
+
     context = {'form': form}
     return render(request, 'upload_project.html', context)
 # --- AKHIR UPLOAD PROJECT VIEW ---
@@ -664,7 +675,7 @@ def handle_assign_curator(request, project_id):
 # --- ASSESSMENT VIEW ---
 @login_required
 def assess_project_view(request, kurasi_id):
-    kurasi = get_object_or_404(Kurasi.objects.select_related('id_produk'), id=kurasi_id)
+    kurasi = get_object_or_404(Kurasi.objects.select_related('id_produk', 'id_produk__id_pemilik'), id=kurasi_id)
     project = kurasi.id_produk
     user = request.user
     tipe_kurator = None
@@ -896,10 +907,9 @@ def handle_project_decision(request, kurasi_id):
         else:
              project.dipublikasikan = False
         project.save(update_fields=['curation_status', 'final_decision', 'dipublikasikan', 'updated_at'])
-        # Simpan catatan unit bisnis jika fieldnya ada
-        # if hasattr(kurasi, 'catatan_unit_bisnis'):
-        #     kurasi.catatan_unit_bisnis = catatan_unit_bisnis
-        #     kurasi.save(update_fields=['catatan_unit_bisnis'])
+        # Simpan catatan unit bisnis (jika Anda menambahkan field 'catatan_unit_bisnis' ke model Kurasi)
+        # kurasi.catatan_unit_bisnis = catatan_unit_bisnis
+        # kurasi.save(update_fields=['catatan_unit_bisnis'])
         messages.success(request, f"Keputusan '{decision_label}' berhasil disimpan untuk proyek '{project.title}'.")
         return redirect('review_decision_list')
     else:
@@ -950,12 +960,53 @@ def handle_publish_project(request, project_id):
 # --- AKHIR PUBLIKASI ---
 
 
-# --- VIEWS MANAJEMEN USER ---
+# --- VIEWS MANAJEMEN USER (VERSI BARU DENGAN STATS) ---
 @login_required
-@user_passes_test(is_unit_bisnis, login_url='catalog')
+@user_passes_test(is_unit_bisnis, login_url='catalog') 
 def manage_users_view(request):
-    users_to_manage = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis').order_by('is_approved', 'date_joined')
-    context = { 'users_list': users_to_manage, }
+    # Basis query: semua user yang relevan (bukan superuser atau unit bisnis)
+    base_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+
+    # Ambil list lengkap untuk tab 'All Users'
+    all_users_list = base_query.order_by('username')
+    
+    # Ambil list pending untuk tab 'Account Requests'
+    users_pending_list = base_query.filter(is_approved=False).order_by('date_joined')
+
+    # --- Hitung Statistik ---
+    
+    # Statistik Baris 1
+    total_users_count = all_users_list.count()
+    active_users_count = all_users_list.filter(is_active=True, status='aktif', is_approved=True).count()
+    pending_approval_count = users_pending_list.count() # Hitung dari query pending
+    
+    # Statistik Baris 2 (Distribusi)
+    mahasiswa_count = all_users_list.filter(peran='mahasiswa').count()
+    dosen_count = all_users_list.filter(peran='dosen').count()
+    mitra_count = all_users_list.filter(peran='mitra').count()
+
+    # Tentukan tab aktif dari parameter URL (default ke 'pending' jika ada yg pending)
+    default_tab = 'pending' if pending_approval_count > 0 else 'all'
+    current_tab = request.GET.get('tab', default_tab) 
+
+    context = {
+        # Lists untuk Tabel
+        'all_users_list': all_users_list,
+        'users_pending_list': users_pending_list,
+        
+        # Stats Cards (Row 1)
+        'total_users_count': total_users_count,
+        'active_users_count': active_users_count,
+        'pending_approval_count': pending_approval_count,
+        
+        # Stats Cards (Row 2 - Distribusi)
+        'mahasiswa_count': mahasiswa_count,
+        'dosen_count': dosen_count,
+        'mitra_count': mitra_count,
+        
+        # Tab control
+        'current_tab': current_tab,
+    }
     return render(request, 'dashboard/manage_users.html', context)
 
 @login_required
@@ -966,17 +1017,22 @@ def approve_user_view(request, user_id):
     if not user_to_approve.is_approved:
         user_to_approve.is_approved = True
         user_to_approve.status = 'aktif'
-        user_to_approve.save()
+        user_to_approve.save(update_fields=['is_approved', 'status']) # Hanya update field yg relevan
         messages.success(request, f"Akun '{user_to_approve.username}' ({user_to_approve.get_peran_display()}) telah disetujui dan diaktifkan.")
     else:
         messages.info(request, f"Akun '{user_to_approve.username}' sudah disetujui sebelumnya.")
-    return redirect('manage_users')
+    # Redirect kembali ke tab pending
+    return redirect(reverse('manage_users') + '?tab=pending')
 
 @login_required
 @require_POST
 @user_passes_test(is_unit_bisnis, login_url='catalog')
 def toggle_active_user_view(request, user_id):
     user_to_toggle = get_object_or_404(CustomUser, id=user_id, is_superuser=False, peran__in=['mahasiswa', 'dosen', 'mitra'])
+    
+    # Tentukan tab mana yang sedang aktif untuk redirect
+    redirect_url = reverse('manage_users') + '?tab=all'
+    
     if user_to_toggle.status == 'aktif':
         user_to_toggle.status = 'nonaktif'
         user_to_toggle.save(update_fields=['status'])
@@ -988,5 +1044,7 @@ def toggle_active_user_view(request, user_id):
             messages.success(request, f"Akun '{user_to_toggle.username}' telah diaktifkan kembali.")
         else:
             messages.error(request, f"Akun '{user_to_toggle.username}' belum disetujui. Silakan setujui terlebih dahulu sebelum mengaktifkan.")
-    return redirect('manage_users')
+            redirect_url = reverse('manage_users') + '?tab=pending' # Arahkan ke tab pending
+            
+    return redirect(redirect_url)
 # --- AKHIR MANAJEMEN USER ---
