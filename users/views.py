@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import CustomUser
+# Import fungsi-fungsi autentikasi
 from django.contrib.auth import authenticate, login, logout
+# --- TAMBAHKAN IMPORT INI ---
 from django.contrib.auth.decorators import login_required
-from .forms import UserProfileForm
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -120,27 +122,3 @@ def logout_view(request):
     logout(request)
     messages.info(request, "Anda telah berhasil logout.")
     return redirect('login')
-
-@login_required
-def profile_view(request):
-    user = request.user
-
-    if request.method == 'POST':
-        # Jika form disubmit, isi form dengan data POST dan instance user
-        form = UserProfileForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profil Anda berhasil diperbarui!')
-            return redirect('profile') # Redirect kembali ke halaman profil
-        else:
-            messages.error(request, 'Terjadi kesalahan. Silakan periksa isian Anda.')
-    else:
-        # Jika GET request, isi form dengan data user yang sedang login
-        form = UserProfileForm(instance=user)
-
-    context = {
-        'form': form,
-        'user': user # Kirim data user untuk ditampilkan (misal username, email)
-    }
-    # Buat template baru untuk ini
-    return render(request, 'profile.html', context)

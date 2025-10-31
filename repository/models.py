@@ -26,6 +26,7 @@ class Produk(models.Model):
     id_pemilik = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='produk_dimiliki')
     title = models.CharField(max_length=255)
     description = models.TextField()
+    source_code_link = models.URLField(max_length=255, blank=True, null=True, help_text="Link ke source code (GitHub, Drive, dll.)")
     demo_link = models.URLField(max_length=255, blank=True, null=True)
     poster_image = models.ImageField(upload_to='', blank=True, null=True)
     # TODO: Pertimbangkan menambahkan field source_code_link, program_studi di sini jika ingin disimpan permanen
@@ -142,9 +143,10 @@ class RequestSourceCode(models.Model):
         # Contoh limit_choices jika hanya dosen/admin:
         # limit_choices_to=Q(peran='dosen') | Q(is_superuser=True)
     )
+    alasan_request = models.TextField(blank=True, null=True)
     tanggal_request = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    alasan_request = models.TextField(blank=True, null=True, help_text="Alasan mengapa user meminta akses")
 
     def __str__(self):
         return f"Request untuk {self.id_produk.title} oleh {self.id_pemohon.username}"
-
