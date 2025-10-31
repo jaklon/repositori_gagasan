@@ -5,11 +5,11 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 
 # --- Models ---
-from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian
+from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian, RequestSourceCode
 from users.models import CustomUser # Import CustomUser
 
 # --- Utils ---
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required, user_passes_test # Tambahkan user_passes_test
 from django import forms
 from django.core.exceptions import ValidationError
@@ -71,7 +71,7 @@ class ProjectForm(forms.ModelForm):
         model = Produk
         # Masukkan semua field yang relevan dari form ke model
         fields = [
-            'title', 'description', 'poster_image', # 'source_code_link' tidak ada di model Produk
+            'title', 'description', 'poster_image', 'source_code_link', # 'source_code_link' tidak ada di model Produk
             'demo_link', #'program_studi' tidak ada di model Produk
             'kategori', 'tags_input',
         ]
@@ -160,7 +160,7 @@ class ProjectForm(forms.ModelForm):
 
         # --- PENTING: Jangan set field yang tidak ada di model Produk ---
         # instance.program_studi = self.cleaned_data.get('program_studi')
-        # instance.source_code_link = self.cleaned_data.get('source_code_link')
+        instance.source_code_link = self.cleaned_data.get('source_code_link')
         # -----------------------------------------------------------------
 
         if commit:
@@ -334,18 +334,213 @@ def dashboard_mitra(request):
     context = {'tugas_penilaian': tugas_penilaian}
     return render(request, 'dashboard/mitra.html', context)
 
+# --- DASHBOARD UNIT BISNIS (DIPERBARUI) ---
 @login_required
 def dashboard_unit_bisnis(request):
-    if not is_unit_bisnis(request.user):
-        messages.error(request, "Akses dashboard tidak sesuai.")
-        return redirect('catalog')
+    if request.user.peran != 'unit_bisnis':
+        return redirect('catalog') # Pastikan hanya unit bisnis
+
+    # 1. Ambil 6 Statistik Utama (dari image_a1d75a.png)
+    total_produk = Produk.objects.count()
+    proyek_terpublikasi = Produk.objects.filter(dipublikasikan=True).count()
+    
+    # Proyek di Repository (Menunggu Seleksi)
+    proyek_di_repository = Produk.objects.filter(curation_status='pending').count()
+    
+    # Menunggu Penugasan
+    proyek_menunggu_penugasan = Produk.objects.filter(curation_status='selected').count()
+    
+    # Dalam Penilaian
+    status_penilaian = ['curators-assigned', 'Penilaian Berlangsung', 'Penilaian Dosen Selesai', 'Penilaian Mitra Selesai']
+    proyek_dalam_penilaian = Produk.objects.filter(curation_status__in=status_penilaian).count()
+    
+    # Menunggu Keputusan
+    proyek_menunggu_keputusan = Produk.objects.filter(curation_status='assessment-complete').count()
+
+    # 2. Ambil Statistik Notifikasi Mendesak (dari image_a1d77c.png)
+    # (Data ini sama dengan statistik di atas, kita gunakan lagi)
+    
+    # 3. Ambil Statistik Proyek per Kategori (dari image_a1d79c.png)
+    statistik_kategori = Kategori.objects.annotate(
+        jumlah_proyek=Count('produk') # Hitung produk di setiap kategori
+    ).filter(jumlah_proyek__gt=0).order_by('-jumlah_proyek') # Urutkan
+
+    # 4. Ambil Aktivitas Terkini (dari image_a1d77c.png)
+    #    Ini memerlukan model logging/aktivitas. Kita akan mock data ini untuk sekarang.
+    aktivitas_terkini = [
+        {'nama': 'Produk "Smart Parking System" dipilih untuk kurasi', 'waktu': '10 menit yang lalu', 'pelaku': 'Admin Unit Bisnis'},
+        {'nama': 'Kurator ditugaskan untuk "AI Chatbot"', 'waktu': '1 jam yang lalu', 'pelaku': 'Admin Unit Bisnis'},
+        {'nama': 'Penilaian selesai untuk "IoT Monitoring"', 'waktu': '2 jam yang lalu', 'pelaku': 'Dr. Ahmad (Dosen)'},
+    ]
+
+
     context = {
-        'total_proyek': Produk.objects.count(),
-        'proyek_terkurasi': Produk.objects.filter(dipublikasikan=True).count(),
-        'proyek_menunggu': Produk.objects.filter(curation_status='pending').count(),
+        # Statistik Utama
+        'total_produk': total_produk,
+        'proyek_terpublikasi': proyek_terpublikasi,
+        'proyek_di_repository': proyek_di_repository,
+        'proyek_menunggu_penugasan': proyek_menunggu_penugasan,
+        'proyek_dalam_penilaian': proyek_dalam_penilaian,
+        'proyek_menunggu_keputusan': proyek_menunggu_keputusan,
+        
+        # Statistik Kategori
+        'statistik_kategori': statistik_kategori,
+        
+        # Aktivitas Terkini (Mock)
+        'aktivitas_terkini': aktivitas_terkini,
+
+        # Statistik untuk Notifikasi Mendesak (menggunakan data yg sudah ada)
+        'tugas_penugasan_mendesak': proyek_menunggu_penugasan,
+        'tugas_keputusan_mendesak': proyek_menunggu_keputusan,
+        'tugas_publikasi_mendesak': Produk.objects.filter(
+            Q(curation_status='ready-for-publication') | Q(curation_status='revision-minor')
+        ).filter(dipublikasikan=False).count(),
     }
     return render(request, 'dashboard/unit_bisnis.html', context)
+# --- AKHIR DASHBOARD UNIT BISNIS ---
+
 # --- AKHIR DASHBOARD VIEWS ---
+
+# --- VIEW BARU UNTUK DETAIL PROYEK ---
+@login_required
+def project_detail_view(request, project_id):
+    # Ambil proyek, pastikan prefetch data pemilik
+    project = get_object_or_404(Produk.objects.select_related('id_pemilik').prefetch_related('kategori', 'tags'), id=project_id)
+    
+    # Coba ambil data kurasi terkait (jika ada)
+    try:
+        kurasi = Kurasi.objects.get(id_produk=project)
+    except Kurasi.DoesNotExist:
+        kurasi = None
+
+    # Cek apakah user yang login sudah pernah request
+    existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+
+    # Logika Izin Akses:
+    # 1. Pemilik proyek bisa lihat
+    # 2. Unit Bisnis, Dosen, Admin bisa lihat
+    # 3. Mitra? (Asumsi saat ini bisa lihat juga)
+    allowed_roles = ['unit_bisnis', 'dosen', 'mitra'] # Admin (superuser) otomatis bisa
+    if project.id_pemilik == request.user or request.user.peran in allowed_roles or request.user.is_superuser:
+        # Punya izin
+        context = {
+            'project': project,
+            'kurasi': kurasi, # Kirim None jika tidak ada
+            'existing_request': existing_request, # Kirim status request (None atau objek)
+        }
+        return render(request, 'project_detail.html', context)
+    else:
+        # Tidak punya izin
+        messages.error(request, "Anda tidak memiliki izin untuk melihat detail proyek ini.")
+        # Kembalikan ke halaman sebelumnya atau ke katalog
+        return redirect(request.META.get('HTTP_REFERER', 'repository'))
+# --- AKHIR VIEW DETAIL PROYEK ---
+
+
+# --- VIEW BARU UNTUK HANDLE REQUEST SOURCE CODE ---
+@login_required
+@require_POST  # Hanya terima POST dari modal
+def request_source_code_view(request, project_id):
+    project = get_object_or_404(Produk, id=project_id)
+    user = request.user
+
+    # Jangan izinkan pemilik request source code sendiri
+    if project.id_pemilik == user:
+        messages.error(request, "Anda adalah pemilik proyek ini.")
+        return redirect('project_detail', project_id=project.id)
+
+    # Cek apakah request sudah pernah ada
+    existing_request = RequestSourceCode.objects.filter(
+        id_produk=project,
+        id_pemohon=user
+    ).first()
+
+    if existing_request:
+        messages.info(
+            request,
+            f"Anda sudah pernah meminta akses untuk proyek ini (Status: {existing_request.get_status_display()})."
+        )
+        return redirect('project_detail', project_id=project.id)
+
+    # --- VALIDASI: Alasan Request wajib diisi ---
+    alasan = request.POST.get('alasan_request', '').strip()
+    if not alasan:
+        messages.error(request, "Alasan Permintaan (Alasan Request) wajib diisi.")
+        return redirect('project_detail', project_id=project.id)
+    # --- AKHIR VALIDASI ---
+
+    # Buat request baru
+    RequestSourceCode.objects.create(
+        id_produk=project,
+        id_pemohon=user,
+        alasan_request=alasan,  # Simpan alasan
+        status='pending'
+    )
+
+    messages.success(
+        request,
+        f"Permintaan akses source code untuk '{project.title}' telah terkirim."
+    )
+    return redirect('project_detail', project_id=project.id)
+# --- AKHIR VIEW REQUEST SOURCE CODE ---
+
+# --- VIEW BARU: ACCESS REQUESTS (DAFTAR) ---
+@login_required
+def access_requests_view(request):
+    # Hanya Dosen dan Mahasiswa yang bisa mengakses halaman ini
+    if request.user.peran not in ['mahasiswa', 'dosen']:
+        messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
+        return redirect('catalog') # Redirect ke tempat lain jika perlu
+
+    # Ambil semua permintaan yang ditujukan untuk proyek MILIK user yang sedang login
+    requests_for_my_projects = RequestSourceCode.objects.filter(
+        id_produk__id_pemilik=request.user
+    ).select_related('id_pemohon', 'id_produk').order_by('-tanggal_request')
+
+    # Pisahkan antara yang pending dan yang sudah ditanggapi
+    pending_requests = requests_for_my_projects.filter(status='pending')
+    other_requests = requests_for_my_projects.exclude(status='pending')
+
+    context = {
+        'pending_requests': pending_requests,
+        'other_requests': other_requests,
+    }
+    return render(request, 'dashboard/access_requests.html', context)
+# --- AKHIR VIEW ACCESS REQUESTS ---
+
+
+# --- VIEW BARU: HANDLE APPROVE/DENY REQUEST ---
+@login_required
+@require_POST # Hanya bisa diakses via POST (dari form)
+def handle_access_request_view(request, request_id, action):
+    # Ambil objek request
+    req_object = get_object_or_404(RequestSourceCode, id=request_id)
+    
+    # Keamanan: Pastikan user yang login adalah PEMILIK proyek
+    if req_object.id_produk.id_pemilik != request.user:
+        messages.error(request, "Anda tidak memiliki izin untuk mengelola permintaan ini.")
+        return redirect('access_requests')
+
+    # Pastikan status masih 'pending'
+    if req_object.status != 'pending':
+        messages.warning(request, "Permintaan ini sudah ditanggapi sebelumnya.")
+        return redirect('access_requests')
+
+    if action == 'approve':
+        req_object.status = 'approved'
+        req_object.id_peninjau = request.user
+        req_object.save()
+        messages.success(request, f"Permintaan dari '{req_object.id_pemohon.username}' telah disetujui.")
+    elif action == 'deny':
+        req_object.status = 'rejected'
+        req_object.id_peninjau = request.user
+        req_object.save()
+        messages.warning(request, f"Permintaan dari '{req_object.id_pemohon.username}' telah ditolak.")
+    else:
+        messages.error(request, "Aksi tidak valid.")
+
+    return redirect('access_requests')
+# --- AKHIR VIEW HANDLE REQUEST ---
 
 
 # --- REPOSITORY VIEWS ---
