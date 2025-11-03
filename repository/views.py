@@ -313,12 +313,29 @@ def dashboard_dosen(request):
     if request.user.peran != 'dosen':
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
-    tugas_penilaian = Kurasi.objects.filter(
+
+    # 1. Kueri Dasar (Semua tugas yang ditugaskan dan sudah bukan 'Menunggu Penugasan')
+    tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_dosen=request.user
     ).exclude(
         status='Menunggu Penugasan'
-    ).select_related('id_produk').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
+
+    # 2. Pisahkan ke daftar Belum Dinilai (tanggal_selesai_dosen = NULL)
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=True)
+
+    # 3. Pisahkan ke daftar Sudah Selesai (tanggal_selesai_dosen IS NOT NULL)
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=False)
+
+    context = {
+        # Statistik
+        'total_tugas': tugas_penilaian_qs.count(),
+        'belum_dinilai_count': belum_dinilai_list.count(),
+        'sudah_selesai_count': sudah_selesai_list.count(),
+        # Daftar Tugas
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
     return render(request, 'dashboard/dosen.html', context)
 
 @login_required
@@ -950,12 +967,53 @@ def handle_publish_project(request, project_id):
 # --- AKHIR PUBLIKASI ---
 
 
-# --- VIEWS MANAJEMEN USER ---
+# --- VIEWS MANAJEMEN USER (VERSI BARU DENGAN STATS) ---
 @login_required
-@user_passes_test(is_unit_bisnis, login_url='catalog')
+@user_passes_test(is_unit_bisnis, login_url='catalog') 
 def manage_users_view(request):
-    users_to_manage = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis').order_by('is_approved', 'date_joined')
-    context = { 'users_list': users_to_manage, }
+    # Basis query: semua user yang relevan (bukan superuser atau unit bisnis)
+    base_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+
+    # Ambil list lengkap untuk tab 'All Users'
+    all_users_list = base_query.order_by('username')
+
+    # Ambil list pending untuk tab 'Account Requests'
+    users_pending_list = base_query.filter(is_approved=False).order_by('date_joined')
+
+    # --- Hitung Statistik ---
+
+    # Statistik Baris 1
+    total_users_count = all_users_list.count()
+    active_users_count = all_users_list.filter(is_active=True, status='aktif', is_approved=True).count()
+    pending_approval_count = users_pending_list.count() # Hitung dari query pending
+
+    # Statistik Baris 2 (Distribusi)
+    mahasiswa_count = all_users_list.filter(peran='mahasiswa').count()
+    dosen_count = all_users_list.filter(peran='dosen').count()
+    mitra_count = all_users_list.filter(peran='mitra').count()
+
+    # Tentukan tab aktif dari parameter URL (default ke 'pending' jika ada yg pending)
+    default_tab = 'pending' if pending_approval_count > 0 else 'all'
+    current_tab = request.GET.get('tab', default_tab) 
+
+    context = {
+        # Lists untuk Tabel
+        'all_users_list': all_users_list,
+        'users_pending_list': users_pending_list,
+
+        # Stats Cards (Row 1)
+        'total_users_count': total_users_count,
+        'active_users_count': active_users_count,
+        'pending_approval_count': pending_approval_count,
+
+        # Stats Cards (Row 2 - Distribusi)
+        'mahasiswa_count': mahasiswa_count,
+        'dosen_count': dosen_count,
+        'mitra_count': mitra_count,
+
+        # Tab control
+        'current_tab': current_tab,
+    }
     return render(request, 'dashboard/manage_users.html', context)
 
 @login_required
