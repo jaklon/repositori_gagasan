@@ -156,6 +156,15 @@
                   </button>
               </form>
             {% endif %}
+
+            <!-- Tombol "Tugaskan" HANYA untuk Unit Bisnis & status 'selected' -->
+            {% if request.user.peran == 'unit_bisnis' and project.curation_status == 'selected' %}
+               <a href="{% url 'assign_curator_list' %}" class="flex-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors text-center">
+                 Tugaskan
+               </a>
+            {% endif %}
+
+
           </div>
         </div>
       </div>

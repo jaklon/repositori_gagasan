@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gagasan_db',         # Nama database yang Anda buat
         'USER': 'postgres',           # User default postgres
-        'PASSWORD': 'admin',  # Password yang Anda set saat instalasi
+        'PASSWORD': '1613',  # Password yang Anda set saat instalasi
         'HOST': 'localhost',          # Atau 127.0.0.1
         'PORT': '5432',               # Port default postgres
     }
@@ -91,7 +91,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 
