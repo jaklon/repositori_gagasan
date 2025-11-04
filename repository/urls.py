@@ -20,6 +20,11 @@ urlpatterns = [
 
     # URL untuk Upload Proyek
     path('project/upload/', views.upload_project_view, name='upload_project'),
+    
+    # --- URL BARU UNTUK DETAIL PROYEK ---
+    path('project/<int:project_id>/', views.project_detail_view, name='project_detail'),
+    # --- URL BARU UNTUK REQUEST ACCESS ---
+    path('project/<int:project_id>/request_access/', views.request_source_code_view, name='request_source_code'),
 
     # URLs untuk Alur Kurasi (Penugasan)
     path('curation/assign/', views.assign_curator_view, name='assign_curator_list'),
@@ -45,4 +50,9 @@ urlpatterns = [
     path('dashboard/unit-bisnis/manage-users/', views.manage_users_view, name='manage_users'),
     path('dashboard/unit-bisnis/approve-user/<int:user_id>/', views.approve_user_view, name='approve_user'),
     path('dashboard/unit-bisnis/toggle-active/<int:user_id>/', views.toggle_active_user_view, name='toggle_active_user'),
+    
+    # --- URL BARU UNTUK ACCESS REQUESTS ---
+    path('access-requests/', views.access_requests_view, name='access_requests'),
+    path('access-requests/handle/<int:request_id>/<str:action>/', views.handle_access_request_view, name='handle_access_request'),
+
 ]

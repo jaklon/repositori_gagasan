@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import CustomUser
+# Import fungsi-fungsi autentikasi
 from django.contrib.auth import authenticate, login, logout
+# --- TAMBAHKAN IMPORT INI ---
 from django.contrib.auth.decorators import login_required
-from .forms import UserProfileForm
+
 
 def login_view(request):
     if request.method == 'POST':
