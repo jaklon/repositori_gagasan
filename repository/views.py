@@ -322,12 +322,29 @@ def dashboard_mitra(request):
     if request.user.peran != 'mitra':
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
-    tugas_penilaian = Kurasi.objects.filter(
+
+    # Queryset dasar untuk Mitra (Filter tugas yang sudah ditugaskan)
+    tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_mitra=request.user
     ).exclude(
         status='Menunggu Penugasan'
-    ).select_related('id_produk').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('-tanggal_penugasan')
+
+    # List tugas yang belum selesai/sudah selesai oleh Mitra (cek tanggal_selesai_mitra)
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_mitra__isnull=True).order_by('tanggal_penugasan')
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_mitra__isnull=False).order_by('-tanggal_selesai_mitra')
+
+    total_tugas = tugas_penilaian_qs.count()
+    belum_dinilai_count = belum_dinilai_list.count()
+    sudah_selesai_count = sudah_selesai_list.count()
+
+    context = {
+        'total_tugas': total_tugas,
+        'belum_dinilai_count': belum_dinilai_count,
+        'sudah_selesai_count': sudah_selesai_count,
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
     return render(request, 'dashboard/mitra.html', context)
 
 @login_required
