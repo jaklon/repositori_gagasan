@@ -14,6 +14,37 @@
       <p class="text-sm text-gray-600">Setujui pendaftaran baru atau aktifkan/nonaktifkan akun pengguna yang sudah ada.</p>
     </div>
   </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+      <p class="text-sm font-medium text-gray-500">Total Pengguna</p>
+      <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_users_count }}</p>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+      <p class="text-sm font-medium text-gray-500">Pengguna Aktif</p>
+      <p class="text-3xl font-bold text-green-600 mt-1">{{ active_users_count }}</p>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-sm border {% if pending_approval_count > 0 %}border-yellow-300 bg-yellow-50{% else %}border-gray-200{% endif %}">
+      <p class="text-sm font-medium {% if pending_approval_count > 0 %}text-yellow-800{% else %}text-gray-500{% endif %}">Menunggu Persetujuan</p>
+      <p class="text-3xl font-bold {% if pending_approval_count > 0 %}text-yellow-700{% else %}text-gray-900{% endif %} mt-1">{{ pending_approval_count }}</p>
+    </div>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <p class="text-sm font-medium text-gray-500">Mahasiswa</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ mahasiswa_count }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <p class="text-sm font-medium text-gray-500">Dosen</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ dosen_count }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <p class="text-sm font-medium text-gray-500">Mitra Industri</p>
+      <p class="text-2xl font-bold text-gray-900 mt-1">{{ mitra_count }}</p>
+    </div>
+  </div>
+
 
   {% if messages %}
     <div class="mb-6 space-y-2">
@@ -33,9 +64,27 @@
     </div>
   {% endif %}
 
+  <div class="mb-6 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <a href="?tab=all" class="{% if current_tab == 'all' %}border-purple-500 text-purple-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+        Semua Pengguna
+        <span class="bg-gray-100 text-gray-600 ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ all_users_list.count }}</span>
+      </a>
+      <a href="?tab=pending" class="{% if current_tab == 'pending' %}border-purple-500 text-purple-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+        Permintaan Akun
+        <span class="{% if pending_approval_count > 0 %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-600{% endif %} ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ pending_approval_count }}</span>
+      </a>
+    </nav>
+  </div>
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="px-6 py-4 border-b flex justify-between items-center">
-      <h2 class="text-lg font-semibold">Daftar Pengguna ({{ users_list.count }})</h2>
+      <h2 class="text-lg font-semibold">
+        {% if current_tab == 'pending' %}
+          Daftar Permintaan Akun ({{ users_list.count }})
+        {% else %}
+          Daftar Semua Pengguna ({{ users_list.count }})
+        {% endif %}
+      </h2>
       </div>
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
@@ -51,6 +100,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
+          
           {% for user_obj in users_list %}
           <tr class="{% if not user_obj.is_approved %} bg-yellow-50 {% elif user_obj.status == 'nonaktif' %} bg-red-50 {% endif %}"> {# Highlight baris #}
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user_obj.username }}</td>
@@ -87,6 +137,8 @@
               {# Tombol Aktifkan/Nonaktifkan #}
               <form action="{% url 'toggle_active_user' user_obj.id %}" method="POST" class="inline-block" onsubmit="return confirm('Anda yakin ingin mengubah status akun {{ user_obj.username }}?')">
                  {% csrf_token %}
+                 <input type="hidden" name="current_tab" value="{{ current_tab }}">
+                 
                  {% if user_obj.status == 'aktif' %}
                    <button type="submit" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" title="Nonaktifkan Akun">
                      <i class="fas fa-user-times"></i> <span class="sr-only">Nonaktifkan</span>
@@ -107,7 +159,11 @@
           <tr>
             <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
               <i class="fas fa-users text-gray-400 text-3xl mb-3"></i><br>
-              Tidak ada pengguna (Mahasiswa, Dosen, Mitra) yang terdaftar atau perlu dikelola saat ini.
+              {% if current_tab == 'pending' %}
+                Tidak ada permintaan akun baru.
+              {% else %}
+                Tidak ada pengguna (Mahasiswa, Dosen, Mitra) yang terdaftar.
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -119,5 +175,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-{# Tambahkan JS jika perlu, misal untuk konfirmasi delete #}
+{# Tidak perlu JS tambahan #}
 {% endblock %}

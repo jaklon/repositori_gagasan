@@ -11,6 +11,11 @@ urlpatterns = [
     # URLs untuk Dashboard berdasarkan peran
     path('dashboard/mahasiswa/', views.dashboard_mahasiswa, name='dashboard_mahasiswa'),
     path('dashboard/dosen/', views.dashboard_dosen, name='dashboard_dosen'),
+    
+    # === TAMBAHKAN BARIS DI BAWAH INI ===
+    path('dashboard/dosen/my-projects/', views.dosen_my_projects_view, name='dosen_my_projects'),
+    # === AKHIR TAMBAHAN ===
+    
     path('dashboard/mitra/', views.dashboard_mitra, name='dashboard_mitra'),
     path('dashboard/unit-bisnis/', views.dashboard_unit_bisnis, name='dashboard_unit_bisnis'),
 

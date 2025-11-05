@@ -5,6 +5,8 @@ from .models import CustomUser
 from django.contrib.auth import authenticate, login, logout
 # --- TAMBAHKAN IMPORT INI ---
 from django.contrib.auth.decorators import login_required
+# === TAMBAHKAN IMPORT FORM DI SINI ===
+from .forms import UserProfileForm
 
 
 def login_view(request):
@@ -105,7 +107,7 @@ def register_view(request):
                 # status akan otomatis 'aktif' (default model)
             )
             # Pesan sukses yang baru
-            messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujui oleh Unit Bisnis sebelum bisa login.')
+            messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujMui oleh Unit Bisnis sebelum bisa login.')
             return redirect('login')
         except Exception as e:
              # Tangkap error tak terduga saat pembuatan user
