@@ -277,9 +277,45 @@ def dashboard_mahasiswa(request):
     if request.user.peran != 'mahasiswa':
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
+    
+    # Ambil semua proyek milik user
     my_projects = Produk.objects.filter(id_pemilik=request.user).order_by('-created_at')
-    context = {'my_projects': my_projects}
+    
+    # Hitung Statistik
+    total_count = my_projects.count()
+    published_count = my_projects.filter(dipublikasikan=True).count()
+    
+    # Status "Under Review" (semua status antara 'terpilih' dan 'selesai penilaian')
+    review_statuses = ['selected', 'curators-assigned', 'assessment-dosen-done', 'assessment-mitra-done', 'assessment-complete']
+    review_count = my_projects.filter(curation_status__in=review_statuses).count()
+    
+    # Status "Curated" (siap publikasi tapi belum live)
+    curated_count = my_projects.filter(curation_status='ready-for-publication').count()
+
+    context = {
+        'my_projects': my_projects,
+        'total_count': total_count,
+        'published_count': published_count,
+        'review_count': review_count,
+        'curated_count': curated_count,
+    }
     return render(request, 'dashboard/mahasiswa.html', context)
+
+@login_required
+def my_projects_view(request):
+    """
+    View baru untuk halaman "My Projects" yang menampilkan daftar lengkap.
+    """
+    if request.user.peran not in ['mahasiswa', 'dosen']: # Asumsi Dosen juga bisa lihat
+        messages.error(request, "Akses tidak diizinkan.")
+        return redirect('catalog')
+
+    my_projects = Produk.objects.filter(id_pemilik=request.user).order_by('-created_at')
+    
+    context = {
+        'my_projects': my_projects
+    }
+    return render(request, 'dashboard/mahasiswa_my_project.html', context)
 
 @login_required
 def dashboard_dosen(request):
@@ -287,14 +323,161 @@ def dashboard_dosen(request):
         messages.error(request, "Akses dashboard tidak sesuai.")
         return redirect('catalog')
 
+    # --- Logika untuk Statistik (Sesuai Figma) ---
+    
+    # 1. Pending Tasks (Tugas kurasi yang belum selesai)
+    tugas_penilaian_qs = Kurasi.objects.filter(
+        id_kurator_dosen=request.user,
+        tanggal_selesai_dosen__isnull=True
+    ).exclude(status='Menunggu Penugasan')
+    pending_tasks_count = tugas_penilaian_qs.count()
+
+    # 2. My Projects (Proyek yang diunggah oleh dosen sendiri)
+    my_projects = Produk.objects.filter(id_pemilik=request.user).order_by('-created_at')
+    my_projects_count = my_projects.count()
+    
+    # 3. Supervised (Contoh, karena data bimbingan belum ada)
+    supervised_count = 3 # Ganti ini dengan kueri jika Anda punya relasi mahasiswa bimbingan
+    
+    # 4. Curated (Tugas kurasi yang sudah selesai)
+    curated_count = Kurasi.objects.filter(
+        id_kurator_dosen=request.user,
+        tanggal_selesai_dosen__isnull=False
+    ).count()
+
+    context = {
+        # Statistik untuk Kartu
+        'pending_tasks_count': pending_tasks_count,
+        'my_projects_count': my_projects_count,
+        'supervised_count': supervised_count,
+        'curated_count': curated_count,
+        
+        # Daftar untuk "Recently Supervised Projects" (Kita gunakan "My Projects" sebagai contoh)
+        'recent_projects': my_projects,
+    }
+    # Render template BARU (yang akan kita buat di Langkah 4)
+    return render(request, 'dashboard/dosen.html', context)
+
+
+# ==================================
+# === TAMBAHKAN DUA VIEW BARU INI ===
+# ==================================
+@login_required
+def dosen_my_projects_view(request):
+    """
+    Halaman "My Projects" untuk Dosen (Daftar proyek milik dosen).
+    """
+    if request.user.peran != 'dosen':
+        messages.error(request, "Akses tidak diizinkan.")
+        return redirect('catalog')
+
+    my_projects = Produk.objects.filter(id_pemilik=request.user).order_by('-created_at')
+    
+    context = {
+        'my_projects': my_projects
+    }
+    # Render template BARU (yang akan kita buat di Langkah 5)
+    return render(request, 'dashboard/dosen_my_project.html', context)
+
+@login_required
+def kurasi_produk_list_view(request):
+    """
+    Halaman "Kurasi Produk" (Daftar tugas penilaian).
+    Ini adalah LOGIKA LAMA dari dashboard_dosen Anda.
+    """
+    if request.user.peran != 'dosen':
+        messages.error(request, "Akses dashboard tidak sesuai.")
+        return redirect('catalog')
+
+    # 1. Kueri Dasar (Semua tugas yang ditugaskan ke user ini)
     tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_dosen=request.user
+    ).exclude(
+        status='Menunggu Penugasan'  # Hanya ambil yang statusnya sudah 'Penilaian Berlangsung' atau selesai
+    ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
+
+    # 2. Pisahkan ke daftar "Belum Dinilai" (di mana dosen ini BELUM selesai)
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=True)
+
+    # 3. Pisahkan ke daftar "Sudah Selesai" (di mana dosen ini SUDAH selesai)
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=False)
+
+    context = {
+        # Statistik untuk halaman ini
+        'total_tugas': tugas_penilaian_qs.count(),
+        'belum_dinilai_count': belum_dinilai_list.count(),
+        'sudah_selesai_count': sudah_selesai_list.count(),
+        
+        # Daftar list untuk ditampilkan di template
+        'belum_dinilai_list': belum_dinilai_list,
+        'sudah_selesai_list': sudah_selesai_list,
+    }
+    
+    # Render template yangTADI kita ganti namanya
+    return render(request, 'dashboard/kurasi_produk_list.html', context)
+
+@login_required
+def dashboard_mitra(request):
+    if request.user.peran != 'mitra':
+        messages.error(request, "Akses dashboard tidak sesuai.")
+        return redirect('catalog')
+
+    # --- Logika BARU untuk Statistik Dashboard Mitra ---
+    
+    # 1. Pending Tasks (Tugas kurasi yang belum selesai)
+    tugas_penilaian_qs = Kurasi.objects.filter(
+        id_kurator_mitra=request.user,
+        tanggal_selesai_mitra__isnull=True
+    ).exclude(status='Menunggu Penugasan')
+    pending_tasks_count = tugas_penilaian_qs.count()
+
+    # 2. Curated (Tugas kurasi yang sudah selesai)
+    curated_count = Kurasi.objects.filter(
+        id_kurator_mitra=request.user,
+        tanggal_selesai_mitra__isnull=False
+    ).count()
+
+    # Ambil 3 proyek yang baru selesai dinilai untuk preview
+    recent_projects = Kurasi.objects.filter(
+        id_kurator_mitra=request.user,
+        tanggal_selesai_mitra__isnull=False
+    ).select_related('id_produk').order_by('-tanggal_selesai_mitra')[:3]
+
+    context = {
+        # Statistik untuk Kartu
+        'pending_tasks_count': pending_tasks_count,
+        'curated_count': curated_count,
+        'recent_projects': recent_projects, # Untuk preview di dashboard
+    }
+    # Render template mitra.html (yang sekarang adalah dashboard)
+    return render(request, 'dashboard/mitra.html', context)
+
+
+# ==================================
+# === TAMBAHKAN VIEW BARU INI ===
+# ==================================
+@login_required
+def mitra_kurasi_produk_list_view(request):
+    """
+    Halaman "Kurasi Produk" untuk Mitra (Daftar tugas penilaian).
+    Ini adalah LOGIKA LAMA dari dashboard_mitra.
+    """
+    if request.user.peran != 'mitra':
+        messages.error(request, "Akses dashboard tidak sesuai.")
+        return redirect('catalog')
+
+    # 1. Kueri Dasar (Semua tugas yang ditugaskan)
+    tugas_penilaian_qs = Kurasi.objects.filter(
+        id_kurator_mitra=request.user
     ).exclude(
         status='Menunggu Penugasan'
     ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
 
-    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=True)
-    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_dosen__isnull=False)
+    # 2. Pisahkan ke daftar "Belum Dinilai"
+    belum_dinilai_list = tugas_penilaian_qs.filter(tanggal_selesai_mitra__isnull=True)
+
+    # 3. Pisahkan ke daftar "Sudah Selesai"
+    sudah_selesai_list = tugas_penilaian_qs.filter(tanggal_selesai_mitra__isnull=False)
 
     context = {
         'total_tugas': tugas_penilaian_qs.count(),
@@ -302,34 +485,11 @@ def dashboard_dosen(request):
         'sudah_selesai_count': sudah_selesai_list.count(),
         'belum_dinilai_list': belum_dinilai_list,
         'sudah_selesai_list': sudah_selesai_list,
+        'tipe_kurator': 'mitra' # TAMBAHAN PENTING untuk template
     }
-    return render(request, 'dashboard/dosen.html', context)
-
-@login_required
-def dosen_my_projects_view(request):
-    if request.user.peran != 'dosen':
-        messages.error(request, "Akses tidak diizinkan.")
-        return redirect('catalog')
     
-    # Logika ini mengambil proyek yang DIBUAT/DIMILIKI oleh dosen
-    my_projects = Produk.objects.filter(id_pemilik=request.user).order_by('-created_at')
-    context = {'my_projects': my_projects}
-    
-    # Kita akan membuat template baru untuk ini
-    return render(request, 'dashboard/dosen_my_projects.html', context)
-
-@login_required
-def dashboard_mitra(request):
-    if request.user.peran != 'mitra':
-        messages.error(request, "Akses dashboard tidak sesuai.")
-        return redirect('catalog')
-    tugas_penilaian = Kurasi.objects.filter(
-        id_kurator_mitra=request.user
-    ).exclude(
-        status='Menunggu Penugasan'
-    ).select_related('id_produk').order_by('status', 'tanggal_penugasan')
-    context = {'tugas_penilaian': tugas_penilaian}
-    return render(request, 'dashboard/mitra.html', context)
+    # Render template YANG SAMA DENGAN DOSEN
+    return render(request, 'dashboard/kurasi_produk_list.html', context)
 
 @login_required
 def dashboard_unit_bisnis(request):
@@ -623,31 +783,54 @@ def handle_assign_curator(request, project_id):
 
 
 # --- ASSESSMENT VIEW ---
-@login_required
+@login_required # Tambahkan ini jika belum ada
 def assess_project_view(request, kurasi_id):
     kurasi = get_object_or_404(Kurasi.objects.select_related('id_produk'), id=kurasi_id)
     project = kurasi.id_produk
     user = request.user
+    
+    # === 1. TAMBAHKAN BARIS INI ===
+    existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    
     tipe_kurator = None
     existing_note = None
+    is_completed = False # <-- Variabel BARU
+
     if user.peran == 'dosen' and kurasi.id_kurator_dosen == user:
         tipe_kurator = 'dosen'
         existing_note = kurasi.catatan_dosen
+        if kurasi.tanggal_selesai_dosen: # <-- Cek BARU
+            is_completed = True
+            
     elif user.peran == 'mitra' and kurasi.id_kurator_mitra == user:
         tipe_kurator = 'mitra'
         existing_note = kurasi.catatan_mitra
+        if kurasi.tanggal_selesai_mitra: # <-- Cek BARU
+            is_completed = True
+
     if not tipe_kurator:
         messages.error(request, "Anda tidak ditugaskan untuk menilai proyek ini atau peran Anda tidak sesuai.")
-        if user.peran == 'dosen': return redirect('dashboard_dosen')
-        if user.peran == 'mitra': return redirect('dashboard_mitra')
+        if user.peran == 'dosen': return redirect('kurasi_produk_list') # Link diperbarui
+        if user.peran == 'mitra': return redirect('mitra_kurasi_produk_list') # <-- 2. PERBAIKI REDIRECT INI
         return redirect('catalog')
+
     existing_scores_qs = AspekPenilaian.objects.filter(id_kurasi=kurasi, tipe_kurator=tipe_kurator)
     initial_scores_dict = {score.aspek: score.skor for score in existing_scores_qs if score.skor is not None}
+    
     initial_form_data = {'catatan': existing_note}
     for aspek_nama, skor in initial_scores_dict.items():
         field_name = f"aspek_{aspek_nama.lower().replace('& ', '').replace(' ', '_').replace('/', '_')}"
         initial_form_data[field_name] = skor
+
     if request.method == 'POST':
+        
+        # === TAMBAHAN: Blokir POST jika sudah selesai ===
+        if is_completed:
+            messages.error(request, "Penilaian ini sudah selesai dan tidak dapat diubah.")
+            if tipe_kurator == 'dosen': return redirect('kurasi_produk_list')
+            else: return redirect('mitra_kurasi_produk_list') # <-- 3. PERBAIKI REDIRECT INI
+        # ===============================================
+
         form = AssessmentForm(request.POST, initial=initial_form_data)
         if form.is_valid():
             total_weighted_score = 0
@@ -668,18 +851,28 @@ def assess_project_view(request, kurasi_id):
                     total_weighted_score += skor * (bobot / 100.0)
                 except AspekPenilaian.DoesNotExist:
                      messages.error(request, f"Terjadi kesalahan internal: data aspek '{aspek_nama}' tidak ditemukan.")
-                     context = {'kurasi': kurasi, 'project': project, 'form': form, 'tipe_kurator': tipe_kurator}
+                     context = {
+                         'kurasi': kurasi, 
+                         'project': project, 
+                         'form': form, 
+                         'tipe_kurator': tipe_kurator,
+                         'is_completed': is_completed, 
+                         'existing_request': existing_request # <-- 4. PERBAIKI SINTAKS (koma hilang)
+                     }
                      return render(request, 'assess_project.html', context)
                 except (ValueError, TypeError):
                      all_fields_valid = False
                      form.add_error(field_name, "Skor tidak valid.")
+            
             if not all_fields_valid:
                  messages.error(request, "Terdapat kesalahan pada form. Pastikan semua aspek terisi skor (1-4).")
             else:
                 if aspek_objects_to_update:
                     AspekPenilaian.objects.bulk_update(aspek_objects_to_update, ['skor'])
+                
                 catatan_kurator = form.cleaned_data['catatan']
                 previous_status = kurasi.status
+                
                 if tipe_kurator == 'dosen':
                     kurasi.catatan_dosen = catatan_kurator
                     kurasi.nilai_akhir_dosen = round(total_weighted_score, 2)
@@ -692,21 +885,30 @@ def assess_project_view(request, kurasi_id):
                     kurasi.tanggal_selesai_mitra = timezone.now()
                     if previous_status == 'Penilaian Berlangsung': kurasi.status = 'Penilaian Mitra Selesai'
                     elif previous_status == 'Penilaian Dosen Selesai': kurasi.status = 'Penilaian Lengkap'
+                
                 if kurasi.status == 'Penilaian Lengkap':
                      if kurasi.nilai_akhir_dosen is not None and kurasi.nilai_akhir_mitra is not None:
                          kurasi.nilai_akhir_final = round((kurasi.nilai_akhir_dosen + kurasi.nilai_akhir_mitra) / 2.0, 2)
                      project.curation_status = 'assessment-complete'
                      project.save(update_fields=['curation_status', 'updated_at'])
+                
                 kurasi.save()
                 messages.success(request, f"Penilaian untuk proyek '{project.title}' berhasil disimpan.")
-                if tipe_kurator == 'dosen': return redirect('dashboard_dosen')
-                else: return redirect('dashboard_mitra')
+                
+                if tipe_kurator == 'dosen': return redirect('kurasi_produk_list') 
+                else: return redirect('mitra_kurasi_produk_list') # <-- 5. PERBAIKI REDIRECT INI
     else:
         form = AssessmentForm(initial=initial_form_data)
-    context = {'kurasi': kurasi, 'project': project, 'form': form, 'tipe_kurator': tipe_kurator}
+    
+    context = {
+        'kurasi': kurasi, 
+        'project': project, 
+        'form': form, 
+        'tipe_kurator': tipe_kurator,
+        'is_completed': is_completed,
+        'existing_request': existing_request # <-- 6. TAMBAHKAN KE CONTEXT
+    }
     return render(request, 'assess_project.html', context)
-# --- AKHIR ASSESSMENT VIEW ---
-
 
 # --- VIEW MONITORING PENILAIAN (DAFTAR) ---
 @login_required
@@ -1009,4 +1211,93 @@ def toggle_active_user_view(request, user_id):
     
     # Arahkan kembali ke tab tempat user melakukan aksi
     return redirect(redirect_url)
-# --- AKHIR MANAJEMEN USER ---
+@login_required
+@user_passes_test(is_unit_bisnis, login_url='catalog')
+def manage_products_view(request):
+    """
+    Halaman untuk Unit Bisnis melihat, mencari, dan menghapus
+    semua produk dalam sistem.
+    """
+    # Ambil semua produk, urutkan dari yang terbaru
+    all_products_list = Produk.objects.all().order_by('-created_at').select_related('id_pemilik').prefetch_related('kategori')
+    
+    # Ambil Statistik (Sama seperti di manage_users)
+    total_produk_count = all_products_list.count()
+    published_count = all_products_list.filter(dipublikasikan=True).count()
+    pending_count = all_products_list.filter(curation_status='pending').count()
+    in_curation_count = all_products_list.filter(curation_status__in=[
+        'selected', 'curators-assigned', 'assessment-complete', 
+        'ready-for-publication', 'revision-minor'
+    ]).count()
+
+    context = {
+        # Lists untuk Tabel
+        'all_products_list': all_products_list,
+
+        # Stats Cards
+        'total_produk_count': total_produk_count,
+        'published_count': published_count,
+        'pending_count': pending_count,
+        'in_curation_count': in_curation_count,
+        
+        # Tab control (default ke 'all')
+        'current_tab': 'all', 
+    }
+    # Kita akan buat template baru ini di Langkah 3
+    return render(request, 'dashboard/manage_products.html', context)
+
+
+@login_required
+@require_POST # Hanya izinkan metode POST untuk keamanan
+@user_passes_test(is_unit_bisnis, login_url='catalog')
+def delete_product_view(request, project_id):
+    """
+    View untuk menghapus produk. Hanya bisa diakses oleh Unit Bisnis via POST.
+    """
+    # Cari produk atau kembalikan 404
+    product_to_delete = get_object_or_404(Produk, id=project_id)
+    
+    try:
+        product_name = product_to_delete.title
+        product_to_delete.delete()
+        messages.success(request, f"Produk '{product_name}' telah berhasil dihapus secara permanen.")
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan saat menghapus produk: {e}")
+
+    # Kembali ke halaman manajemen produk
+    return redirect('manage_products')
+
+@login_required
+@require_POST # Hanya izinkan metode POST untuk keamanan
+def delete_own_project_view(request, project_id):
+    """
+    Menangani permintaan penghapusan proyek oleh pemiliknya.
+    """
+    # Ambil proyek, pastikan itu ada
+    product = get_object_or_404(Produk, id=project_id)
+    
+    # Tentukan halaman redirect berdasarkan peran user
+    if request.user.peran == 'dosen':
+        redirect_url = 'dosen_my_projects'
+    else:
+        redirect_url = 'my_projects' # Default untuk mahasiswa
+
+    # 1. Cek Kepemilikan: Apakah user ini pemilik proyek?
+    if product.id_pemilik != request.user:
+        messages.error(request, "Anda tidak memiliki izin untuk menghapus proyek ini.")
+        return redirect(redirect_url)
+
+    # 2. Cek Status: Apakah proyek masih 'pending'?
+    if product.curation_status != 'pending':
+        messages.error(request, f"Proyek '{product.title}' tidak dapat dihapus karena sudah masuk dalam proses kurasi.")
+        return redirect(redirect_url)
+
+    # Jika semua pengecekan lolos, hapus produk
+    try:
+        product_title = product.title
+        product.delete()
+        messages.success(request, f"Proyek '{product_title}' telah berhasil dihapus.")
+    except Exception as e:
+        messages.error(request, f"Terjadi kesalahan saat menghapus proyek: {e}")
+    
+    return redirect(redirect_url)

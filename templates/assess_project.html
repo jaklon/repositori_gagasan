@@ -1,24 +1,48 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
+{% load repository_extras %} {# Pastikan load extras untuk modal #}
 
-{% block title %}Nilai Proyek: {{ project.title }} - Gagasan{% endblock %}
+{% block title %}
+  {% if is_completed %}Lihat{% else %}Nilai{% endif %} Proyek: {{ project.title }}
+{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8">
-  <!-- Header Halaman -->
+<div class="p-8 max-w-6xl mx-auto"> {# Tambahkan max-w-6xl agar konsisten #}
+  
   <div class="flex items-center gap-4 mb-6">
     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
       <i class="fas fa-clipboard-check text-purple-600 text-xl"></i>
     </div>
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Formulir Penilaian Kurasi</h1>
-      <p class="text-sm text-gray-600">Berikan skor (1-4) untuk setiap aspek pada proyek: <strong>{{ project.title }}</strong></p>
+      <h1 class="text-2xl font-bold text-gray-900">
+        {% if is_completed %}Detail Penilaian{% else %}Formulir Penilaian Kurasi{% endif %}
+      </h1>
+      <p class="text-sm text-gray-600">
+        {% if is_completed %}
+        Melihat hasil penilaian Anda untuk proyek: <strong>{{ project.title }}</strong>
+        {% else %}
+        Berikan skor (1-4) untuk setiap aspek pada proyek: <strong>{{ project.title }}</strong>
+        {% endif %}
+      </p>
     </div>
   </div>
 
-  <!-- Detail Proyek Singkat -->
   <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
       <h2 class="text-lg font-semibold mb-3">Detail Proyek</h2>
+
+      <div class="mb-4">
+        {% if project.poster_image %}
+          <img src="{{ project.poster_image.url }}" 
+               alt="{{ project.title }}" 
+               class="w-full max-h-72 object-cover rounded-lg border border-gray-200"
+               onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';"/>
+        {% else %}
+          <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" 
+               alt="Placeholder"
+               class="w-full max-h-72 object-cover rounded-lg border border-gray-200" />
+        {% endif %}
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
               <span class="text-gray-500">Judul:</span>
@@ -38,25 +62,59 @@
                <span class="text-gray-500">Deskripsi:</span>
                <p class="text-gray-700 text-xs mt-1">{{ project.description|linebreaksbr }}</p>
           </div>
-          <div class="flex gap-4">
+          
+          <div class="md:col-span-3 flex gap-3 pt-3">
               {% if project.demo_link %}
-              <a href="{{ project.demo_link }}" target="_blank" class="text-purple-600 hover:underline text-xs"><i class="fas fa-external-link-alt mr-1"></i> Link Demo</a>
+              <a href="{{ project.demo_link }}" target="_blank" rel="noopener noreferrer" 
+                 class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm">
+                  <i class="fas fa-external-link-alt"></i>
+                  Lihat Demo
+              </a>
               {% endif %}
-              {# TODO: Tambah link source code jika fieldnya ada di model #}
-              {# <a href="{{ project.source_code_link }}" target="_blank" class="text-purple-600 hover:underline text-xs"><i class="fas fa-code mr-1"></i> Source Code</a> #}
-          </div>
+              
+              {% if project.source_code_link %}
+            
+                {# 1. Cek jika user adalah PEMILIK atau jika punya request yang SUDAH DISETUJUI #}
+                {% if project.id_pemilik == request.user or existing_request and existing_request.status == 'approved' %}
+                  
+                  <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
+                     class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm">
+                    <i class="fab fa-github mr-2"></i> Lihat Source Code
+                  </a>
+
+                {# 2. Cek jika user SUDAH REQUEST tapi masih PENDING/REJECTED #}
+                {% elif existing_request %}
+                  
+                  <button type="button"
+                          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 text-xs font-medium rounded-md cursor-not-allowed"
+                          disabled>
+                    <i class="fab fa-github mr-2"></i>
+                    Akses Diminta (Status: {{ existing_request.get_status_display }})
+                  </button>
+
+                {# 3. Cek jika user BELUM PERNAH REQUEST #}
+                {% else %}
+
+                  <button type="button"
+                          onclick="openRequestModal()"
+                          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition-colors shadow-sm">
+                    <i class="fas fa-lock mr-2"></i>
+                    Minta Akses Source Code
+                  </button>
+
+                {% endif %}
+              {% endif %}
+              </div>
       </div>
   </div>
 
 
-  <!-- Form Penilaian -->
-  <form method="POST" action="{% url 'assess_project' kurasi.id %}" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 space-y-6">
+ <form method="POST" action="{% url 'assess_project' kurasi.id %}" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 space-y-6">
       {% csrf_token %}
 
       <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-gray-800">Penilaian Aspek (Skala 1-4)</h2>
 
-       <!-- Menampilkan pesan error form jika ada -->
-        {% if form.non_field_errors %}
+       {% if form.non_field_errors %}
             <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
                 {% for error in form.non_field_errors %} <p>{{ error }}</p> {% endfor %}
             </div>
@@ -72,8 +130,6 @@
         {% endif %}
 
 
-      <!-- === PERUBAHAN UTAMA DI SINI === -->
-      <!-- Loop melalui fields form (aspek penilaian) -->
       {% for field in form %}
         {% if field.name != 'catatan' %} {# Pisahkan field catatan #}
           <div class="border-b pb-6 mb-4"> {# Beri jarak bawah lebih banyak #}
@@ -95,10 +151,8 @@
           </div>
         {% endif %}
       {% endfor %}
-      <!-- === AKHIR PERUBAHAN UTAMA === -->
 
 
-       <!-- Field Catatan -->
        <div class="pt-4">
            <label for="{{ form.catatan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.catatan.label }}</label>
            {{ form.catatan }}
@@ -108,7 +162,6 @@
        </div>
 
 
-      <!-- Tombol Submit -->
       <div class="pt-6 flex justify-end gap-3 border-t">
           {% if tipe_kurator == 'dosen' %}
              <a href="{% url 'dashboard_dosen' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali ke Dashboard</a>
@@ -121,58 +174,124 @@
       </div>
   </form>
 
-</div>
+  <div id="requestModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
+    <div id="requestModalBox" class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
+      <form method="POST" action="{% url 'request_source_code' project.id %}" class="flex flex-col">
+        {% csrf_token %}
+        <div class="p-5 border-b flex justify-between items-center">
+          <h2 class="text-xl font-semibold">Minta Akses Source Code</h2>
+          <button type="button" onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <p class="text-sm text-gray-600">
+            Anda akan meminta akses ke source code untuk proyek: <strong>{{ project.title }}</strong>.
+          </p>
+          <div class="bg-gray-50 p-3 rounded-lg border text-sm">
+            <span class="text-gray-500">Pemilik Proyek:</span>
+            <strong class="block text-gray-800">{{ project.id_pemilik.username }}</strong>
+          </div>
+
+          <div>
+             <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
+             <textarea 
+                 name="alasan_request" 
+                 id="id_alasan_request" 
+                 rows="4" 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                 placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
+                 required></textarea>
+              <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
+         </div>
+
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
+            <i class="fas fa-info-circle mt-0.5"></i>
+            <span>Pemilik proyek akan menerima notifikasi dan harus menyetujui permintaan Anda sebelum Anda mendapatkan akses.</span>
+          </div>
+        </div>
+
+        <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl">
+          <button type="button" onclick="closeRequestModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
+            <i class="fas fa-paper-plane"></i> Kirim Permintaan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <style>
-/* Style kustom untuk radio button agar lebih menarik */
-/* Sembunyikan radio asli */
+/* CSS dari _base_dashboard.html */
 input[type="radio"].assessment-radio {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
-/* Style untuk label yang berfungsi sebagai tombol */
 input[type="radio"].assessment-radio + label {
     display: inline-block;
     cursor: pointer;
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db; /* border-gray-300 */
-    border-radius: 0.375rem; /* rounded-md */
-    margin-right: 0.5rem; /* Beri jarak antar tombol */
+    border: 1px solid #d1d5db; 
+    border-radius: 0.375rem; 
+    margin-right: 0.5rem; 
     transition: all 0.2s ease-in-out;
-    font-size: 0.875rem; /* text-sm */
-    background-color: #f9fafb; /* bg-gray-50 */
-    color: #374151; /* text-gray-700 */
-    line-height: 1.25rem; /* Pastikan tinggi konsisten */
-    min-width: 100px; /* Lebar minimum agar sejajar */
+    font-size: 0.875rem; 
+    background-color: #f9fafb; 
+    color: #374151; 
+    line-height: 1.25rem; 
+    min-width: 100px; 
     text-align: center;
 }
-/* Hover state */
 input[type="radio"].assessment-radio:hover + label {
-    background-color: #f3f4f6; /* bg-gray-100 */
-    border-color: #9ca3af; /* border-gray-400 */
+    background-color: #f3f4f6;
+    border-color: #9ca3af; 
 }
-/* Checked state */
 input[type="radio"].assessment-radio:checked + label {
-    background-color: #EDE9FE; /* bg-purple-100 */
-    border-color: #A78BFA; /* border-purple-400 */
-    color: #5B21B6; /* text-purple-700 */
-    font-weight: 600; /* font-semibold */
-    box-shadow: 0 0 0 1px #A78BFA; /* Ring tipis */
+    background-color: #EDE9FE; 
+    border-color: #A78BFA; 
+    color: #5B21B6; 
+    font-weight: 600; 
+    box-shadow: 0 0 0 1px #A78BFA;
 }
-/* Fokus state (opsional, untuk aksesibilitas keyboard) */
 input[type="radio"].assessment-radio:focus + label {
-     box-shadow: 0 0 0 2px #C4B5FD; /* Ring lebih tebal saat fokus */
-     border-color: #8B5CF6; /* border-purple-500 */
+     box-shadow: 0 0 0 2px #C4B5FD; 
+     border-color: #8B5CF6; 
 }
-
-/* Tambahkan sedikit margin bawah untuk setiap grup radio */
-.flex.flex-wrap.gap-3.items-center {
-  margin-bottom: 0.5rem; /* mb-2 */
+input[type="radio"].assessment-radio:disabled + label {
+    cursor: not-allowed;
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    opacity: 0.7;
+}
+input[type="radio"].assessment-radio:disabled:checked + label {
+    background-color: #E5E7EB; 
+    border-color: #D1D5DB; 
+    color: #6B7280; 
+    box-shadow: none;
 }
 </style>
-{% endblock %}
 
+<script>
+  const requestModal = document.getElementById('requestModal');
+
+  function openRequestModal() {
+    if (requestModal) requestModal.classList.replace('hidden', 'flex');
+  }
+
+  function closeRequestModal() {
+    if (requestModal) requestModal.classList.replace('flex', 'hidden');
+  }
+
+  if (requestModal) {
+    requestModal.addEventListener('click', function(event) {
+      if (event.target === requestModal) closeRequestModal();
+    });
+  }
+</script>
+{% endblock %}
