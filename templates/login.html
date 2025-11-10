@@ -10,8 +10,12 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
     <style>
-      /* Semua style kustom Anda kita biarkan */
+      /* Font "Inter" sekarang dimuat dari style.css
+        Kita hanya perlu menyimpan style kustom untuk halaman ini
+      */
       .bg-grid-pattern {
         background-image: linear-gradient(
             to right,
@@ -32,10 +36,9 @@
       .animate-spin {
         animation: spin 1s linear infinite;
       }
-      /* Fokus Input */
+      /* Fokus Input (disimpan dari file Anda) */
       input:focus, select:focus {
           outline: none;
-          /* purple-600 with 10% opacity */
           border-color: rgb(147, 51, 234);
           box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
       }
@@ -54,8 +57,7 @@
 
     <div class="absolute top-6 left-6 z-10">
       <a
-        href="{% url 'catalog' %}" <!-- Mengarah ke catalog -->
-        class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
+        href="{% url 'catalog' %}" class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
       >
         <i class="fas fa-arrow-left"></i>
         Kembali ke Katalog
@@ -65,15 +67,13 @@
     <div
       class="min-h-screen flex items-center justify-center p-4 relative z-10"
     >
-      <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        <!-- Kolom Kiri (Info) -->
+      <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
         <div class="hidden lg:block space-y-8">
           <div>
             <div class="flex items-center gap-3 mb-6">
               <div
                 class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl"
               >
-                 <!-- Menggunakan logo dari static -->
                  <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-8 w-8 object-contain"/>
               </div>
               <div>
@@ -87,12 +87,12 @@
             </div>
             <p class="text-lg text-gray-600 mb-8">
               Platform terpercaya untuk mengelola dan berbagi proyek digital
-              berkualitas tinggi dari Fakultas Ilmu Komputer PNJ
+              berkualitas tinggi dari Fakultas Ilmu Komputer PNJ.
             </p>
           </div>
           <div class="space-y-4">
             <div
-              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50"
             >
               <div
                 class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0"
@@ -102,12 +102,12 @@
               <div>
                 <h4 class="font-semibold mb-1">Kurasi Profesional</h4>
                 <p class="text-sm text-gray-600">
-                  Setiap proyek dinilai oleh dosen dan praktisi industri
+                  Setiap proyek dinilai oleh dosen dan praktisi industri.
                 </p>
               </div>
             </div>
             <div
-              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50"
             >
               <div
                 class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0"
@@ -117,12 +117,12 @@
               <div>
                 <h4 class="font-semibold mb-1">Kolaborasi Tim</h4>
                 <p class="text-sm text-gray-600">
-                  Kelola proyek bersama dosen dan mitra industri
+                  Kelola proyek bersama dosen dan mitra industri.
                 </p>
               </div>
             </div>
             <div
-              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl"
+              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50"
             >
               <div
                 class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0"
@@ -132,22 +132,21 @@
               <div>
                 <h4 class="font-semibold mb-1">Showcase Portofolio</h4>
                 <p class="text-sm text-gray-600">
-                  Publikasikan karya terbaik Anda ke katalog publik
+                  Publikasikan karya terbaik Anda ke katalog publik.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Kolom Kanan (Form Login) -->
         <div class="w-full">
           <div
-            class="border-0 shadow-2xl bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden"
+            class="border border-gray-200/50 shadow-xl bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden"
           >
             <div class="p-6 space-y-1 pb-6">
               <h2 class="text-2xl font-semibold">Selamat Datang Kembali</h2>
               <p class="text-gray-600">
-                Masuk untuk mengakses proyek dan tugas Anda
+                Masuk untuk mengakses proyek dan tugas Anda.
               </p>
             </div>
 
@@ -156,10 +155,8 @@
               action="{% url 'login' %}"
               class="px-6 pb-6 space-y-4"
             >
-              <!-- === PASTIKAN CSRF TOKEN ADA DI SINI === -->
               {% csrf_token %}
 
-              <!-- Menampilkan pesan error dari Django -->
               {% if messages %}
                 {% for message in messages %}
                   <div
@@ -185,19 +182,18 @@
                   <i
                     class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   ></i>
-                  <!-- Ingat: name="username" digunakan untuk mengambil email di view -->
                   <input
                     id="email"
                     type="email"
                     name="username"
                     placeholder="nama@pnj.ac.id"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                     required
                   />
                 </div>
               </div>
 
-              <div class="space-y-2 pb-2">
+              <div class="space-y-2">
                 <label for="password" class="block font-medium text-sm text-gray-700">Password</label>
                 <div class="relative">
                   <i
@@ -208,7 +204,7 @@
                     type="password"
                     name="password"
                     placeholder="Masukkan password"
-                    class="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+                    class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                     required
                   />
                   <button
@@ -221,8 +217,14 @@
                   </button>
                 </div>
               </div>
+              
+              <div class="text-right">
+                <a href="#" class="text-sm font-medium text-purple-600 hover:text-purple-700">
+                  Lupa password?
+                </a>
+              </div>
 
-              <div class="pt-4">
+              <div class="pt-2">
                 <button
                   type="submit"
                   class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
@@ -230,7 +232,6 @@
                 >
                   <i class="fas fa-lock"></i>
                   <span id="btnText">Masuk</span>
-                  <!-- Tambahkan spinner untuk feedback (opsional) -->
                   <span id="btnLoading" class="hidden animate-spin">
                      <i class="fas fa-spinner"></i>
                   </span>
@@ -248,10 +249,6 @@
               </div>
             </form>
           </div>
-
-          <!-- Demo Accounts (jika perlu) -->
-          <!-- <div class="mt-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200"> ... </div> -->
-
         </div>
       </div>
     </div>
@@ -289,4 +286,3 @@
     </script>
   </body>
 </html>
-

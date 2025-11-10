@@ -70,7 +70,6 @@
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
-          <!-- Logo dan Judul -->
           <div class="flex items-center gap-3">
             <div
               class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg"
@@ -83,20 +82,16 @@
             </div>
           </div>
           
-          <!-- Tombol Aksi (Login/Logout/Dashboard) -->
           {% if request.user.is_authenticated %}
-          <!-- Jika sudah login -->
           <div class="flex items-center gap-3">
-             <!-- Tombol Dashboard (Arahkan ke URL dashboard yang sesuai) -->
-            <a
+             <a
               href="{% if request.user.peran == 'mahasiswa' %}{% url 'dashboard_mahasiswa' %}{% elif request.user.peran == 'dosen' %}{% url 'dashboard_dosen' %}{% elif request.user.peran == 'mitra' %}{% url 'dashboard_mitra' %}{% elif request.user.peran == 'unit_bisnis' %}{% url 'dashboard_unit_bisnis' %}{% else %}{% url 'admin:index' %}{% endif %}" 
               class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all text-sm font-medium"
             >
               <i class="fas fa-tachometer-alt"></i>
               Dashboard
             </a>
-             <!-- Tombol Logout -->
-            <a
+             <a
               href="{% url 'logout' %}"
               class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all text-sm font-medium"
             >
@@ -105,7 +100,6 @@
             </a>
           </div>
           {% else %}
-          <!-- Jika belum login -->
           <a
             href="{% url 'login' %}"
             class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all"
@@ -117,8 +111,6 @@
         </div>
       </div>
     </header>
-    <!-- === KODE HEADER LENGKAP BERAKHIR DI SINI === -->
-
     <section
       class="relative bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 overflow-hidden"
     >
@@ -189,17 +181,14 @@
       class="bg-gradient-to-br from-gray-50 to-gray-100 border-b"
     ></section>
 
-    <!-- Search and Filter Section -->
     <section id="projects-section" class="bg-white border-b sticky top-[72px] z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             
-            <!-- MULAI FORM -->
             <form method="GET" action="{% url 'catalog' %}">
                 <div class="flex flex-col sm:flex-row gap-4 mb-4">
                     <div class="flex-1 relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         
-                        <!-- Input Pencarian -->
                         <input 
                             type="text" 
                             id="searchInput" 
@@ -210,7 +199,6 @@
                         />
                     </div>
                     
-                    <!-- Filter Kategori -->
                     <select 
                         id="categoryFilter" 
                         name="category" 
@@ -223,7 +211,6 @@
                         <option value="data-science" {% if request.GET.category == 'data-science' %}selected{% endif %}>Data Science</option>
                     </select>
 
-                    <!-- Tombol Cari -->
                     <button 
                         type="submit" 
                         class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all"
@@ -232,8 +219,6 @@
                     </button>
                 </div>
             </form>
-            <!-- AKHIR FORM -->
-
             <div class="flex items-center justify-between">
                 <div class="text-sm text-gray-600">
                     Menampilkan 
@@ -277,10 +262,10 @@
                   class="inline-flex items-center gap-1 px-2 py-1 bg-white/95 backdrop-blur-sm text-green-700 border-0 rounded-full text-xs shadow-lg"
                 >
                   <i class="fas fa-award"></i>
-                  3.85/4.00
+                  Terkurasi
                 </span>
               </div>
-            </div>
+              </div>
             <div class="p-4">
               <div class="mb-2">
                 <h3
@@ -361,13 +346,14 @@
     ></div>
 
     <script>
-      // Mengirim data dari Django ke JavaScript
+     // Mengirim data dari Django ke JavaScript
       const projectsData = [
           {% for project in projects %}
           {
               id: {{ project.id }},
               title: "{{ project.title|escapejs }}",
               description: "{{ project.description|escapejs }}",
+              demo_link: "{{ project.demo_link|escapejs }}", // <-- BARIS INI DITAMBAHKAN
               category: "web-development", // TODO: Ganti dengan data asli
               categoryLabel: "Web Development", // TODO: Ganti dengan data asli
               studentName: "{{ project.id_pemilik.username|escapejs }}",
@@ -386,6 +372,21 @@
           const id = parseInt(projectId);
           const project = projectsData.find(p => p.id === id);
           if (!project) return;
+
+          // --- PERUBAHAN DIMULAI: Buat HTML Tautan Demo secara dinamis ---
+          let demoLinkHtml = '';
+          if (project.demo_link) {
+              demoLinkHtml = `
+              <a href="${project.demo_link}" target="_blank" rel="noopener noreferrer"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                <span class="text-sm font-medium text-purple-600">
+                  <i class="fas fa-external-link-alt mr-2"></i> Link Demo
+                </span>
+                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+              </a>
+              `;
+          }
+          // --- PERUBAHAN SELESAI ---
 
           document.getElementById('projectModal').innerHTML = `
           <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -414,6 +415,13 @@
                           <h4 class="font-semibold mb-2">Tanggal Submit</h4>
                           <p class="text-sm" id="modalDate">${project.submissionDate}</p>
                       </div>
+                  </div>
+
+                  <div>
+                      <h4 class="font-semibold mb-2">Tautan Proyek</h4>
+                      <div class="space-y-3">
+                          ${demoLinkHtml}
+                          </div>
                   </div>
                   <div>
                       <h4 class="font-semibold mb-2">Tags</h4>

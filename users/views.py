@@ -5,6 +5,8 @@ from .models import CustomUser
 from django.contrib.auth import authenticate, login, logout
 # --- TAMBAHKAN IMPORT INI ---
 from django.contrib.auth.decorators import login_required
+# === TAMBAHKAN IMPORT FORM DI SINI ===
+from .forms import UserProfileForm
 
 
 def login_view(request):
@@ -69,17 +71,17 @@ def login_view(request):
 
 def register_view(request):
     if request.method == 'POST':
-        # 1. Ambil data dari form
+        # 1. Ambil data utama
         username = request.POST.get('username')
         email = request.POST.get('email')
         peran = request.POST.get('peran')
         password = request.POST.get('password')
         password2 = request.POST.get('password2')
 
-        # 2. Lakukan Validasi
+        # 2. Validasi dasar
         if not all([username, email, peran, password, password2]):
              messages.error(request, 'Semua field wajib diisi!')
-             return redirect('register') # Kembali dengan pesan error
+             return redirect('register') 
 
         if password != password2:
             messages.error(request, 'Password tidak cocok!')
@@ -93,26 +95,38 @@ def register_view(request):
             messages.error(request, 'Email sudah terdaftar!')
             return redirect('register')
 
-        # 3. Jika validasi lolos, buat user baru
+        # 3. Kumpulkan data tambahan berdasarkan peran
         try:
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                peran=peran
-                # is_approved akan otomatis False (default model)
-                # is_active akan otomatis True (default AbstractUser)
-                # status akan otomatis 'aktif' (default model)
-            )
-            # Pesan sukses yang baru
+            user_data = {
+                'username': username,
+                'email': email,
+                'password': password,
+                'peran': peran
+            }
+            
+            if peran == 'mahasiswa':
+                user_data['nim'] = request.POST.get('nim')
+                user_data['program_studi'] = request.POST.get('program_studi')
+            elif peran == 'dosen':
+                user_data['id_dosen'] = request.POST.get('id_dosen')
+                user_data['bidang_keahlian'] = request.POST.get('bidang_keahlian') # Ambil dari field dosen
+            elif peran == 'mitra':
+                user_data['id_mitra'] = request.POST.get('id_mitra')
+                user_data['organisasi'] = request.POST.get('organisasi')
+                user_data['bidang_keahlian'] = request.POST.get('bidang_keahlian') # Ambil dari field mitra
+
+            # 4. Buat user baru menggunakan create_user
+            user = CustomUser.objects.create_user(**user_data)
+            
             messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujui oleh Unit Bisnis sebelum bisa login.')
             return redirect('login')
+            
         except Exception as e:
-             # Tangkap error tak terduga saat pembuatan user
+             # Tangkap error tak terduga (misal jika NIM/ID Dosen unique=True)
              messages.error(request, f'Terjadi kesalahan saat membuat akun: {e}')
              return redirect('register')
 
-    # Jika method adalah GET, cukup tampilkan halaman registrasi
+    # Jika method adalah GET
     else:
         return render(request, 'register.html')
 
@@ -126,23 +140,27 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     user = request.user
+    
+    # Cek apakah kita dalam mode edit dari parameter URL
+    edit_mode = request.GET.get('edit') == 'true'
 
     if request.method == 'POST':
-        # Jika form disubmit, isi form dengan data POST dan instance user
         form = UserProfileForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Profil Anda berhasil diperbarui!')
-            return redirect('profile') # Redirect kembali ke halaman profil
+            # Redirect kembali ke mode 'view' (tanpa parameter edit)
+            return redirect('profile') 
         else:
             messages.error(request, 'Terjadi kesalahan. Silakan periksa isian Anda.')
+            edit_mode = True # Tetap di mode edit jika form error
     else:
-        # Jika GET request, isi form dengan data user yang sedang login
+        # Jika GET request, siapkan form dengan data yang ada
         form = UserProfileForm(instance=user)
 
     context = {
         'form': form,
-        'user': user # Kirim data user untuk ditampilkan (misal username, email)
+        'user': user,
+        'edit_mode': edit_mode  # Kirim status edit_mode ke template
     }
-    # Buat template baru untuk ini
     return render(request, 'profile.html', context)
