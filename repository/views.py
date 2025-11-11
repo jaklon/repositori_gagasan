@@ -533,28 +533,28 @@ def dashboard_unit_bisnis(request):
 # --- AKHIR DASHBOARD VIEWS ---
 
 # --- VIEW BARU UNTUK DETAIL PROYEK ---
-@login_required
+@login_required # Pastikan @login_required tetap ada
 def project_detail_view(request, project_id):
+    # Ambil proyek, pastikan prefetch data pemilik
     project = get_object_or_404(Produk.objects.select_related('id_pemilik').prefetch_related('kategori', 'tags'), id=project_id)
     
+    # Coba ambil data kurasi terkait (jika ada)
     try:
         kurasi = Kurasi.objects.get(id_produk=project)
     except Kurasi.DoesNotExist:
         kurasi = None
 
+    # Cek apakah user yang login sudah pernah request
     existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
 
-    allowed_roles = ['unit_bisnis', 'dosen', 'mitra'] 
-    if project.id_pemilik == request.user or request.user.peran in allowed_roles or request.user.is_superuser:
-        context = {
-            'project': project,
-            'kurasi': kurasi, 
-            'existing_request': existing_request, 
-        }
-        return render(request, 'project_detail.html', context)
-    else:
-        messages.error(request, "Anda tidak memiliki izin untuk melihat detail proyek ini.")
-        return redirect(request.META.get('HTTP_REFERER', 'repository'))
+    # HAPUS BLOK LOGIKA IZIN AKSES (if allowed_roles... s/d else...)
+    # Langsung kirim data ke template
+    context = {
+        'project': project,
+        'kurasi': kurasi, # Kirim None jika tidak ada
+        'existing_request': existing_request, # Kirim status request (None atau objek)
+    }
+    return render(request, 'project_detail.html', context)
 # --- AKHIR VIEW DETAIL PROYEK ---
 
 
