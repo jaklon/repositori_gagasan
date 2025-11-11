@@ -6,7 +6,6 @@
 
 {% block dashboard_content %}
 <div class="p-8 max-w-6xl mx-auto">
-  <!-- Header Halaman -->
   <div class="flex items-center gap-4 mb-8">
     <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="text-gray-400 hover:text-gray-600">
         <i class="fas fa-arrow-left text-xl"></i>
@@ -16,11 +15,14 @@
     </div>
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Source Code/Asset Access Requests</h1>
+      {% if is_admin_view %}
+      <p class="text-sm text-gray-600">Kelola semua permintaan akses source code dalam sistem.</p>
+      {% else %}
       <p class="text-sm text-gray-600">Kelola permintaan akses ke source code dari aset proyek Anda.</p>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Tampilkan Pesan Sukses/Error -->
   {% if messages %}
     <div class="mb-6 space-y-2">
         {% for message in messages %}
@@ -35,7 +37,6 @@
     </div>
   {% endif %}
 
-  <!-- Daftar Pending Requests -->
   <div class="mb-10">
       <h2 class="text-xl font-semibold mb-4 text-gray-800">Pending Requests ({{ pending_requests.count }})</h2>
       <div class="space-y-4">
@@ -52,15 +53,13 @@
                        </div>
                   </div>
                   <div class="flex gap-2 mt-3 sm:mt-0">
-                      <!-- Form Deny -->
                       <form action="{% url 'handle_access_request' req.id 'deny' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menolak permintaan ini?');">
                           {% csrf_token %}
                           <button type="submit" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center gap-1">
                               <i class="fas fa-times"></i> Deny
                           </button>
                       </form>
-                      <!-- Form Approve -->
-                       <form action="{% url 'handle_access_request' req.id 'approve' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui permintaan ini?');">
+                      <form action="{% url 'handle_access_request' req.id 'approve' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui permintaan ini?');">
                           {% csrf_token %}
                           <button type="submit" class="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md flex items-center gap-1">
                               <i class="fas fa-check"></i> Approve
@@ -68,9 +67,14 @@
                       </form>
                   </div>
               </div>
-              <p class="text-sm text-gray-500 mt-3">Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong></p>
               
-              <!-- Alasan Request (jika ada) -->
+              <p class="text-sm text-gray-500 mt-3">
+                Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
+                {% if is_admin_view %}
+                 (Owner: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
+                {% endif %}
+              </p>
+              
               <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
                   <p class="text-xs font-medium text-gray-600 mb-1">Alasan request:</p>
                   <p class="text-sm text-gray-800">{{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}</p> {# TODO: Tambah field 'alasan_request' di model #}
@@ -87,8 +91,7 @@
       </div>
   </div>
 
-  <!-- Daftar Riwayat Request (Opsional) -->
-   <div class="mb-10">
+  <div class="mb-10">
       <h2 class="text-xl font-semibold mb-4 text-gray-800">Riwayat Permintaan ({{ other_requests.count }})</h2>
       <div class="space-y-4">
           {% for req in other_requests %}
@@ -111,7 +114,12 @@
                        Ditanggapi oleh: <strong>{{ req.id_peninjau.username|default:"N/A" }}</strong>
                    </div>
               </div>
-              <p class="text-sm text-gray-500 mt-3">Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong></p>
+              <p class="text-sm text-gray-500 mt-3">
+                Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
+                {% if is_admin_view %}
+                 (Owner: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
+                {% endif %}
+              </p>
               <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
                   <p class="text-xs font-medium text-gray-600 mb-1">Alasan request:</p>
                   <p class="text-sm text-gray-800">{{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}</p>
@@ -132,4 +140,4 @@
 
 {% block extra_scripts %}
 {# Tidak perlu JS tambahan jika menggunakan form submit standar #}
-{% endblock %}
+{% endblock %} 

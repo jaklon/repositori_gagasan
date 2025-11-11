@@ -603,14 +603,25 @@ def request_source_code_view(request, project_id):
 # --- VIEW BARU: ACCESS REQUESTS (DAFTAR) ---
 @login_required
 def access_requests_view(request):
-    if request.user.peran not in ['mahasiswa', 'dosen']:
+    # BARU: Izinkan mahasiswa, dosen, DAN unit_bisnis
+    if request.user.peran not in ['mahasiswa', 'dosen', 'unit_bisnis']:
         messages.error(request, "Anda tidak memiliki izin mengakses halaman ini.")
         return redirect('catalog') 
 
-    requests_for_my_projects = RequestSourceCode.objects.filter(
-        id_produk__id_pemilik=request.user
-    ).select_related('id_pemohon', 'id_produk').order_by('-tanggal_request')
+    if request.user.peran == 'unit_bisnis':
+        # BARU: Jika Unit Bisnis, tampilkan SEMUA request
+        requests_for_my_projects = RequestSourceCode.objects.all().select_related(
+            'id_pemohon', 'id_produk', 'id_produk__id_pemilik', 'id_peninjau'
+        ).order_by('-tanggal_request')
+    else:
+        # LAMA: Mahasiswa/Dosen hanya melihat request untuk proyek milik mereka
+        requests_for_my_projects = RequestSourceCode.objects.filter(
+            id_produk__id_pemilik=request.user
+        ).select_related(
+            'id_pemohon', 'id_produk', 'id_peninjau'
+        ).order_by('-tanggal_request')
 
+    # Pisahkan antara yang pending dan yang sudah ditanggapi
     pending_requests = requests_for_my_projects.filter(status='pending')
     other_requests = requests_for_my_projects.exclude(status='pending')
 
@@ -627,28 +638,32 @@ def access_requests_view(request):
 @require_POST 
 def handle_access_request_view(request, request_id, action):
     req_object = get_object_or_404(RequestSourceCode, id=request_id)
-    
-    if req_object.id_produk.id_pemilik != request.user:
+    user = request.user
+
+    # Logika Keamanan BARU
+    is_owner = req_object.id_produk.id_pemilik == user
+    is_unit_bisnis = user.peran == 'unit_bisnis'
+
+    if not (is_owner or is_unit_bisnis):
         messages.error(request, "Anda tidak memiliki izin untuk mengelola permintaan ini.")
         return redirect('access_requests')
 
+    # Pastikan status masih 'pending'
     if req_object.status != 'pending':
         messages.warning(request, "Permintaan ini sudah ditanggapi sebelumnya.")
         return redirect('access_requests')
 
     if action == 'approve':
         req_object.status = 'approved'
-        req_object.id_peninjau = request.user
+        req_object.id_peninjau = user  # Peninjau adalah user yg sedang login (bisa pemilik atau unit bisnis)
         req_object.save()
         messages.success(request, f"Permintaan dari '{req_object.id_pemohon.username}' telah disetujui.")
     elif action == 'deny':
         req_object.status = 'rejected'
-        req_object.id_peninjau = request.user
+        req_object.id_peninjau = user
         req_object.save()
         messages.warning(request, f"Permintaan dari '{req_object.id_pemohon.username}' telah ditolak.")
-    else:
-        messages.error(request, "Aksi tidak valid.")
-
+    # ...
     return redirect('access_requests')
 # --- AKHIR VIEW HANDLE REQUEST ---
 

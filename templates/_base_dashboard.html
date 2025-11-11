@@ -57,7 +57,7 @@
         <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Administrasi</p>
         <a href="{% url 'manage_users' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'approve_user' or request.resolver_match.url_name == 'toggle_active_user' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-users-cog w-5 text-center"></i><span>Manajemen User</span></a>
         <a href="{% url 'manage_products' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_products' or request.resolver_match.url_name == 'delete_product' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-archive w-5 text-center"></i><span>Manajemen Produk</span></a>
-        <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-file-code w-5 text-center"></i><span>Source Code Requests</span></a>
+        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-file-code w-5 text-center"></i><span>Source Code Requests</span></a>
 
         <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Alur Kerja Kurasi</p>
         <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-clipboard-list w-5 text-center"></i><span>Panduan Alur Kerja</span></a>
