@@ -102,6 +102,11 @@ class Kurasi(models.Model):
     # Pisahkan catatan
     catatan_dosen = models.TextField(blank=True, null=True) # Field baru
     catatan_mitra = models.TextField(blank=True, null=True) # Field baru
+    
+    # Pisahkan catatan
+    catatan_dosen = models.TextField(blank=True, null=True) # Field baru
+    catatan_mitra = models.TextField(blank=True, null=True) # Field baru
+    catatan_unit_bisnis = models.TextField(blank=True, null=True, help_text="Catatan final dari Unit Bisnis saat review")
 
     def __str__(self):
         return f"Kurasi untuk: {self.id_produk.title}"

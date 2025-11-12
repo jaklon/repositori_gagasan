@@ -45,11 +45,12 @@ class ProjectForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
 
-    kategori = forms.ModelMultipleChoiceField(
+    kategori = forms.ModelChoiceField(
         queryset=Kategori.objects.all(),
-        required=True, # Jadikan wajib
-        label="Kategori Proyek (Pilih satu atau lebih)",
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'category-checkbox-list'}) # Gunakan checkbox jika ingin multiple
+        required=True,
+        label="Kategori Proyek", # Label diubah (tidak lagi "pilih satu atau lebih")
+        empty_label="Pilih Kategori...", # Menambahkan placeholder
+        widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
 
     source_code_link = forms.URLField(
@@ -100,6 +101,10 @@ class ProjectForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             self.initial['tags_input'] = ', '.join(t.nama for t in self.instance.tags.all())
+            
+            kategori_awal = self.instance.kategori.first()
+            if kategori_awal:
+                self.initial['kategori'] = kategori_awal
 
     def clean_poster_image(self):
         image = self.cleaned_data.get('poster_image', False)
@@ -146,9 +151,11 @@ class ProjectForm(forms.ModelForm):
 
         if commit:
             instance.save() 
-            kategori_list = self.cleaned_data.get('kategori')
-            if kategori_list is not None:
-                instance.kategori.set(kategori_list) 
+            kategori_obj = self.cleaned_data.get('kategori')
+            if kategori_obj is not None:
+                instance.kategori.set([kategori_obj]) # Bungkus dalam list
+            else:
+                instance.kategori.clear()
 
             tags_list = self.cleaned_data.get('tags_input') 
             if tags_list is not None:
@@ -210,10 +217,10 @@ class AssessmentForm(forms.Form):
 class DecisionForm(forms.Form):
     DECISION_CHOICES = [
         ('', 'Pilih keputusan final...'), 
-        ('ready-for-publication', '泙 Layak - Siap Publikasi'),
-        ('revision-minor', '鳩 Revisi Minor - Publikasi Setelah Perbaikan'),
-        ('needs-coaching', '泯 Perlu Pembinaan - Tidak Dipublikasi'),
-        ('rejected', '閥 Tidak Layak - Ditolak'),
+        ('ready-for-publication', '🏆 Layak - Siap Publikasi'),
+        ('revision-minor', '✍️ Revisi Minor - Publikasi Setelah Perbaikan'),
+        ('needs-coaching', '💡 Perlu Pembinaan - Tidak Dipublikasi'),
+        ('rejected', '❌ Tidak Layak - Ditolak'),
     ]
     decision = forms.ChoiceField(
         choices=DECISION_CHOICES,
@@ -241,31 +248,59 @@ class PublishConfirmationForm(forms.Form):
 
 # === VIEWS ===
 
-# --- CATALOG VIEW ---
+# --- CATALOG VIEW (MODIFIKASI) ---
 def catalog_view(request):
-    query = request.GET.get('q', '')
-    category_slug = request.GET.get('category', '')
+    # === 1. Ambil SEMUA parameter filter ===
+    current_query = request.GET.get('q', '')
+    current_category_slug = request.GET.get('category', '')
+    current_sort = request.GET.get('sort', 'terbaru') # Default 'terbaru'
+    current_start_date = request.GET.get('start_date', '')
+    current_end_date = request.GET.get('end_date', '')
 
-    projects = Produk.objects.filter(dipublikasikan=True).select_related('id_pemilik').prefetch_related('kategori', 'tags').order_by('-updated_at')
+    # === 2. Query dasar: HANYA proyek yang 'dipublikasikan=True' ===
+    projects_query = Produk.objects.filter(dipublikasikan=True).select_related(
+        'id_pemilik'
+    ).prefetch_related(
+        'kategori', 'tags'
+    )
 
-    if query:
-        projects = projects.filter(
-            Q(title__icontains=query) |
-            Q(description__icontains=query) |
-            Q(tags__nama__icontains=query) |
-            Q(id_pemilik__username__icontains=query)
+    # === 3. Terapkan FILTER ===
+    if current_query:
+        projects_query = projects_query.filter(
+            Q(title__icontains=current_query) |
+            Q(description__icontains=current_query) |
+            Q(tags__nama__icontains=current_query) |
+            Q(id_pemilik__username__icontains=current_query)
         ).distinct()
 
-    if category_slug:
-        projects = projects.filter(kategori__slug=category_slug)
+    if current_category_slug:
+        projects_query = projects_query.filter(kategori__slug=current_category_slug)
+        
+    # Filter rentang tanggal berdasarkan 'created_at' (tanggal rilis/unggah)
+    if current_start_date:
+        projects_query = projects_query.filter(created_at__date__gte=current_start_date)
+        
+    if current_end_date:
+        projects_query = projects_query.filter(created_at__date__lte=current_end_date)
 
-    categories = Kategori.objects.all().order_by('nama')
+    # === 4. Terapkan SORTING ===
+    # Kita gunakan 'created_at' sebagai tanggal rilis
+    if current_sort == 'terlama':
+        projects = projects_query.order_by('created_at')
+    else: # Default ke 'terbaru'
+        projects = projects_query.order_by('-created_at')
+
+    # === 5. Ambil Kategori untuk dropdown ===
+    categories_list = Kategori.objects.all().order_by('nama')
 
     context = {
         'projects': projects,
-        'categories': categories,
-        'selected_category': category_slug,
-        'search_query': query,
+        'categories_list': categories_list, # Ganti nama agar konsisten
+        'current_category_slug': current_category_slug,
+        'current_query': current_query,
+        'current_sort': current_sort,
+        'current_start_date': current_start_date,
+        'current_end_date': current_end_date,
     }
     return render(request, 'catalog.html', context)
 # --- AKHIR CATALOG VIEW ---
@@ -653,34 +688,73 @@ def handle_access_request_view(request, request_id, action):
 # --- AKHIR VIEW HANDLE REQUEST ---
 
 
-# --- REPOSITORY VIEWS (PERBAIKAN FINAL UNTUK REQ 3) ---
+# === REPOSITORY VIEWS (PERBAIKAN FINAL DENGAN FILTER & SORT) ===
 @login_required
 def repository_view(request):
-    # Requirement: Tampilkan SEMUA produk yang diupload,
-    # termasuk yang sudah terkurasi dan dipublikasikan.
     
-    # Ambil SEMUA proyek, diurutkan dari yang terbaru dibuat.
-    projects_list = Produk.objects.all().select_related(
+    # === 1. Ambil SEMUA parameter filter dari URL ===
+    sort_by = request.GET.get('sort', 'terbaru') # Default 'terbaru'
+    query = request.GET.get('q', '')
+    category_slug = request.GET.get('category', '') # Gunakan 'category'
+    
+    # === TAMBAHAN: Ambil parameter tanggal ===
+    start_date_str = request.GET.get('start_date', '')
+    end_date_str = request.GET.get('end_date', '')
+
+    # === 2. Ambil query dasar untuk SEMUA proyek ===
+    projects_list_query = Produk.objects.all().select_related(
         'id_pemilik'
     ).prefetch_related(
         'kategori', 'tags'
-    ).order_by('-created_at') # Urutkan berdasarkan tanggal dibuat
+    )
 
-    # Hitung statistik
-    # Total Proyek (total di sistem)
-    total_proyek_all_internal = projects_list.count()
-    # Terpilih untuk Kurasi (menunggu penugasan)
-    total_proyek_selected = projects_list.filter(curation_status='selected').count()
-    # Proyek di Repository (masih pending)
-    total_proyek_repo = projects_list.filter(curation_status='pending').count()
+    # === 3. Terapkan FILTER (INI BAGIAN YANG HILANG SEBELUMNYA) ===
+    if query:
+        projects_list_query = projects_list_query.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(tags__nama__icontains=query) |
+            Q(id_pemilik__username__icontains=query)
+        ).distinct()
 
+    # === TAMBAHAN: Terapkan FILTER RENTANG TANGGAL ===
+    # Kita menggunakan created_at__date untuk membandingkan hanya tanggal, bukan waktu
+    if start_date_str:
+        projects_list_query = projects_list_query.filter(created_at__date__gte=start_date_str)
+        
+    if end_date_str:
+        projects_list_query = projects_list_query.filter(created_at__date__lte=end_date_str)
+        
+    # === 4. Terapkan SORTING (dari langkah sebelumnya) ===
+    if sort_by == 'terlama':
+        projects_list = projects_list_query.order_by('created_at')
+    else: # Default ke 'terbaru'
+        projects_list = projects_list_query.order_by('-created_at')
+
+    # === 5. Hitung statistik (dari query SEBELUM di filter) ===
+    # Ini agar statistik menunjukkan total di sistem, bukan hasil filter
+    all_projects_for_stats = Produk.objects.all()
+    total_proyek_all_internal = all_projects_for_stats.count()
+    total_proyek_selected = all_projects_for_stats.filter(curation_status='selected').count()
+    total_proyek_repo = all_projects_for_stats.filter(curation_status='pending').count()
+    
+    # === 6. Ambil daftar kategori untuk dropdown ===
+    categories_list = Kategori.objects.all().order_by('nama')
 
     context = {
-        'projects_list': projects_list, # Kirim satu daftar saja
-        'total_proyek_repo_count': total_proyek_repo, # Stat: Pending
-        'total_proyek_selected_count': total_proyek_selected, # Stat: Selected
-        'total_proyek': total_proyek_all_internal, # Stat: Total
-        'current_tab': 'all', # Hanya untuk menandakan (templat tidak lagi pakai tab)
+        'projects_list': projects_list, # Ini hasil yang sudah difilter & disortir
+        'total_proyek_repo_count': total_proyek_repo,
+        'total_proyek_selected_count': total_proyek_selected,
+        'total_proyek': total_proyek_all_internal,
+        'current_tab': 'all',
+        
+        # === 7. Kirim nilai filter kembali ke template ===
+        'current_sort': sort_by,
+        'current_query': query,
+        'current_category_slug': category_slug,
+        'categories_list': categories_list,
+        'current_start_date': start_date_str, # Kirim tanggal mulai
+        'current_end_date': end_date_str,   # Kirim tanggal selesai
     }
     return render(request, 'repository.html', context)
 # --- AKHIR REPOSITORY VIEW ---
@@ -1059,10 +1133,9 @@ def handle_project_decision(request, kurasi_id):
         else:
              project.dipublikasikan = False
         project.save(update_fields=['curation_status', 'final_decision', 'dipublikasikan', 'updated_at'])
-        # Simpan catatan unit bisnis jika fieldnya ada
-        # if hasattr(kurasi, 'catatan_unit_bisnis'):
-        #     kurasi.catatan_unit_bisnis = catatan_unit_bisnis
-        #     kurasi.save(update_fields=['catatan_unit_bisnis'])
+        if hasattr(kurasi, 'catatan_unit_bisnis'):
+            kurasi.catatan_unit_bisnis = catatan_unit_bisnis
+            kurasi.save(update_fields=['catatan_unit_bisnis'])
         messages.success(request, f"Keputusan '{decision_label}' berhasil disimpan untuk proyek '{project.title}'.")
         return redirect('review_decision_list')
     else:

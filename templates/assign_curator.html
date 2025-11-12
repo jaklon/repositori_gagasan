@@ -1,5 +1,6 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
+{% load repository_extras %} {# TAMBAHAN: Muat custom template tags #}
 
 {% block title %}Tahap 2: Penugasan Kurator - Gagasan{% endblock %}
 
@@ -99,9 +100,34 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ project.updated_at|date:"d M Y" }} <!-- Asumsi tgl seleksi = tgl update status -->
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600 font-medium">
-                <!-- TODO: Hitung sisa waktu -->
-                2 Hari Lagi
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                {# PERBAIKAN: Langsung gunakan 'deadline_dt' karena |add_days menghasilkan objek datetime #}
+                {% with deadline_dt=project.updated_at|add_days:3 %}
+                   {% now "Y-m-d H:i:s" as current_time_str %}
+                   {# HANYA parse string dari {% now %} #}
+                   {% parse_datetime current_time_str as current_dt %}
+                   
+                   {% if deadline_dt and current_dt %}
+                       {# Hitung sisa hari #}
+                       {% timeuntil_days deadline_dt current_dt as days_left %}
+                       
+                       {% if days_left < 0 %}
+                           <span class="text-red-600 font-semibold">
+                               Terlambat {{ days_left|cut:"-"|default:"0" }} hari
+                           </span>
+                       {% elif days_left == 0 %}
+                            <span class="text-orange-600 font-semibold">
+                                Hari Ini
+                            </span>
+                       {% else %}
+                             <span class="text-gray-700">
+                                {{ days_left }} hari lagi
+                             </span>
+                       {% endif %}
+                   {% else %}
+                        <span class="text-gray-400">N/A</span> {# Fallback jika ada error #}
+                   {% endif %}
+                {% endwith %}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <!-- Tombol untuk membuka modal -->
