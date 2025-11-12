@@ -55,24 +55,49 @@
     </div>
   </div>
   <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form method="GET" action="{% url 'repository' %}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      
       <div class="md:col-span-2 relative">
         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        <input type="text" placeholder="Cari proyek, mahasiswa, atau tags..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
+        <input type="text" name="q" placeholder="Cari proyek, mahasiswa, atau tags..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" value="{{ current_query|default:'' }}"/>
       </div>
+      
       <div>
-        <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+         <select name="category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
           <option value="">Semua Kategori</option>
-          </select>
-      </div>
-      <div>
-         <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-          <option value="">Urutkan Berdasarkan</option>
-          <option value="terbaru">Terbaru</option>
-          <option value="terlama">Terlama</option>
+          {% for cat in categories_list %}
+            <option value="{{ cat.slug }}" {% if current_category_slug == cat.slug %}selected{% endif %}>
+              {{ cat.nama }}
+            </option>
+          {% endfor %}
         </select>
       </div>
-    </div>
+      
+      <div>
+        <label for="sort_select" class="block text-xs font-medium text-gray-500 mb-1">Urutkan</label>
+         <select id="sort_select" name="sort" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+          <option value="terbaru" {% if current_sort == 'terbaru' %}selected{% endif %}>Terbaru</option>
+          <option value="terlama" {% if current_sort == 'terlama' %}selected{% endif %}>Terlama</option>
+        </select>
+      </div>
+
+      <div class="md:col-span-1">
+         <label for="start_date_input" class="block text-xs font-medium text-gray-500 mb-1">Tanggal Rilis (Mulai)</label>
+         <input type="date" id="start_date_input" name="start_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-600" value="{{ current_start_date|default:'' }}">
+      </div>
+      
+      <div class="md:col-span-1">
+         <label for="end_date_input" class="block text-xs font-medium text-gray-500 mb-1">Tanggal Rilis (Selesai)</label>
+         <input type="date" id="end_date_input" name="end_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-600" value="{{ current_end_date|default:'' }}">
+      </div>
+
+      <div class="md:col-span-2 flex items-end">
+        <button type="submit" class="w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+          <i class="fas fa-filter mr-1"></i> Terapkan Filter
+        </button>
+      </div>
+
+    </form>
   </div>
   
   {% if messages %}

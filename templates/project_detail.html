@@ -60,36 +60,67 @@
       </p>
 
       {% if kurasi %}
-      <div class="mt-6 border-t pt-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Hasil Kurasi</h2>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <span class="text-sm text-gray-500">Status Kurasi</span>
-            <strong class="block text-gray-800">{{ project.get_curation_status_display }}</strong>
-          </div>
-          <div>
-            <span class="text-sm text-gray-500">Keputusan Final</span>
-            <strong class="block text-gray-800">{{ project.final_decision|default:"-" }}</strong>
-          </div>
-          <div>
-            <span class="text-sm text-gray-500">Dipublikasikan</span>
-            {% if project.dipublikasikan %}
-              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Ya</span>
-            {% else %}
-              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak</span>
-            {% endif %}
-          </div>
-          {% if project.curation_status != 'pending' and project.curation_status != 'selected' and project.curation_status != 'curators-assigned' %}
-          <div>
-            <span class="text-sm text-gray-500">Status Penilaian</span>
-             <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                <i class="fas fa-check-circle mr-1"></i> Telah Dinilai
-             </span>
-          </div>
-          {% endif %}
-        </div>
-      </div>
+<div class="mt-6 border-t pt-6">
+  <h2 class="text-lg font-semibold text-gray-800 mb-4">Hasil Kurasi</h2>
+  
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <span class="text-sm text-gray-500">Status Kurasi</span>
+      <strong class="block text-gray-800">{{ project.get_curation_status_display }}</strong>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Keputusan Final</span>
+      <strong class="block text-gray-800">{{ project.final_decision|default:"-" }}</strong>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Dipublikasikan</span>
+      {% if project.dipublikasikan %}
+        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Ya</span>
+      {% else %}
+        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak</span>
       {% endif %}
+    </div>
+    {% if project.curation_status != 'pending' and project.curation_status != 'selected' and project.curation_status != 'curators-assigned' %}
+    <div>
+      <span class="text-sm text-gray-500">Status Penilaian</span>
+       <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+          <i class="fas fa-check-circle mr-1"></i> Telah Dinilai
+       </span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="mt-6 space-y-4">
+    <h3 class="text-md font-semibold text-gray-800">Catatan Feedback</h3>
+    
+    {% if kurasi.catatan_unit_bisnis %}
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <h4 class="font-semibold mb-1 text-purple-800 text-sm">Catatan Final (Unit Bisnis)</h4>
+        <p class="text-xs text-purple-700 leading-relaxed">{{ kurasi.catatan_unit_bisnis|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    {% if kurasi.catatan_dosen %}
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h4 class="font-semibold mb-1 text-gray-700 text-sm">Catatan Kurator Dosen</h4>
+        <p class="text-xs text-gray-600 leading-relaxed">{{ kurasi.catatan_dosen|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+    
+    {% if kurasi.catatan_mitra %}
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h4 class="font-semibold mb-1 text-gray-700 text-sm">Catatan Kurator Mitra</h4>
+        <p class="text-xs text-gray-600 leading-relaxed">{{ kurasi.catatan_mitra|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    {# Tampilkan ini jika kurasi ada tapi belum ada catatan #}
+    {% if not kurasi.catatan_unit_bisnis and not kurasi.catatan_dosen and not kurasi.catatan_mitra and project.curation_status != 'pending' %}
+    <p class="text-sm text-gray-500 italic">Belum ada catatan feedback yang tersedia.</p>
+    {% endif %}
+  </div>
+  </div>
+{% endif %}
     </div>
 
     <div class="lg:col-span-1 space-y-6">
