@@ -110,6 +110,11 @@ def register_view(request):
             elif peran == 'dosen':
                 user_data['id_dosen'] = request.POST.get('id_dosen')
                 user_data['bidang_keahlian'] = request.POST.get('bidang_keahlian') # Ambil dari field dosen
+                # === PENYESUAIAN DI SINI ===
+                user_data['jurusan'] = request.POST.get('jurusan')
+                # Gunakan 'program_studi_dosen' dari form agar tidak bentrok dengan field mahasiswa
+                user_data['program_studi'] = request.POST.get('program_studi_dosen') 
+                # === AKHIR PENYESUAIAN ===
             elif peran == 'mitra':
                 user_data['id_mitra'] = request.POST.get('id_mitra')
                 user_data['organisasi'] = request.POST.get('organisasi')

@@ -38,6 +38,7 @@ class CustomUser(AbstractUser):
     
     # --- Field Dosen ---
     id_dosen = models.CharField(max_length=30, blank=True, null=True, unique=True)
+    jurusan = models.CharField(max_length=100, blank=True, null=True)
     
     # --- Field Mitra ---
     id_mitra = models.CharField(max_length=30, blank=True, null=True, unique=True)

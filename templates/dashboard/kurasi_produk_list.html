@@ -66,14 +66,17 @@
             <div class="border-t mt-4 pt-4">
               <p class="text-xs text-gray-500">Deadline Penilaian</p>
               <div class="flex justify-between items-center mt-1">
-                {% with deadline=kurasi.tanggal_penugasan|add_days:10 %}
+                
+                {# === PENYESUAIAN LOGIKA SISA WAKTU === #}
+                {% with deadline_dt=kurasi.tanggal_penugasan|add_days:10 %}
                    {% now "Y-m-d H:i:s" as current_time_str %}
-                   {% parse_datetime deadline as deadline_dt %}
                    {% parse_datetime current_time_str as current_dt %}
                    
-                   {% if deadline_dt %}
+                   {% if deadline_dt and current_dt %}
                        <p class="text-sm font-medium text-gray-700">{{ deadline_dt|date:"d M Y" }}</p>
+                       
                        {% timeuntil_days deadline_dt current_dt as days_left %}
+                       
                        {% if days_left < 0 %}
                            <span class="text-xs font-bold text-red-600 flex items-center gap-1"><i class="fas fa-clock"></i> Terlambat {{ days_left|cut:"-" }} hari</span>
                        {% elif days_left == 0 %}
@@ -86,6 +89,8 @@
                         <span class="text-xs font-bold text-red-600">N/A</span>
                    {% endif %}
                 {% endwith %}
+                {# === AKHIR PENYESUAIAN === #}
+
               </div>
             </div>
           </div>

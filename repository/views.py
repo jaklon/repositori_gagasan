@@ -808,9 +808,13 @@ def upload_project_view(request):
 def assign_curator_view(request):
     projects_selected = Produk.objects.filter(curation_status='selected').select_related('id_pemilik').prefetch_related('kategori').order_by('updated_at')
     assign_form = AssignCuratorForm()
+    dosen_list = assign_form.fields['kurator_dosen'].queryset
+    mitra_list = assign_form.fields['kurator_mitra'].queryset
     context = {
         'projects_selected': projects_selected,
-        'assign_form': assign_form
+        'assign_form': assign_form,
+        'dosen_list': dosen_list,
+        'mitra_list': mitra_list
     }
     return render(request, 'assign_curator.html', context)
 
