@@ -3,12 +3,12 @@
 {% load repository_extras %} {# Pastikan load extras untuk modal #}
 
 {% block title %}
-  {% if is_completed %}Lihat{% else %}Nilai{% endif %} Proyek: {{ project.title }}
+{% if is_completed %}Lihat{% else %}Nilai{% endif %} Proyek: {{ project.title }}
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="p-8 max-w-6xl mx-auto"> {# Tambahkan max-w-6xl agar konsisten #}
-  
+
   <div class="flex items-center gap-4 mb-6">
     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
       <i class="fas fa-clipboard-check text-purple-600 text-xl"></i>
@@ -28,159 +28,197 @@
   </div>
 
   <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-      <h2 class="text-lg font-semibold mb-3">Detail Proyek</h2>
+    <h2 class="text-lg font-semibold mb-3">Detail Proyek</h2>
 
-      <div class="mb-4">
-        {% if project.poster_image %}
-          <img src="{{ project.poster_image.url }}" 
-               alt="{{ project.title }}" 
-               class="w-full max-h-72 object-cover rounded-lg border border-gray-200"
-               onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';"/>
+    <div class="mb-4">
+      {% if project.poster_image %}
+      <img src="{{ project.poster_image.url }}" alt="{{ project.title }}"
+        class="w-full max-h-72 object-cover rounded-lg border border-gray-200"
+        onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';" />
+      {% else %}
+      <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" alt="Placeholder"
+        class="w-full max-h-72 object-cover rounded-lg border border-gray-200" />
+      {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <span class="text-gray-500">Judul:</span>
+        <strong class="block text-gray-800">{{ project.title }}</strong>
+      </div>
+      <div>
+        <span class="text-gray-500">Pembuat:</span>
+        <strong class="block text-gray-800">{{ project.id_pemilik.username }}</strong>
+      </div>
+      
+      {# --- HANYA ADA SATU BLOK KATEGORI --- #}
+      <div>
+        <span class="text-gray-500">Kategori:</span>
+        <strong class="block text-gray-800">
+          {% for cat in project.kategori.all %}{{ cat.nama }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}
+        </strong>
+      </div>
+      
+      {# --- HANYA ADA SATU BLOK DESKRIPSI --- #}
+      <div class="md:col-span-3">
+        <span class="text-gray-500">Deskripsi:</span>
+        <p class="text-gray-700 text-xs mt-1">{{ project.description|linebreaksbr }}</p>
+      </div>
+
+      <div class="md:col-span-3 flex gap-3 pt-3">
+        {% if project.demo_link %}
+        <a href="{{ project.demo_link }}" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm">
+          <i class="fas fa-external-link-alt"></i>
+          Lihat Demo
+        </a>
+        {% endif %}
+
+        {% if project.source_code_link %}
+        
+        {# --- KONDISI DALAM SATU BARIS UNTUK MENGHINDARI ERROR --- #}
+        {% if project.id_pemilik == request.user or kurasi and request.user == kurasi.id_kurator_dosen or request.user == kurasi.id_kurator_mitra %}
+        
+        <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
+          class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+          <span class="text-sm font-medium text-green-600">
+            <i class="fab fa-github mr-2"></i> Lihat Source Code (Akses Diberikan)
+          </span>
+          <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+        </a>
         {% else %}
-          <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" 
-               alt="Placeholder"
-               class="w-full max-h-72 object-cover rounded-lg border border-gray-200" />
+        <button type="button" onclick="openRequestModal()"
+          class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+          {% if existing_request %}disabled{% endif %}>
+          <span class="text-sm font-medium text-gray-700">
+            <i class="fab fa-github mr-2"></i>
+            {% if existing_request %}
+            Akses Diminta (Status: {{ existing_request.get_status_display }})
+            {% else %}
+            Minta Akses Source Code
+            {% endif %}
+          </span>
+          <i class="fas fa-lock text-gray-400 text-xs"></i>
+        </button>
+        {% endif %}
         {% endif %}
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-              <span class="text-gray-500">Judul:</span>
-              <strong class="block text-gray-800">{{ project.title }}</strong>
-          </div>
-          <div>
-              <span class="text-gray-500">Pembuat:</span>
-              <strong class="block text-gray-800">{{ project.id_pemilik.username }}</strong>
-          </div>
-           <div>
-              <span class="text-gray-500">Kategori:</span>
-              <strong class="block text-gray-800">
-                   {% for cat in project.kategori.all %}{{ cat.nama }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}
-              </strong>
-          </div>
-          <div class="md:col-span-3">
-               <span class="text-gray-500">Deskripsi:</span>
-               <p class="text-gray-700 text-xs mt-1">{{ project.description|linebreaksbr }}</p>
-          </div>
-          
-          <div class="md:col-span-3 flex gap-3 pt-3">
-              {% if project.demo_link %}
-              <a href="{{ project.demo_link }}" target="_blank" rel="noopener noreferrer" 
-                 class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm">
-                  <i class="fas fa-external-link-alt"></i>
-                  Lihat Demo
-              </a>
-              {% endif %}
-              
-              {% if project.source_code_link %}
-            
-                {# 1. Cek jika user adalah PEMILIK atau jika punya request yang SUDAH DISETUJUI #}
-                {% if project.id_pemilik == request.user or existing_request and existing_request.status == 'approved' %}
-                  
-                  <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
-                     class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 transition-colors shadow-sm">
-                    <i class="fab fa-github mr-2"></i> Lihat Source Code
-                  </a>
-
-                {# 2. Cek jika user SUDAH REQUEST tapi masih PENDING/REJECTED #}
-                {% elif existing_request %}
-                  
-                  <button type="button"
-                          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 text-xs font-medium rounded-md cursor-not-allowed"
-                          disabled>
-                    <i class="fab fa-github mr-2"></i>
-                    Akses Diminta (Status: {{ existing_request.get_status_display }})
-                  </button>
-
-                {# 3. Cek jika user BELUM PERNAH REQUEST #}
-                {% else %}
-
-                  <button type="button"
-                          onclick="openRequestModal()"
-                          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition-colors shadow-sm">
-                    <i class="fas fa-lock mr-2"></i>
-                    Minta Akses Source Code
-                  </button>
-
-                {% endif %}
-              {% endif %}
-              </div>
-      </div>
+    </div>
   </div>
 
+  <form method="POST" action="{% url 'assess_project' kurasi.id %}"
+    class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 space-y-6">
+    {% csrf_token %}
 
- <form method="POST" action="{% url 'assess_project' kurasi.id %}" class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 space-y-6">
-      {% csrf_token %}
+    <div class="flex justify-between items-center border-b pb-2 mb-4">
+      <h2 class="text-lg font-semibold text-gray-800">Penilaian Aspek (Skala 1-4)</h2>
+      {% if is_completed %}
+      <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+        <i class="fas fa-check-circle mr-1"></i> Penilaian Selesai
+      </span>
+      {% endif %}
+    </div>
 
-      <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-gray-800">Penilaian Aspek (Skala 1-4)</h2>
-
-       {% if form.non_field_errors %}
-            <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
-                {% for error in form.non_field_errors %} <p>{{ error }}</p> {% endfor %}
-            </div>
-        {% endif %}
-        {% if messages %}
-            {% for message in messages %}
-             {% if message.tags == 'error' %}
-                 <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
-                    {{ message }}
-                 </div>
-             {% endif %}
-            {% endfor %}
-        {% endif %}
-
-
-      {% for field in form %}
-        {% if field.name != 'catatan' %} {# Pisahkan field catatan #}
-          <div class="border-b pb-6 mb-4"> {# Beri jarak bawah lebih banyak #}
-            <label class="block text-sm font-medium text-gray-700 mb-3">{{ field.label }} <span class="text-red-500">*</span></label>
-            {# Loop melalui setiap pilihan radio button dalam field #}
-            <div class="flex flex-wrap gap-3 items-center"> {# Gunakan flex-wrap dan gap #}
-               {% for radio in field %}
-               <div class="flex items-center"> {# Wrapper untuk radio + label #}
-                  {{ radio.tag }} {# Render tag <input type="radio"> #}
-                  <label for="{{ radio.id_for_label }}" class="ml-2"> {# Label yang terkait dengan radio #}
-                       {{ radio.choice_label }}
-                  </label>
-               </div>
-               {% endfor %}
-            </div>
-             {% if field.errors %}
-                <p class="text-xs text-red-600 mt-2">{{ field.errors|striptags }}</p>
-            {% endif %}
-          </div>
-        {% endif %}
-      {% endfor %}
-
-
-       <div class="pt-4">
-           <label for="{{ form.catatan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.catatan.label }}</label>
-           {{ form.catatan }}
-           {% if form.catatan.errors %}
-                <p class="text-xs text-red-600 mt-1">{{ form.catatan.errors|striptags }}</p>
-           {% endif %}
-       </div>
-
-
-      <div class="pt-6 flex justify-end gap-3 border-t">
-          {% if tipe_kurator == 'dosen' %}
-             <a href="{% url 'dashboard_dosen' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali ke Dashboard</a>
-          {% else %}
-              <a href="{% url 'dashboard_mitra' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali ke Dashboard</a>
-          {% endif %}
-           <button type="submit" class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
-               <i class="fas fa-save mr-1"></i> Simpan Penilaian
-           </button>
+    {% if is_completed %}
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-info-circle text-blue-500"></i>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-700">
+            Anda sedang melihat penilaian yang sudah disubmit. Mode ini hanya <strong>baca-saja (read-only)</strong>.
+          </p>
+        </div>
       </div>
+    </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
+      {% for error in form.non_field_errors %} <p>{{ error }}</p> {% endfor %}
+    </div>
+    {% endif %}
+    {% if messages %}
+    {% for message in messages %}
+    {% if message.tags == 'error' %}
+    <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
+      {{ message }}
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {# --- FIELDSET untuk menonaktifkan semua input jika sudah selesai --- #}
+    <fieldset {% if is_completed %}disabled{% endif %}>
+
+    {% for field in form %}
+    {% if field.name != 'catatan' %} {# Pisahkan field catatan #}
+    <div class="border-b pb-6 mb-4"> {# Beri jarak bawah lebih banyak #}
+      <label class="block text-sm font-medium text-gray-700 mb-3">{{ field.label }} <span
+          class="text-red-500">*</span></label>
+      {# Loop melalui setiap pilihan radio button dalam field #}
+      <div class="flex flex-wrap gap-3 items-center"> {# Gunakan flex-wrap dan gap #}
+        {% for radio in field %}
+        <div class="flex items-center"> {# Wrapper untuk radio + label #}
+          {{ radio.tag }} {# Render tag <input type="radio"> #}
+          <label for="{{ radio.id_for_label }}" class="ml-2 {% if is_completed %}cursor-default{% endif %}"> {# Label yang terkait dengan radio #}
+            {{ radio.choice_label }}
+          </label>
+        </div>
+        {% endfor %}
+      </div>
+      {% if field.errors %}
+      <p class="text-xs text-red-600 mt-2">{{ field.errors|striptags }}</p>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+
+    <div class="pt-4">
+      <label for="{{ form.catatan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+        {{ form.catatan.label }}
+      </label>
+      {{ form.catatan }}
+      {% if form.catatan.errors %}
+      <p class="text-xs text-red-600 mt-1">{{ form.catatan.errors|striptags }}</p>
+      {% endif %}
+    </div>
+
+    </fieldset> {# --- AKHIR FIELDSET --- #}
+
+    <div class="pt-6 flex justify-end gap-3 border-t">
+      {% if tipe_kurator == 'dosen' %}
+      <a href="{% url 'dashboard_dosen' %}"
+        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali
+        ke Dashboard</a>
+      {% else %}
+      <a href="{% url 'dashboard_mitra' %}"
+        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali
+        ke Dashboard</a>
+      {% endif %}
+      
+      {# HANYA TAMPILKAN TOMBOL SIMPAN JIKA BELUM SELESAI #}
+      {% if not is_completed %}
+      <button type="submit"
+        class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
+        <i class="fas fa-save mr-1"></i> Simpan Penilaian
+      </button>
+      {% endif %}
+    </div>
   </form>
 
-  <div id="requestModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
-    <div id="requestModalBox" class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
+  <div id="requestModal"
+    class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
+    <div id="requestModalBox"
+      class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
       <form method="POST" action="{% url 'request_source_code' project.id %}" class="flex flex-col">
         {% csrf_token %}
         <div class="p-5 border-b flex justify-between items-center">
           <h2 class="text-xl font-semibold">Minta Akses Source Code</h2>
-          <button type="button" onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          <button type="button" onclick="closeRequestModal()"
+            class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
         </div>
 
         <div class="p-6 space-y-4">
@@ -193,88 +231,101 @@
           </div>
 
           <div>
-             <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
-             <textarea 
-                 name="alasan_request" 
-                 id="id_alasan_request" 
-                 rows="4" 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                 placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
-                 required></textarea>
-              <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
-         </div>
+            <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span
+                class="text-red-500">*</span></label>
+            <textarea name="alasan_request" id="id_alasan_request" rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..."
+              required></textarea>
+            <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
+          </div>
 
-          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
+          <div
+            class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
             <i class="fas fa-info-circle mt-0.5"></i>
-            <span>Pemilik proyek akan menerima notifikasi dan harus menyetujui permintaan Anda sebelum Anda mendapatkan akses.</span>
+            <span>Pemilik proyek akan menerima notifikasi dan harus menyetujui permintaan Anda sebelum Anda
+              mendapatkan
+              akses.</span>
           </div>
         </div>
 
         <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl">
-          <button type="button" onclick="closeRequestModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+          <button type="button" onclick="closeRequestModal()"
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
             Batal
           </button>
-          <button type="submit" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
+          <button type="submit"
+            class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
             <i class="fas fa-paper-plane"></i> Kirim Permintaan
           </button>
         </div>
       </form>
     </div>
   </div>
-  </div>
+</div>
+
+{# --- HANYA ADA SATU ENDBLOCK DI SINI --- #}
 {% endblock %}
 
 {% block extra_scripts %}
 <style>
-/* CSS dari _base_dashboard.html */
-input[type="radio"].assessment-radio {
+  /* CSS dari _base_dashboard.html */
+  input[type="radio"].assessment-radio {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
-}
-input[type="radio"].assessment-radio + label {
+  }
+
+  input[type="radio"].assessment-radio+label {
     display: inline-block;
     cursor: pointer;
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db; 
-    border-radius: 0.375rem; 
-    margin-right: 0.5rem; 
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    margin-right: 0.5rem;
     transition: all 0.2s ease-in-out;
-    font-size: 0.875rem; 
-    background-color: #f9fafb; 
-    color: #374151; 
-    line-height: 1.25rem; 
-    min-width: 100px; 
+    font-size: 0.875rem;
+    background-color: #f9fafb;
+    color: #374151;
+    line-height: 1.25rem;
+    min-width: 100px;
     text-align: center;
-}
-input[type="radio"].assessment-radio:hover + label {
+  }
+
+  input[type="radio"].assessment-radio:hover+label {
     background-color: #f3f4f6;
-    border-color: #9ca3af; 
-}
-input[type="radio"].assessment-radio:checked + label {
-    background-color: #EDE9FE; 
-    border-color: #A78BFA; 
-    color: #5B21B6; 
-    font-weight: 600; 
+    border-color: #9ca3af;
+  }
+
+  input[type="radio"].assessment-radio:checked+label {
+    background-color: #EDE9FE;
+    border-color: #A78BFA;
+    color: #5B21B6;
+    font-weight: 600;
     box-shadow: 0 0 0 1px #A78BFA;
-}
-input[type="radio"].assessment-radio:focus + label {
-     box-shadow: 0 0 0 2px #C4B5FD; 
-     border-color: #8B5CF6; 
-}
-input[type="radio"].assessment-radio:disabled + label {
-    cursor: not-allowed;
+  }
+
+  input[type="radio"].assessment-radio:focus+label {
+    box-shadow: 0 0 0 2px #C4B5FD;
+    border-color: #8B5CF6;
+  }
+
+  /* Style untuk state disabled */
+  input[type="radio"].assessment-radio:disabled+label {
+    cursor: default;
     background-color: #f3f4f6;
     color: #9ca3af;
-    opacity: 0.7;
-}
-input[type="radio"].assessment-radio:disabled:checked + label {
-    background-color: #E5E7EB; 
-    border-color: #D1D5DB; 
-    color: #6B7280; 
+    opacity: 1 !important; /* Pastikan label terlihat */
+  }
+
+  input[type="radio"].assessment-radio:disabled:checked+label {
+    background-color: #e9d5ff; /* Ungu pudar */
+    border-color: #c4b5fd;
+    color: #5b21b6;
+    font-weight: bold;
     box-shadow: none;
-}
+  }
 </style>
 
 <script>
@@ -289,7 +340,7 @@ input[type="radio"].assessment-radio:disabled:checked + label {
   }
 
   if (requestModal) {
-    requestModal.addEventListener('click', function(event) {
+    requestModal.addEventListener('click', function (event) {
       if (event.target === requestModal) closeRequestModal();
     });
   }
