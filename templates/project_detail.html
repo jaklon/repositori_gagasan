@@ -46,7 +46,7 @@
           <img src="{{ project.poster_image.url }}" 
                alt="{{ project.title }}" 
                class="w-full aspect-video object-cover rounded-lg border border-gray-200"
-               onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';"/>
+               onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';" />
         {% else %}
           <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" 
                alt="Placeholder"
@@ -60,67 +60,59 @@
       </p>
 
       {% if kurasi %}
-<div class="mt-6 border-t pt-6">
-  <h2 class="text-lg font-semibold text-gray-800 mb-4">Hasil Kurasi</h2>
-  
-  <div class="grid grid-cols-2 gap-4">
-    <div>
-      <span class="text-sm text-gray-500">Status Kurasi</span>
-      <strong class="block text-gray-800">{{ project.get_curation_status_display }}</strong>
-    </div>
-    <div>
-      <span class="text-sm text-gray-500">Keputusan Final</span>
-      <strong class="block text-gray-800">{{ project.final_decision|default:"-" }}</strong>
-    </div>
-    <div>
-      <span class="text-sm text-gray-500">Dipublikasikan</span>
-      {% if project.dipublikasikan %}
-        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Ya</span>
-      {% else %}
-        <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak</span>
+      <div class="mt-6 border-t pt-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Hasil Kurasi</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-sm text-gray-500">Status Kurasi</span>
+            <strong class="block text-gray-800">{{ project.get_curation_status_display }}</strong>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Keputusan Final</span>
+            <strong class="block text-gray-800">{{ project.final_decision|default:"-" }}</strong>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Nilai Akhir Final</span>
+            <strong class="block text-lg font-semibold text-purple-600">
+              {{ kurasi.nilai_akhir_final|floatformat:2|default:"N/A" }} / 4.00
+            </strong>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Dipublikasikan</span>
+            {% if project.dipublikasikan %}
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Ya</span>
+            {% else %}
+              <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# === UPDATE: Komentar/Catatan Kurator (Unit Bisnis ATAU Pemilik) === #}
+      {% if request.user.peran == 'unit_bisnis' or request.user == project.id_pemilik %}
+      <div class="mt-6 border-t pt-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            {% if request.user.peran == 'unit_bisnis' %}
+                Catatan Kurator (Privat Unit Bisnis)
+            {% else %}
+                Catatan & Masukan Kurator
+            {% endif %}
+          </h2>
+          <div class="space-y-4">
+              <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                  <p class="text-xs font-bold text-purple-700 uppercase mb-1"><i class="fas fa-user-tie mr-1"></i> Catatan Dosen</p>
+                  <p class="text-sm text-gray-700">{{ kurasi.catatan_dosen|default:"<em class='text-gray-400'>Tidak ada catatan.</em>"|safe }}</p>
+              </div>
+              <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <p class="text-xs font-bold text-blue-700 uppercase mb-1"><i class="fas fa-building mr-1"></i> Catatan Mitra Industri</p>
+                  <p class="text-sm text-gray-700">{{ kurasi.catatan_mitra|default:"<em class='text-gray-400'>Tidak ada catatan.</em>"|safe }}</p>
+              </div>
+          </div>
+      </div>
       {% endif %}
-    </div>
-    {% if project.curation_status != 'pending' and project.curation_status != 'selected' and project.curation_status != 'curators-assigned' %}
-    <div>
-      <span class="text-sm text-gray-500">Status Penilaian</span>
-       <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-          <i class="fas fa-check-circle mr-1"></i> Telah Dinilai
-       </span>
-    </div>
-    {% endif %}
-  </div>
+      {# === AKHIR UPDATE === #}
 
-  <div class="mt-6 space-y-4">
-    <h3 class="text-md font-semibold text-gray-800">Catatan Feedback</h3>
-    
-    {% if kurasi.catatan_unit_bisnis %}
-    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <h4 class="font-semibold mb-1 text-purple-800 text-sm">Catatan Final (Unit Bisnis)</h4>
-        <p class="text-xs text-purple-700 leading-relaxed">{{ kurasi.catatan_unit_bisnis|linebreaksbr }}</p>
-    </div>
-    {% endif %}
-
-    {% if kurasi.catatan_dosen %}
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 class="font-semibold mb-1 text-gray-700 text-sm">Catatan Kurator Dosen</h4>
-        <p class="text-xs text-gray-600 leading-relaxed">{{ kurasi.catatan_dosen|linebreaksbr }}</p>
-    </div>
-    {% endif %}
-    
-    {% if kurasi.catatan_mitra %}
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 class="font-semibold mb-1 text-gray-700 text-sm">Catatan Kurator Mitra</h4>
-        <p class="text-xs text-gray-600 leading-relaxed">{{ kurasi.catatan_mitra|linebreaksbr }}</p>
-    </div>
-    {% endif %}
-
-    {# Tampilkan ini jika kurasi ada tapi belum ada catatan #}
-    {% if not kurasi.catatan_unit_bisnis and not kurasi.catatan_dosen and not kurasi.catatan_mitra and project.curation_status != 'pending' %}
-    <p class="text-sm text-gray-500 italic">Belum ada catatan feedback yang tersedia.</p>
-    {% endif %}
-  </div>
-  </div>
-{% endif %}
+      {% endif %}
     </div>
 
     <div class="lg:col-span-1 space-y-6">
@@ -177,47 +169,39 @@
 
           {% if project.source_code_link %}
             
-            {# 1. Cek jika user adalah PEMILIK atau jika punya request yang SUDAH DISETUJUI #}
-            {# PERBAIKAN: Tanda kurung () dihapus dari baris if #}
-            {% if project.id_pemilik == request.user or existing_request and existing_request.status == 'approved' %}
+            {# === AKSES SOURCE CODE === #}
+            {# Pemilik ATAU Unit Bisnis bisa akses langsung #}
+            {% if project.id_pemilik == request.user or request.user.peran == 'unit_bisnis' %}
               
               <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
-                 class="flex items-center justify-between p-3 bg-green-50 rounded-md hover:bg-green-100 border border-green-200 transition-colors">
-                <span class="text-sm font-medium text-green-700">
-                  <i class="fab fa-github mr-2"></i> Lihat Source Code (Akses Disetujui)
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                <span class="text-sm font-medium text-green-600">
+                  <i class="fab fa-github mr-2"></i> Lihat Source Code
+                  {% if request.user.peran == 'unit_bisnis' %} (Admin Access) {% endif %}
                 </span>
-                <i class="fas fa-chevron-right text-green-500 text-xs"></i>
+                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
               </a>
 
-            {# 2. Cek jika user SUDAH REQUEST tapi masih PENDING/REJECTED #}
-            {% elif existing_request %}
-              
-              <button type="button"
-                      class="w-full flex items-center justify-between p-3 bg-gray-100 rounded-md cursor-not-allowed"
-                      disabled>
-                <span class="text-sm font-medium text-gray-500">
-                  <i class="fab fa-github mr-2"></i>
-                  Akses Diminta (Status: {{ existing_request.get_status_display }})
-                </span>
-                <i class="fas fa-lock text-gray-400 text-xs"></i>
-              </button>
-
-            {# 3. Cek jika user BELUM PERNAH REQUEST #}
             {% else %}
-
               <button type="button"
                       onclick="openRequestModal()"
-                      class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+                      class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                      {% if existing_request %}disabled{% endif %}>
                 <span class="text-sm font-medium text-gray-700">
                   <i class="fab fa-github mr-2"></i>
-                  Minta Akses Source Code
+                  {% if existing_request %}
+                    Akses Diminta (Status: {{ existing_request.get_status_display }})
+                  {% else %}
+                    Minta Akses Source Code
+                  {% endif %}
                 </span>
                 <i class="fas fa-lock text-gray-400 text-xs"></i>
               </button>
-
             {% endif %}
+            
           {% endif %}
-          </div>
+
+        </div>
       </div>
 
     </div>
@@ -243,16 +227,16 @@
         </div>
 
         <div>
-           <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
-           <textarea 
-               name="alasan_request" 
-               id="id_alasan_request" 
-               rows="4" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-               placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
-               required></textarea>
+            <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
+            <textarea 
+                name="alasan_request" 
+                id="id_alasan_request" 
+                rows="4" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
+                required></textarea>
             <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
-       </div>
+        </div>
 
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
           <i class="fas fa-info-circle mt-0.5"></i>

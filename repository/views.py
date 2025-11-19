@@ -823,13 +823,9 @@ def upload_project_view(request):
 def assign_curator_view(request):
     projects_selected = Produk.objects.filter(curation_status='selected').select_related('id_pemilik').prefetch_related('kategori').order_by('updated_at')
     assign_form = AssignCuratorForm()
-    dosen_list = assign_form.fields['kurator_dosen'].queryset
-    mitra_list = assign_form.fields['kurator_mitra'].queryset
     context = {
         'projects_selected': projects_selected,
-        'assign_form': assign_form,
-        'dosen_list': dosen_list,
-        'mitra_list': mitra_list
+        'assign_form': assign_form
     }
     return render(request, 'assign_curator.html', context)
 
@@ -882,56 +878,59 @@ def assess_project_view(request, kurasi_id):
     project = kurasi.id_produk
     user = request.user
     
-    # === 1. TAMBAHKAN BARIS INI ===
+    # Tambahan: Cek request source code (opsional, agar tidak error di template)
     existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
     
     tipe_kurator = None
     existing_note = None
-    is_completed = False # <-- Variabel BARU
+    is_completed = False # <--- ITEM BARU: Flag status
 
+    # 1. Tentukan Tipe Kurator & Cek Status Selesai
     if user.peran == 'dosen' and kurasi.id_kurator_dosen == user:
         tipe_kurator = 'dosen'
         existing_note = kurasi.catatan_dosen
-        if kurasi.tanggal_selesai_dosen: # <-- Cek BARU
-            is_completed = True
+        if kurasi.tanggal_selesai_dosen:
+            is_completed = True # Tandai selesai, tapi JANGAN redirect dulu
             
     elif user.peran == 'mitra' and kurasi.id_kurator_mitra == user:
         tipe_kurator = 'mitra'
         existing_note = kurasi.catatan_mitra
-        if kurasi.tanggal_selesai_mitra: # <-- Cek BARU
-            is_completed = True
+        if kurasi.tanggal_selesai_mitra:
+            is_completed = True # Tandai selesai, tapi JANGAN redirect dulu
 
     if not tipe_kurator:
         messages.error(request, "Anda tidak ditugaskan untuk menilai proyek ini atau peran Anda tidak sesuai.")
-        if user.peran == 'dosen': return redirect('kurasi_produk_list') # Link diperbarui
-        if user.peran == 'mitra': return redirect('mitra_kurasi_produk_list') # <-- 2. PERBAIKI REDIRECT INI
+        if user.peran == 'dosen': return redirect('dashboard_dosen')
+        if user.peran == 'mitra': return redirect('dashboard_mitra')
         return redirect('catalog')
 
+    # 2. Ambil data nilai (sama seperti sebelumnya)
     existing_scores_qs = AspekPenilaian.objects.filter(id_kurasi=kurasi, tipe_kurator=tipe_kurator)
     initial_scores_dict = {score.aspek: score.skor for score in existing_scores_qs if score.skor is not None}
-    
     initial_form_data = {'catatan': existing_note}
+    
     for aspek_nama, skor in initial_scores_dict.items():
         field_name = f"aspek_{aspek_nama.lower().replace('& ', '').replace(' ', '_').replace('/', '_')}"
         initial_form_data[field_name] = skor
-
+    
+    # 3. Handle POST
     if request.method == 'POST':
-        
-        # === TAMBAHAN: Blokir POST jika sudah selesai ===
+        # --- KEAMANAN: Cegah edit jika sudah selesai ---
         if is_completed:
-            messages.error(request, "Penilaian ini sudah selesai dan tidak dapat diubah.")
-            if tipe_kurator == 'dosen': return redirect('kurasi_produk_list')
-            else: return redirect('mitra_kurasi_produk_list') # <-- 3. PERBAIKI REDIRECT INI
-        # ===============================================
+            messages.error(request, "Penilaian sudah final dan tidak dapat diubah.")
+            return redirect('assess_project', kurasi_id=kurasi.id)
+        # -----------------------------------------------
 
         form = AssessmentForm(request.POST, initial=initial_form_data)
         if form.is_valid():
             total_weighted_score = 0
             aspek_objects_to_update = []
             all_fields_valid = True
+            
             for aspek_nama, bobot in AssessmentForm.ASPEK_CHOICES.items():
                 field_name = f"aspek_{aspek_nama.lower().replace('& ', '').replace(' ', '_').replace('/', '_')}"
                 skor_str = form.cleaned_data.get(field_name)
+                
                 if not skor_str:
                      all_fields_valid = False
                      form.add_error(field_name, "Skor harus dipilih.")
@@ -944,14 +943,8 @@ def assess_project_view(request, kurasi_id):
                     total_weighted_score += skor * (bobot / 100.0)
                 except AspekPenilaian.DoesNotExist:
                      messages.error(request, f"Terjadi kesalahan internal: data aspek '{aspek_nama}' tidak ditemukan.")
-                     context = {
-                         'kurasi': kurasi, 
-                         'project': project, 
-                         'form': form, 
-                         'tipe_kurator': tipe_kurator,
-                         'is_completed': is_completed, 
-                         'existing_request': existing_request # <-- 4. PERBAIKI SINTAKS (koma hilang)
-                     }
+                     # Tetap render halaman, jangan lupa kirim is_completed
+                     context = {'kurasi': kurasi, 'project': project, 'form': form, 'tipe_kurator': tipe_kurator, 'is_completed': is_completed}
                      return render(request, 'assess_project.html', context)
                 except (ValueError, TypeError):
                      all_fields_valid = False
@@ -988,21 +981,21 @@ def assess_project_view(request, kurasi_id):
                 kurasi.save()
                 messages.success(request, f"Penilaian untuk proyek '{project.title}' berhasil disimpan.")
                 
-                if tipe_kurator == 'dosen': return redirect('kurasi_produk_list') 
-                else: return redirect('mitra_kurasi_produk_list') # <-- 5. PERBAIKI REDIRECT INI
+                if tipe_kurator == 'dosen': return redirect('dashboard_dosen')
+                else: return redirect('dashboard_mitra')
     else:
         form = AssessmentForm(initial=initial_form_data)
     
+    # 4. Kirim context
     context = {
         'kurasi': kurasi, 
         'project': project, 
         'form': form, 
         'tipe_kurator': tipe_kurator,
-        'is_completed': is_completed,
-        'existing_request': existing_request # <-- 6. TAMBAHKAN KE CONTEXT
+        'existing_request': existing_request,
+        'is_completed': is_completed  # <--- KUNCI UTAMA DI SINI
     }
     return render(request, 'assess_project.html', context)
-
 # --- VIEW MONITORING PENILAIAN (DAFTAR) ---
 @login_required
 @user_passes_test(is_unit_bisnis, login_url='catalog')
