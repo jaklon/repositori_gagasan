@@ -165,15 +165,41 @@ class ProjectForm(forms.ModelForm):
 
 
 # --- FORM PENUGASAN KURATOR ---
+
+# 1. Custom Field untuk Dosen agar menampilkan Jurusan
+class DosenChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        # Ambil nama lengkap, jika kosong gunakan username
+        nama = obj.get_full_name() or obj.username
+        # Ambil jurusan, jika kosong tampilkan strip
+        jurusan = obj.jurusan or "-"
+        return f"{nama} - {jurusan}"
+
+# 2. Custom Field untuk Mitra agar menampilkan Organisasi
+class MitraChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        # Ambil nama lengkap, jika kosong gunakan username
+        nama = obj.get_full_name() or obj.username
+        # Ambil organisasi, jika kosong tampilkan strip
+        organisasi = obj.organisasi or "-"
+        return f"{nama} - {organisasi}"
+
 class AssignCuratorForm(forms.Form):
-    kurator_dosen = forms.ModelChoiceField(
+    # Menggunakan DosenChoiceField custom yang baru dibuat
+    kurator_dosen = DosenChoiceField(
         queryset=CustomUser.objects.filter(peran='dosen', is_active=True, status='aktif'), 
-        required=True, label="Kurator Dosen", empty_label="Pilih Dosen",
+        required=True, 
+        label="Kurator Dosen", 
+        empty_label="Pilih Dosen",
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
-    kurator_mitra = forms.ModelChoiceField(
+    
+    # Menggunakan MitraChoiceField custom yang baru dibuat
+    kurator_mitra = MitraChoiceField(
         queryset=CustomUser.objects.filter(peran='mitra', is_active=True, status='aktif'), 
-        required=True, label="Kurator Mitra Industri", empty_label="Pilih Mitra",
+        required=True, 
+        label="Kurator Mitra Industri", 
+        empty_label="Pilih Mitra",
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
 # --- AKHIR FORM PENUGASAN ---
@@ -722,6 +748,9 @@ def repository_view(request):
             Q(tags__nama__icontains=query) |
             Q(id_pemilik__username__icontains=query)
         ).distinct()
+        
+    if category_slug:
+        projects_list_query = projects_list_query.filter(kategori__slug=category_slug)
 
     # === TAMBAHAN: Terapkan FILTER RENTANG TANGGAL ===
     # Kita menggunakan created_at__date untuk membandingkan hanya tanggal, bukan waktu
