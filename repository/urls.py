@@ -1,7 +1,6 @@
 # repository/urls.py
 
 from django.urls import path
-# Pastikan mengimpor views dari direktori saat ini (.)
 from . import views
 
 urlpatterns = [

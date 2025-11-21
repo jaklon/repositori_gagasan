@@ -7,18 +7,17 @@ from django.contrib import messages
 
 # --- Models ---
 from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian, RequestSourceCode
-from users.models import CustomUser # Import CustomUser
+from users.models import CustomUser 
 
 # --- Utils ---
 from django.db.models import Q, Count
-from django.contrib.auth.decorators import login_required, user_passes_test # Tambahkan user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.utils import timezone # Import timezone
+from django.utils import timezone 
 from django.http import JsonResponse
-from django.urls import reverse # Import reverse jika digunakan untuk redirect
-
+from django.urls import reverse 
 
 # --- PINDAHKAN FUNGSI HELPER INI KE ATAS ---
 # Helper function untuk mengecek apakah user adalah Unit Bisnis
@@ -48,8 +47,8 @@ class ProjectForm(forms.ModelForm):
     kategori = forms.ModelChoiceField(
         queryset=Kategori.objects.all(),
         required=True,
-        label="Kategori Proyek", # Label diubah (tidak lagi "pilih satu atau lebih")
-        empty_label="Pilih Kategori...", # Menambahkan placeholder
+        label="Kategori Proyek", 
+        empty_label="Pilih Kategori...", 
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
     )
 
@@ -111,7 +110,7 @@ class ProjectForm(forms.ModelForm):
         if not image and (not self.instance or not self.instance.pk):
              raise ValidationError("Gambar overview proyek wajib diisi.")
         if image:
-            if image.size > 5 * 1024 * 1024: # 5MB limit
+            if image.size > 5 * 1024 * 1024: 
                 raise ValidationError("Ukuran gambar tidak boleh melebihi 5MB.")
         return image
 
@@ -153,7 +152,7 @@ class ProjectForm(forms.ModelForm):
             instance.save() 
             kategori_obj = self.cleaned_data.get('kategori')
             if kategori_obj is not None:
-                instance.kategori.set([kategori_obj]) # Bungkus dalam list
+                instance.kategori.set([kategori_obj]) 
             else:
                 instance.kategori.clear()
 
@@ -253,7 +252,7 @@ def catalog_view(request):
     # === 1. Ambil SEMUA parameter filter ===
     current_query = request.GET.get('q', '')
     current_category_slug = request.GET.get('category', '')
-    current_sort = request.GET.get('sort', 'terbaru') # Default 'terbaru'
+    current_sort = request.GET.get('sort', 'terbaru')
     current_start_date = request.GET.get('start_date', '')
     current_end_date = request.GET.get('end_date', '')
 
@@ -295,7 +294,7 @@ def catalog_view(request):
 
     context = {
         'projects': projects,
-        'categories_list': categories_list, # Ganti nama agar konsisten
+        'categories_list': categories_list, 
         'current_category_slug': current_category_slug,
         'current_query': current_query,
         'current_sort': current_sort,
@@ -341,7 +340,7 @@ def my_projects_view(request):
     """
     View baru untuk halaman "My Projects" yang menampilkan daftar lengkap.
     """
-    if request.user.peran not in ['mahasiswa', 'dosen']: # Asumsi Dosen juga bisa lihat
+    if request.user.peran not in ['mahasiswa', 'dosen']: 
         messages.error(request, "Akses tidak diizinkan.")
         return redirect('catalog')
 
@@ -386,11 +385,8 @@ def dashboard_dosen(request):
         'my_projects_count': my_projects_count,
         'supervised_count': supervised_count,
         'curated_count': curated_count,
-        
-        # Daftar untuk "Recently Supervised Projects" (Kita gunakan "My Projects" sebagai contoh)
         'recent_projects': my_projects,
     }
-    # Render template BARU (yang akan kita buat di Langkah 4)
     return render(request, 'dashboard/dosen.html', context)
 
 
@@ -428,7 +424,7 @@ def kurasi_produk_list_view(request):
     tugas_penilaian_qs = Kurasi.objects.filter(
         id_kurator_dosen=request.user
     ).exclude(
-        status='Menunggu Penugasan'  # Hanya ambil yang statusnya sudah 'Penilaian Berlangsung' atau selesai
+        status='Menunggu Penugasan' 
     ).select_related('id_produk', 'id_produk__id_pemilik').order_by('tanggal_penugasan')
 
     # 2. Pisahkan ke daftar "Belum Dinilai" (di mana dosen ini BELUM selesai)
@@ -488,9 +484,6 @@ def dashboard_mitra(request):
     return render(request, 'dashboard/mitra.html', context)
 
 
-# ==================================
-# === TAMBAHKAN VIEW BARU INI ===
-# ==================================
 @login_required
 def mitra_kurasi_produk_list_view(request):
     """
@@ -568,9 +561,8 @@ def dashboard_unit_bisnis(request):
 # --- AKHIR DASHBOARD VIEWS ---
 
 # --- VIEW BARU UNTUK DETAIL PROYEK ---
-@login_required # Pastikan @login_required tetap ada
+@login_required 
 def project_detail_view(request, project_id):
-    # Ambil proyek, pastikan prefetch data pemilik
     project = get_object_or_404(Produk.objects.select_related('id_pemilik').prefetch_related('kategori', 'tags'), id=project_id)
     
     # Coba ambil data kurasi terkait (jika ada)
@@ -582,12 +574,11 @@ def project_detail_view(request, project_id):
     # Cek apakah user yang login sudah pernah request
     existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
 
-    # HAPUS BLOK LOGIKA IZIN AKSES (if allowed_roles... s/d else...)
     # Langsung kirim data ke template
     context = {
         'project': project,
-        'kurasi': kurasi, # Kirim None jika tidak ada
-        'existing_request': existing_request, # Kirim status request (None atau objek)
+        'kurasi': kurasi,
+        'existing_request': existing_request, 
     }
     return render(request, 'project_detail.html', context)
 # --- AKHIR VIEW DETAIL PROYEK ---
@@ -698,12 +689,12 @@ def handle_access_request_view(request, request_id, action):
         req_object.id_peninjau = user
         req_object.save()
         messages.warning(request, f"Permintaan dari '{req_object.id_pemohon.username}' telah ditolak.")
-    # ...
+
     return redirect('access_requests')
 # --- AKHIR VIEW HANDLE REQUEST ---
 
 
-# === REPOSITORY VIEWS (PERBAIKAN FINAL DENGAN FILTER & SORT) ===
+# === REPOSITORY VIEWS (DENGAN FILTER & SORT) ===
 @login_required
 def repository_view(request):
     
@@ -743,7 +734,7 @@ def repository_view(request):
     # === 4. Terapkan SORTING (dari langkah sebelumnya) ===
     if sort_by == 'terlama':
         projects_list = projects_list_query.order_by('created_at')
-    else: # Default ke 'terbaru'
+    else: 
         projects_list = projects_list_query.order_by('-created_at')
 
     # === 5. Hitung statistik (dari query SEBELUM di filter) ===
@@ -757,7 +748,7 @@ def repository_view(request):
     categories_list = Kategori.objects.all().order_by('nama')
 
     context = {
-        'projects_list': projects_list, # Ini hasil yang sudah difilter & disortir
+        'projects_list': projects_list, 
         'total_proyek_repo_count': total_proyek_repo,
         'total_proyek_selected_count': total_proyek_selected,
         'total_proyek': total_proyek_all_internal,
@@ -768,8 +759,8 @@ def repository_view(request):
         'current_query': query,
         'current_category_slug': category_slug,
         'categories_list': categories_list,
-        'current_start_date': start_date_str, # Kirim tanggal mulai
-        'current_end_date': end_date_str,   # Kirim tanggal selesai
+        'current_start_date': start_date_str, 
+        'current_end_date': end_date_str,   
     }
     return render(request, 'repository.html', context)
 # --- AKHIR REPOSITORY VIEW ---
@@ -872,7 +863,7 @@ def handle_assign_curator(request, project_id):
 
 
 # --- ASSESSMENT VIEW ---
-@login_required # Tambahkan ini jika belum ada
+@login_required 
 def assess_project_view(request, kurasi_id):
     kurasi = get_object_or_404(Kurasi.objects.select_related('id_produk'), id=kurasi_id)
     project = kurasi.id_produk
@@ -883,20 +874,20 @@ def assess_project_view(request, kurasi_id):
     
     tipe_kurator = None
     existing_note = None
-    is_completed = False # <--- ITEM BARU: Flag status
+    is_completed = False 
 
     # 1. Tentukan Tipe Kurator & Cek Status Selesai
     if user.peran == 'dosen' and kurasi.id_kurator_dosen == user:
         tipe_kurator = 'dosen'
         existing_note = kurasi.catatan_dosen
         if kurasi.tanggal_selesai_dosen:
-            is_completed = True # Tandai selesai, tapi JANGAN redirect dulu
+            is_completed = True 
             
     elif user.peran == 'mitra' and kurasi.id_kurator_mitra == user:
         tipe_kurator = 'mitra'
         existing_note = kurasi.catatan_mitra
         if kurasi.tanggal_selesai_mitra:
-            is_completed = True # Tandai selesai, tapi JANGAN redirect dulu
+            is_completed = True 
 
     if not tipe_kurator:
         messages.error(request, "Anda tidak ditugaskan untuk menilai proyek ini atau peran Anda tidak sesuai.")

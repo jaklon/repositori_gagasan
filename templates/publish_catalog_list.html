@@ -6,7 +6,6 @@
 
 {% block dashboard_content %}
 <div class="p-8"> {# Hapus x-data #}
-  <!-- Header Halaman -->
   <div class="flex items-center gap-4 mb-6">
     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
       <i class="fas fa-upload text-purple-600 text-xl"></i>
@@ -167,7 +166,6 @@
 
    <!-- Tabel Produk Sudah Terpublikasi -->
    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- ... (Kode tabel produk terpublikasi tetap sama) ... -->
      <div class="px-6 py-4 border-b">
       <h2 class="text-lg font-semibold">Produk yang Sudah Terpublikasi ({{ projects_published.count }})</h2>
     </div>
@@ -219,7 +217,6 @@
   <!-- === MODAL KONFIRMASI PUBLIKASI (Gunakan ID dan class modal-vjs) === -->
   <div id="publishModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-50 items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
       <div id="publishModalBox" class="modal-box-vjs bg-white rounded-xl max-w-2xl w-full shadow-xl transform transition-all max-h-[90vh] flex flex-col">
-          <!-- Header Modal -->
           <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-xl z-10">
               <h2 class="text-xl font-semibold" id="publishModalTitle">Konfirmasi Publikasi</h2>
               {# Ganti @click dengan onclick biasa #}
@@ -232,7 +229,6 @@
                {% csrf_token %}
                <!-- Konten Modal (Scrollable) -->
               <div class="p-6 space-y-5 overflow-y-auto flex-grow">
-                  <!-- Detail Singkat (Gunakan ID) -->
                    <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                         <div><span class="text-gray-500">Mahasiswa:</span> <strong class="block text-gray-800" id="modalStudentName"></strong></div>
                         <div><span class="text-gray-500">Kategori:</span> <strong class="block text-gray-800" id="modalCategoryName"></strong></div>
@@ -309,7 +305,7 @@
     const modalDescription = document.getElementById('modalDescription');
     const modalBadgeNilai = document.getElementById('modalBadgeNilai');
     const publishForm = document.getElementById('publishForm');
-    const confirmCheckbox = document.getElementById('{{ confirmation_form.confirm_publish.id_for_label }}'); // ID dari Django
+    const confirmCheckbox = document.getElementById('{{ confirmation_form.confirm_publish.id_for_label }}'); 
     const publishSubmitButton = document.getElementById('publishSubmitButton');
 
     // Fungsi untuk membuka modal
@@ -322,13 +318,13 @@
         // Format dan tampilkan nilai akhir + warna
         const nilaiFloat = parseFloat(nilaiAkhir);
         modalNilaiAkhir.textContent = !isNaN(nilaiFloat) ? `${nilaiFloat.toFixed(2)} / 4.00` : '-';
-        modalNilaiAkhir.className = 'block text-gray-800'; // Reset class
+        modalNilaiAkhir.className = 'block text-gray-800';
         if (nilaiFloat >= 3.5) modalNilaiAkhir.classList.add('text-green-600');
         else if (nilaiFloat >= 2.75) modalNilaiAkhir.classList.add('text-blue-600');
-        else modalNilaiAkhir.classList.add('text-gray-600'); // Default
+        else modalNilaiAkhir.classList.add('text-gray-600'); 
 
         modalDecisionStatus.textContent = decision || '-';
-        modalDecisionStatus.className = 'block text-gray-800'; // Reset class
+        modalDecisionStatus.className = 'block text-gray-800'; 
         if (decision === 'Sangat Layak') modalDecisionStatus.classList.add('text-green-600');
         else if (decision === 'Revisi Minor') modalDecisionStatus.classList.add('text-blue-600');
 
@@ -337,10 +333,10 @@
         // Badge Nilai
         if (!isNaN(nilaiFloat)) {
             modalBadgeNilai.textContent = `Nilai: ${nilaiFloat.toFixed(2)} / 4.00`;
-            modalBadgeNilai.className = 'mt-1 px-2 py-0.5 inline-block text-xs font-semibold rounded-full '; // Reset
+            modalBadgeNilai.className = 'mt-1 px-2 py-0.5 inline-block text-xs font-semibold rounded-full '; 
             if (nilaiFloat >= 3.5) modalBadgeNilai.classList.add('text-green-800', 'bg-green-200');
             else if (nilaiFloat >= 2.75) modalBadgeNilai.classList.add('text-blue-800', 'bg-blue-200');
-            else modalBadgeNilai.classList.add('hidden'); // Sembunyikan jika < 2.75
+            else modalBadgeNilai.classList.add('hidden'); 
         } else {
             modalBadgeNilai.textContent = '';
             modalBadgeNilai.classList.add('hidden');

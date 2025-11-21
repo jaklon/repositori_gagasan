@@ -6,7 +6,6 @@ from .models import CustomUser
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        # Tentukan field mana saja yang boleh diedit oleh pengguna
         fields = ['first_name', 'last_name']
         
         labels = {
