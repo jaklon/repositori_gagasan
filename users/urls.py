@@ -1,6 +1,5 @@
 # users/urls.py
 from django.urls import path
-# Import view logout dan view profil yang BARU
 from .views import login_view, register_view, logout_view, profile_view
 
 urlpatterns = [

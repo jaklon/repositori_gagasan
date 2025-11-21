@@ -31,7 +31,7 @@
         {% endif %}
         
         <!-- Menampilkan error umum (jika form tidak valid) -->
-        {% if form.errors and not form.is_bound %} <!-- Tampilkan hanya jika ada error global -->
+        {% if form.errors and not form.is_bound %} 
            <div class="p-4 mb-4 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm">
                Terdapat kesalahan pada form. Silakan periksa kembali isian Anda.
            </div>

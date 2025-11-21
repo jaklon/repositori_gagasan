@@ -36,7 +36,7 @@
       .animate-spin {
         animation: spin 1s linear infinite;
       }
-      /* Fokus Input (disimpan dari file Anda) */
+
       input:focus, select:focus {
           outline: none;
           border-color: rgb(147, 51, 234);
@@ -270,7 +270,7 @@
         }
       }
 
-      // Menampilkan spinner saat form disubmit (opsional)
+      // Menampilkan spinner saat form disubmit 
       const loginForm = document.querySelector('form');
       const submitBtn = document.getElementById('submitBtn');
       const btnText = document.getElementById('btnText');
@@ -280,7 +280,7 @@
           loginForm.addEventListener('submit', function() {
               btnText.classList.add('hidden');
               btnLoading.classList.remove('hidden');
-              submitBtn.disabled = true; // Mencegah double submit
+              submitBtn.disabled = true; 
           });
       }
     </script>
