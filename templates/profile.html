@@ -4,15 +4,26 @@
 {% block title %}Profil Saya - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8">
-  <div class="flex items-center gap-4 mb-6">
-    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-      <i class="fas fa-user-circle text-purple-600 text-xl"></i>
+<div class="p-8 max-w-4xl mx-auto">
+  
+  <div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+        <i class="fas fa-user-circle text-purple-600 text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Profil Saya</h1>
+        <p class="text-sm text-gray-600">Kelola informasi personal dan detail akun Anda.</p>
+      </div>
     </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Profil Saya</h1>
-      <p class="text-sm text-gray-600">Kelola informasi personal dan detail akun Anda.</p>
-    </div>
+    
+    {% if not edit_mode %}
+    <a href="{% url 'profile' %}?edit=true" 
+       class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors hover:bg-purple-700">
+        <i class="fas fa-pencil-alt"></i>
+        Edit Profile
+    </a>
+    {% endif %}
   </div>
 
   {% if messages %}
@@ -28,53 +39,131 @@
     </div>
   {% endif %}
 
-  <div class_utils="bg-white p-8 rounded-lg shadow-sm border border-gray-200 max-w-2xl mx-auto">
+  <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
     
     <form method="POST" action="{% url 'profile' %}" class="space-y-6">
         {% csrf_token %}
 
         <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-gray-800">Informasi Akun (Read-Only)</h2>
         
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input type="text" value="{{ user.username }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-            <p class="text-xs text-gray-500 mt-1">Username tidak dapat diubah.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" value="{{ user.username }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" value="{{ user.email }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Peran Akun</label>
+                <input type="text" value="{{ user.get_peran_display }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status Akun</label>
+                <input type="text" value="{% if user.is_approved %}{{ user.get_status_display }}{% else %}Menunggu Persetujuan{% endif %}" disabled 
+                       class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 {% if user.is_approved %}text-gray-500{% else %}text-orange-600{% endif %} cursor-not-allowed">
+            </div>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" value="{{ user.email }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-        </div>
+        <h2 class="text-lg font-semibold border-b pb-2 mb-4 pt-4 text-gray-800">
+          Informasi Personal
+          {% if edit_mode %}(Dapat Diubah){% endif %}
+        </h2>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Peran Akun</label>
-            <input type="text" value="{{ user.get_peran_display }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-        </div>
+        {% if edit_mode %}
+          <p class="text-sm text-gray-500 -mt-4">Saat ini Anda hanya dapat mengubah nama. Hubungi admin untuk mengubah data lainnya.</p>
+          <div>
+              <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.first_name.errors|striptags }}</p>{% endif %}
+          </div>
+          <div>
+              <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.last_name.errors|striptags }}</p>{% endif %}
+          </div>
+          
+          <div class="pt-6 flex justify-end gap-3 border-t">
+               <a href="{% url 'profile' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  Batal
+               </a>
+               <button type="submit" class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
+                  <i class="fas fa-save mr-1"></i> Simpan Perubahan
+               </button>
+          </div>
 
-
-        <h2 class="text-lg font-semibold border-b pb-2 mb-4 pt-4 text-gray-800">Informasi Personal (Dapat Diubah)</h2>
-
-        <div>
-            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}
-                <p class="text-xs text-red-600 mt-1">{{ form.first_name.errors|striptags }}</p>
+        {% else %}
+          <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                  {{ user.first_name|default:'' }} {{ user.last_name|default:''|default_if_none:'' }}
+                  {% if not user.first_name and not user.last_name %}
+                    <span class="italic text-gray-500">Belum diisi</span>
+                  {% endif %}
+                </div>
+            </div>
+            
+            {% if user.peran == 'mahasiswa' %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.nim|default:"-" }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Program Studi</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.get_program_studi_display|default:"-" }}
+                    </div>
+                </div>
+            </div>
             {% endif %}
-        </div>
-        
-        <div>
-            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}
-                <p class="text-xs text-red-600 mt-1">{{ form.last_name.errors|striptags }}</p>
-            {% endif %}
-        </div>
 
-        <div class="pt-6 flex justify-end gap-3 border-t">
-             <button type="submit" class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
-                <i class="fas fa-save mr-1"></i> Simpan Perubahan
-             </button>
-        </div>
+            {% if user.peran == 'dosen' %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Dosen</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.id_dosen|default:"-" }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.bidang_keahlian|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.peran == 'mitra' %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Mitra</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.id_mitra|default:"-" }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Organisasi</label>
+                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                      {{ user.organisasi|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
+                <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
+                  {{ user.bidang_keahlian|default:"-" }}
+                </div>
+            </div>
+            {% endif %}
+            
+            </div>
+        {% endif %}
     </form>
   </div>
 

@@ -6,7 +6,6 @@ from .models import CustomUser
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        # Tentukan field mana saja yang boleh diedit oleh pengguna
         fields = ['first_name', 'last_name']
         
         labels = {
@@ -27,4 +26,3 @@ class UserProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Anda bisa menambahkan validasi tambahan di sini jika perlu

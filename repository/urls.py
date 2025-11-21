@@ -1,7 +1,6 @@
 # repository/urls.py
 
 from django.urls import path
-# Pastikan mengimpor views dari direktori saat ini (.)
 from . import views
 
 urlpatterns = [
@@ -10,8 +9,15 @@ urlpatterns = [
 
     # URLs untuk Dashboard berdasarkan peran
     path('dashboard/mahasiswa/', views.dashboard_mahasiswa, name='dashboard_mahasiswa'),
-    path('dashboard/dosen/', views.dashboard_dosen, name='dashboard_dosen'),
-    path('dashboard/mitra/', views.dashboard_mitra, name='dashboard_mitra'),
+    path('dashboard/mahasiswa/my-projects/', views.my_projects_view, name='my_projects'),
+    
+    path('dashboard/dosen/', views.dashboard_dosen, name='dashboard_dosen'), # Ini sekarang halaman Stats
+    path('dashboard/dosen/my-projects/', views.dosen_my_projects_view, name='dosen_my_projects'), # Halaman "My Projects" Dosen
+    path('dashboard/dosen/kurasi-produk/', views.kurasi_produk_list_view, name='kurasi_produk_list'), # Halaman "Kurasi Produk" (Tugas)
+       
+    path('dashboard/mitra/', views.dashboard_mitra, name='dashboard_mitra'), # Ini halaman Stats
+    path('dashboard/mitra/kurasi-produk/', views.mitra_kurasi_produk_list_view, name='mitra_kurasi_produk_list'), # Ini halaman Tugas
+    
     path('dashboard/unit-bisnis/', views.dashboard_unit_bisnis, name='dashboard_unit_bisnis'),
 
     # URLs untuk Repository dan Seleksi
@@ -25,7 +31,8 @@ urlpatterns = [
     path('project/<int:project_id>/', views.project_detail_view, name='project_detail'),
     # --- URL BARU UNTUK REQUEST ACCESS ---
     path('project/<int:project_id>/request_access/', views.request_source_code_view, name='request_source_code'),
-
+    path('project/delete/own/<int:project_id>/', views.delete_own_project_view, name='delete_own_project'),
+    
     # URLs untuk Alur Kurasi (Penugasan)
     path('curation/assign/', views.assign_curator_view, name='assign_curator_list'),
     path('assign-curator/<int:project_id>/', views.handle_assign_curator, name='handle_assign_curator'),
@@ -50,9 +57,12 @@ urlpatterns = [
     path('dashboard/unit-bisnis/manage-users/', views.manage_users_view, name='manage_users'),
     path('dashboard/unit-bisnis/approve-user/<int:user_id>/', views.approve_user_view, name='approve_user'),
     path('dashboard/unit-bisnis/toggle-active/<int:user_id>/', views.toggle_active_user_view, name='toggle_active_user'),
+    path('dashboard/unit-bisnis/manage-products/', views.manage_products_view, name='manage_products'),
+    path('dashboard/unit-bisnis/delete-product/<int:project_id>/', views.delete_product_view, name='delete_product'),
     
     # --- URL BARU UNTUK ACCESS REQUESTS ---
     path('access-requests/', views.access_requests_view, name='access_requests'),
     path('access-requests/handle/<int:request_id>/<str:action>/', views.handle_access_request_view, name='handle_access_request'),
+    path('access-requests/', views.access_requests_view, name='access_requests'),
 
 ]

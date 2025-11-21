@@ -7,7 +7,6 @@
 {% block dashboard_content %}
 <div class="p-8 max-w-6xl mx-auto">
 
-  <!-- Header Halaman -->
   <div class="flex justify-between items-center mb-6">
     <div class="flex items-center gap-4">
       <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -24,7 +23,6 @@
     </a>
   </div>
 
-  <!-- Pesan Flash -->
   {% if messages %}
   <div class="mb-6 space-y-2">
     {% for message in messages %}
@@ -39,13 +37,10 @@
   </div>
   {% endif %}
 
-  <!-- Grid Utama -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-    <!-- Kolom Kiri -->
     <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
 
-      <!-- Poster -->
       <div class="mb-6">
         {% if project.poster_image %}
           <img src="{{ project.poster_image.url }}" 
@@ -59,13 +54,11 @@
         {% endif %}
       </div>
 
-      <!-- Deskripsi -->
       <h2 class="text-lg font-semibold text-gray-800 mb-2">Deskripsi Proyek</h2>
       <p class="text-sm text-gray-600 leading-relaxed">
         {{ project.description|linebreaksbr|default:"Tidak ada deskripsi." }}
       </p>
 
-      <!-- Hasil Kurasi -->
       {% if kurasi %}
       <div class="mt-6 border-t pt-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Hasil Kurasi</h2>
@@ -94,13 +87,36 @@
           </div>
         </div>
       </div>
+
+      {# === UPDATE: Komentar/Catatan Kurator (Unit Bisnis ATAU Pemilik) === #}
+      {% if request.user.peran == 'unit_bisnis' or request.user == project.id_pemilik %}
+      <div class="mt-6 border-t pt-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            {% if request.user.peran == 'unit_bisnis' %}
+                Catatan Kurator (Privat Unit Bisnis)
+            {% else %}
+                Catatan & Masukan Kurator
+            {% endif %}
+          </h2>
+          <div class="space-y-4">
+              <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                  <p class="text-xs font-bold text-purple-700 uppercase mb-1"><i class="fas fa-user-tie mr-1"></i> Catatan Dosen</p>
+                  <p class="text-sm text-gray-700">{{ kurasi.catatan_dosen|default:"<em class='text-gray-400'>Tidak ada catatan.</em>"|safe }}</p>
+              </div>
+              <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <p class="text-xs font-bold text-blue-700 uppercase mb-1"><i class="fas fa-building mr-1"></i> Catatan Mitra Industri</p>
+                  <p class="text-sm text-gray-700">{{ kurasi.catatan_mitra|default:"<em class='text-gray-400'>Tidak ada catatan.</em>"|safe }}</p>
+              </div>
+          </div>
+      </div>
+      {% endif %}
+      {# === AKHIR UPDATE === #}
+
       {% endif %}
     </div>
 
-    <!-- Kolom Kanan -->
     <div class="lg:col-span-1 space-y-6">
 
-      <!-- Pembuat -->
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h3 class="text-md font-semibold text-gray-800 mb-3">Pembuat Proyek</h3>
         <div class="flex items-center gap-3">
@@ -117,7 +133,6 @@
         </p>
       </div>
 
-      <!-- Kategori & Tags -->
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h3 class="text-md font-semibold text-gray-800 mb-3">Kategori</h3>
         <div class="flex flex-wrap gap-2">
@@ -138,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Tautan -->
       <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
         <h3 class="text-md font-semibold text-gray-800 mb-3">Tautan Proyek</h3>
         <div class="space-y-3">
@@ -154,17 +168,21 @@
           {% endif %}
 
           {% if project.source_code_link %}
-            {% if project.id_pemilik == request.user %}
-              <!-- Pemilik -->
+            
+            {# === AKSES SOURCE CODE === #}
+            {# Pemilik ATAU Unit Bisnis bisa akses langsung #}
+            {% if project.id_pemilik == request.user or request.user.peran == 'unit_bisnis' %}
+              
               <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
                  class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
                 <span class="text-sm font-medium text-green-600">
-                  <i class="fab fa-github mr-2"></i> Lihat Source Code Anda
+                  <i class="fab fa-github mr-2"></i> Lihat Source Code
+                  {% if request.user.peran == 'unit_bisnis' %} (Admin Access) {% endif %}
                 </span>
                 <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
               </a>
+
             {% else %}
-              <!-- Bukan Pemilik -->
               <button type="button"
                       onclick="openRequestModal()"
                       class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
@@ -180,6 +198,7 @@
                 <i class="fas fa-lock text-gray-400 text-xs"></i>
               </button>
             {% endif %}
+            
           {% endif %}
 
         </div>
@@ -189,7 +208,6 @@
   </div>
 </div>
 
-<!-- Modal Request Source Code -->
 <div id="requestModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
   <div id="requestModalBox" class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
     <form method="POST" action="{% url 'request_source_code' project.id %}" class="flex flex-col">
@@ -209,16 +227,16 @@
         </div>
 
         <div>
-                       <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
-                       <textarea 
-                           name="alasan_request" 
-                           id="id_alasan_request" 
-                           rows="4" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                           placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
-                           required></textarea>
-                        <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
-                   </div>
+            <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
+            <textarea 
+                name="alasan_request" 
+                id="id_alasan_request" 
+                rows="4" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
+                required></textarea>
+            <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
+        </div>
 
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
           <i class="fas fa-info-circle mt-0.5"></i>

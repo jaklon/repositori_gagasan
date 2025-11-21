@@ -95,13 +95,18 @@ class Kurasi(models.Model):
     status = models.CharField(max_length=50, default='Menunggu Penugasan', choices=STATUS_PENILAIAN)
 
     # Pisahkan nilai akhir
-    nilai_akhir_dosen = models.FloatField(null=True, blank=True) # Field baru
-    nilai_akhir_mitra = models.FloatField(null=True, blank=True) # Field baru
-    nilai_akhir_final = models.FloatField(null=True, blank=True) # Field baru (Nilai gabungan)
+    nilai_akhir_dosen = models.FloatField(null=True, blank=True) 
+    nilai_akhir_mitra = models.FloatField(null=True, blank=True) 
+    nilai_akhir_final = models.FloatField(null=True, blank=True) 
 
     # Pisahkan catatan
-    catatan_dosen = models.TextField(blank=True, null=True) # Field baru
-    catatan_mitra = models.TextField(blank=True, null=True) # Field baru
+    catatan_dosen = models.TextField(blank=True, null=True) 
+    catatan_mitra = models.TextField(blank=True, null=True) 
+    
+    # Pisahkan catatan
+    catatan_dosen = models.TextField(blank=True, null=True) 
+    catatan_mitra = models.TextField(blank=True, null=True) 
+    catatan_unit_bisnis = models.TextField(blank=True, null=True, help_text="Catatan final dari Unit Bisnis saat review")
 
     def __str__(self):
         return f"Kurasi untuk: {self.id_produk.title}"
@@ -114,9 +119,7 @@ class AspekPenilaian(models.Model):
     skor = models.IntegerField(
         null=True, blank=True,
         choices=[(1, '1 - Kurang'), (2, '2 - Cukup'), (3, '3 - Baik'), (4, '4 - Sangat Baik')]
-    ) # Skor 1-4, bisa null awalnya
-    # --- FIELD BARU ---
-    # Tipe kurator yang memberi skor
+    ) 
     tipe_kurator = models.CharField(max_length=10, choices=[('dosen', 'Dosen'), ('mitra', 'Mitra')])
 
     class Meta:
@@ -140,8 +143,7 @@ class RequestSourceCode(models.Model):
     id_peninjau = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='request_ditinjau'
-        # Contoh limit_choices jika hanya dosen/admin:
-        # limit_choices_to=Q(peran='dosen') | Q(is_superuser=True)
+       
     )
     alasan_request = models.TextField(blank=True, null=True)
     tanggal_request = models.DateTimeField(auto_now_add=True)
