@@ -50,9 +50,8 @@ python3 -m venv venv
 source venv/bin/activate
 
 3. Instal Dependencies
-pip install django psycopg2-binary
+pip install -r requirements.txt
 
-# Jika ada file requirements.txt: pip install -r requirements.txt
 Konfigurasi Database Buat database PostgreSQL bernama gagasan_db (atau sesuaikan di gagasan_backend/settings.py). Pastikan user/password database sesuai dengan konfigurasi di settings.py:
 
 DATABASES = {
