@@ -1,322 +1,106 @@
-# Repository Flow Update - Dokumentasi
+Repositori Gagasan - Sistem Informasi Kurasi Produk Inovasi
+📋 Deskripsi Proyek
+Repositori Gagasan adalah platform berbasis web yang dirancang untuk Fakultas Ilmu Komputer PNJ. Sistem ini berfungsi sebagai wadah digital untuk mengumpulkan, mengurasi, dan mempublikasikan karya inovasi (produk) mahasiswa. Sistem ini memfasilitasi kolaborasi antara Mahasiswa, Dosen, dan Mitra Industri melalui alur kerja kurasi yang terstruktur.
 
-## 🎯 Perubahan Flow Baru
+🚀 Fitur Utama
+Multi-Role User: Mendukung 4 peran pengguna dengan dashboard khusus:
+1. Mahasiswa: Mengunggah proyek, memantau status, dan melihat portofolio.
+2. Dosen: Bertindak sebagai Kurator Akademik untuk menilai aspek teknis/ilmiah.
+3. Mitra Industri: Bertindak sebagai Kurator Industri untuk menilai kelayakan bisnis.
+4. Unit Bisnis: Administrator yang mengelola alur kurasi, pengguna, dan publikasi.
 
-Kami telah mengimplementasikan halaman **Repository** baru yang mengubah alur kerja kurasi produk menjadi lebih efisien dan terorganisir.
+Alur Kurasi Terintegrasi:
+1. Seleksi: Unit Bisnis memilih proyek potensial dari Repositori.
+2. Penugasan: Penunjukan kurator Dosen dan Mitra.
+3. Penilaian: Sistem penilaian (skoring) online oleh kurator.
+4. Review & Keputusan: Penetapan status akhir (Layak, Revisi, Ditolak).
+5. Publikasi: Penayangan produk di Katalog Publik.
 
-## 📋 Flow Lama vs Flow Baru
+Manajemen Akses Source Code: Fitur permintaan izin untuk mengakses kode sumber proyek.
 
-### ❌ Flow Lama (5 Steps):
-```
-Upload Project 
-  → Unit Bisnis Dashboard 
-    → 1. Seleksi Proyek (ProjectInitialSelection)
-    → 2. Penugasan Kurator
-    → 3. Monitoring Penilaian
-    → 4. Review & Keputusan
-    → 5. Publikasi Katalog
-```
+Katalog Publik: Halaman pencarian dan filter untuk menelusuri karya mahasiswa.
 
-### ✅ Flow Baru (4 Steps + Repository):
-```
-Upload Project 
-  → REPOSITORY (Semua orang bisa lihat)
-    → Unit Bisnis memilih project di Repository
-      → 1. Penugasan Kurator
-      → 2. Monitoring Penilaian
-      → 3. Review & Keputusan
-      → 4. Publikasi Katalog
-```
+🛠️ Teknologi yang Digunakan
+- Backend: Python (Django 5.2.7)
+- Database: PostgreSQL
+- Frontend: Django Templates + Tailwind CSS (via CDN) + JavaScript (Vanilla & Alpine.js)
+- Styling: Custom CSS & Font Awesome
 
-## 🆕 Fitur Halaman Repository
+⚙️ Prasyarat Instalasi
+Pastikan Anda telah menginstal:
 
-### 1. **Akses untuk Semua Role**
-- **Semua user** (student, dosen, mitra, admin, unit-bisnis) bisa mengakses Repository
-- Menu "Repository" ada di sidebar untuk semua role
-- Menampilkan semua project yang sudah diupload dengan status `submitted`
+- Python 3.10+
+- PostgreSQL
+- Virtual Environment (disarankan)
 
-### 2. **Fitur untuk Unit Bisnis**
-- Tombol **"Pilih untuk Kurasi"** di setiap project card
-- Confirmation dialog sebelum memilih project
-- Info banner yang menjelaskan alur seleksi kurasi
-- Status tracking: Repository vs Terpilih untuk Kurasi
+📦 Cara Instalasi & Menjalankan
+1. Clone Repository
 
-### 3. **Fitur Umum**
-- **Search & Filter**: Cari by title, student, tags / Filter by category & department
-- **Tabs**: 
-  - Repository (projects belum dipilih)
-  - Terpilih untuk Kurasi (projects sudah dipilih)
-- **Stats Cards**: 
-  - Total di Repository
-  - Terpilih untuk Kurasi
-  - Total Proyek
-- **Project Cards** dengan info lengkap:
-  - Title & Description
-  - Project Image (thumbnail)
-  - Student Name & ID
-  - Category & Department
-  - Tags (technologies)
-  - Submission Date
-  - Source Code availability indicator
+git clone [https://github.com/jaklon/repositori_gagasan]
+cd repositori_gagasan
 
-### 4. **Detail Dialog**
-- View full project details
-- Project image preview
-- Complete description
-- Student information
-- Source code link (with approval note)
-- Tags & technologies
-- Documentation files
-- **Tombol "Pilih untuk Kurasi"** (untuk Unit Bisnis)
+2. Buat dan Aktifkan Virtual Environment
 
-## 🔄 Perubahan Teknis
+# Windows
+python -m venv venv
+venv\Scripts\activate
 
-### 1. **File Baru**
-```
-/components/Repository.tsx
-```
+# Mac/Linux
+python3 -m venv venv
+source venv/bin/activate
 
-### 2. **File yang Diupdate**
+3. Instal Dependencies
+pip install django psycopg2-binary
 
-#### A. `/components/ProjectsContext.tsx`
-**Fungsi Baru:**
-```typescript
-selectProjectForCuration: (projectId: string, selectedBy?: string) => void
-```
+# Jika ada file requirements.txt: pip install -r requirements.txt
+Konfigurasi Database Buat database PostgreSQL bernama gagasan_db (atau sesuaikan di gagasan_backend/settings.py). Pastikan user/password database sesuai dengan konfigurasi di settings.py:
 
-**Implementation:**
-- Mengubah `curationStatus` project menjadi `'selected'`
-- Set `selectedForCuration = true`
-- Menyimpan `selectionDate` dan `selectedBy`
-
-#### B. `/components/SideNavigation.tsx`
-**Changes:**
-- Menambahkan menu item baru: `{ id: 'repository', label: 'Repository', icon: BookOpen }`
-- Untuk Unit Bisnis, menghilangkan step "1. Seleksi Proyek"
-- Workflow steps sekarang: 1-4 (bukan 1-5)
-
-**Before:**
-```typescript
-{ id: 'selection', label: '1. Seleksi Proyek', icon: ClipboardList }
-{ id: 'assignment', label: '2. Penugasan Kurator', icon: UserCheck }
-```
-
-**After:**
-```typescript
-{ id: 'assignment', label: '1. Penugasan Kurator', icon: UserCheck }
-{ id: 'monitoring', label: '2. Monitoring Penilaian', icon: BarChart3 }
-```
-
-#### C. `/App.tsx`
-**Changes:**
-1. Import Repository component
-2. Tambah route untuk repository section:
-```typescript
-if (activeSection === "repository") {
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <SideNavigation ... />
-      <main className="flex-1 overflow-auto ml-0 lg:ml-72">
-        <Repository />
-      </main>
-    </div>
-  );
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gagasan_db',
+        'USER': 'postgres',
+        'PASSWORD': 'password_anda',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
-```
-3. Remove section "selection" untuk unit-bisnis
 
-#### D. `/components/UnitBisnisDashboard.tsx`
-**Changes:**
-1. Update workflow overview dari 5 steps → 4 steps
-2. Update info banner:
-   - **Before:** "Sistem Terpadu: ... semua fungsi terintegrasi di sini"
-   - **After:** "Alur Baru: Seleksi proyek dilakukan di halaman Repository..."
-3. Update stats card pertama:
-   - **Before:** Navigate to `'selection'` - "Menunggu Seleksi"
-   - **After:** Navigate to `'repository'` - "Proyek di Repository"
+4. Migrasi Database
+python manage.py makemigrations
+python manage.py migrate
+Buat Superuser (Opsional)
 
-## 📊 Status Flow Project
+python manage.py createsuperuser
 
-### Status Sequence:
-```
-1. submitted (just uploaded) 
-   → Tampil di REPOSITORY tab pertama
-   
-2. selected (dipilih di Repository oleh Unit Bisnis)
-   → Tampil di REPOSITORY tab kedua "Terpilih untuk Kurasi"
-   → Tampil di UNIT BISNIS → Assignment (menunggu penugasan kurator)
-   
-3. curators-assigned (kurator sudah ditugaskan)
-   → Tampil di UNIT BISNIS → Monitoring
-   
-4. under-assessment (sedang dinilai)
-   → Tampil di KURATOR dashboard
-   → Tampil di UNIT BISNIS → Monitoring
-   
-5. assessment-complete (penilaian selesai)
-   → Tampil di UNIT BISNIS → Review & Keputusan
-   
-6. ready-for-publication (layak publish)
-   → Tampil di UNIT BISNIS → Publikasi
-   
-7. published (sudah dipublikasi)
-   → Tampil di CATALOG (publik)
-```
+5. Jalankan Server
+python manage.py runserver
+Akses aplikasi di http://127.0.0.1:8000/
 
-## 🎨 UI/UX Improvements
+📂 Struktur Folder
+1. gagasan_backend/: Konfigurasi utama proyek (settings, urls, wsgi).
+2. repository/: App utama untuk logika produk, kurasi, dan katalog.
+3. users/: App untuk manajemen pengguna, autentikasi, dan profil.
+4. templates/: File HTML (Dashboard, Katalog, Form).
+5. static/: File CSS, JavaScript, dan Gambar statis.
+6. poster_images/: Direktori media untuk upload gambar proyek.
 
-### 1. **Modern Design**
-- Gradient purple-to-blue theme (konsisten dengan landing page)
-- Motion animations untuk smooth transitions
-- Hover effects pada cards
-- Badge indicators untuk status
+📝 Catatan Penting
+* Sistem menggunakan mekanisme Approval User. Pendaftar baru tidak bisa langsung login sebelum disetujui oleh Unit Bisnis melalui menu "Manajemen User".
+* Pastikan koneksi internet tersedia saat pengembangan karena Tailwind CSS dan Font Awesome dimuat melalui CDN.
 
-### 2. **Responsive Layout**
-- Grid layout yang adaptive
-- Mobile-friendly tabs
-- Responsive stats cards
-- Optimized for desktop & mobile
+Dibuat untuk Proyek PBL Kelompok TI CCIT 5A - Politeknik Negeri Jakarta
 
-### 3. **User Feedback**
-- Toast notifications untuk actions
-- Confirmation dialogs untuk critical actions
-- Clear status indicators
-- Info banners dengan context
 
-## 🔐 Role-Based Access Control
 
-### Semua Role:
-- ✅ View Repository
-- ✅ View all projects
-- ✅ Search & filter
-- ✅ View project details
 
-### Unit Bisnis Only:
-- ✅ Tombol "Pilih untuk Kurasi"
-- ✅ Select project for curation workflow
-- ✅ Special info banner di Repository
-- ✅ Access to curation workflow (Assignment → Publication)
 
-## 🧪 Testing Checklist
 
-### ✅ Repository Page:
-- [ ] Semua role bisa akses Repository
-- [ ] Tab "Repository" menampilkan projects dengan status `submitted`
-- [ ] Tab "Terpilih untuk Kurasi" menampilkan projects dengan status `selected`
-- [ ] Search & filter berfungsi dengan baik
-- [ ] Stats cards menampilkan angka yang benar
-- [ ] Project cards menampilkan info lengkap
 
-### ✅ Selection Flow (Unit Bisnis):
-- [ ] Tombol "Pilih untuk Kurasi" hanya muncul untuk Unit Bisnis
-- [ ] Tombol hanya muncul untuk projects di tab "Repository"
-- [ ] Confirmation dialog muncul saat klik tombol
-- [ ] Setelah confirm, project pindah ke tab "Terpilih untuk Kurasi"
-- [ ] Toast success muncul
-- [ ] Project muncul di Unit Bisnis → Assignment
 
-### ✅ Navigation:
-- [ ] Menu "Repository" ada di sidebar untuk semua role
-- [ ] Klik menu Repository menampilkan halaman Repository
-- [ ] Unit Bisnis tidak lagi punya menu "1. Seleksi Proyek"
-- [ ] Workflow numbering benar (1-4)
 
-### ✅ Unit Bisnis Dashboard:
-- [ ] Workflow overview menampilkan 4 steps (bukan 5)
-- [ ] Info banner menjelaskan alur baru
-- [ ] Stats card "Proyek di Repository" navigate ke repository
-- [ ] Stats card lainnya masih berfungsi normal
 
-## 📈 Benefits
 
-### 1. **Transparency**
-- Semua orang bisa lihat projects yang sudah diupload
-- Clear separation antara "di repository" vs "dalam proses kurasi"
-- Better visibility untuk mahasiswa
 
-### 2. **Efficiency**
-- Unit Bisnis bisa memilih langsung dari Repository
-- Menghilangkan 1 step redundant (ProjectInitialSelection)
-- Workflow lebih streamlined: 4 steps instead of 5
 
-### 3. **Better UX**
-- Single source of truth untuk semua projects
-- Easier navigation dengan menu Repository di sidebar
-- Clear status tracking dengan tabs
 
-### 4. **Scalability**
-- Repository bisa jadi central hub untuk features lain
-- Mudah menambahkan filter/sort baru
-- Foundational untuk fitur analytics di masa depan
-
-## 🚀 Future Enhancements
-
-### Possible Features:
-1. **Advanced Filters**
-   - By submission date range
-   - By dosen supervisor
-   - By assessment score (after curation)
-
-2. **Sorting Options**
-   - Most recent
-   - Most viewed
-   - Highest rated
-
-3. **Analytics Dashboard**
-   - Projects by category (chart)
-   - Submission trends over time
-   - Success rate statistics
-
-4. **Bulk Actions** (Unit Bisnis)
-   - Select multiple projects at once
-   - Batch assignment
-
-5. **Comments/Notes**
-   - Unit Bisnis bisa add notes ke project
-   - Internal communication log
-
-## 📝 Migration Notes
-
-### For Existing Projects:
-- Projects dengan `status: 'submitted'` dan `curationStatus: null/undefined` → Tampil di Repository
-- Projects dengan `curationStatus: 'selected'` → Tampil di tab "Terpilih untuk Kurasi"
-- Projects dengan `curationStatus: 'published'` → Tampil di Catalog
-
-### No Breaking Changes:
-- Existing curation workflow tetap berfungsi
-- Assessment flow tidak berubah
-- Publication flow tidak berubah
-- Hanya step 1 (selection) yang dipindahkan ke Repository
-
-## 🎓 User Guide
-
-### Untuk Mahasiswa/Dosen:
-1. Upload project dari Dashboard
-2. Project otomatis muncul di **Repository**
-3. Tunggu Unit Bisnis memilih project untuk kurasi
-4. Track status di "My Projects"
-
-### Untuk Unit Bisnis:
-1. Buka halaman **Repository** dari sidebar
-2. Browse projects di tab "Repository"
-3. Gunakan search/filter untuk find projects
-4. Klik "Lihat Detail" untuk full information
-5. Klik "Pilih untuk Kurasi" untuk selected project
-6. Confirm selection
-7. Project masuk ke workflow → Langsung ke **Assignment**
-
-### Untuk Semua User:
-- Browse Repository untuk lihat semua projects
-- Gunakan filter untuk narrow down
-- View details untuk full information
-- Check tabs untuk different status
-
-## ✨ Summary
-
-Halaman **Repository** adalah central hub baru untuk semua projects yang memberikan:
-- **Visibility** untuk semua user
-- **Control** untuk Unit Bisnis
-- **Efficiency** dengan streamlined workflow
-- **Foundation** untuk future features
-
-Flow baru lebih intuitive, transparent, dan scalable! 🎉
