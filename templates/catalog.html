@@ -25,6 +25,32 @@
       .animate-slide-in {
         animation: slideIn 0.3s ease-out;
       }
+      
+      /* Grid Card Animation for Attractive Loading (BARU) */
+      .grid-card-animation {
+        animation: slideIn 0.5s ease-out forwards;
+        opacity: 0;
+      }
+      
+      /* Card Hover Effect */
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+          0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
+
+      /* Hover Effect for Static/Feature Cards (BARU) */
+      .feature-card {
+        transition: all 0.2s ease-in-out;
+      }
+      .feature-card:hover {
+        box-shadow: 0 8px 15px -3px rgba(147, 51, 234, 0.1), 0 4px 6px -2px rgba(147, 51, 234, 0.05);
+        transform: translateY(-3px);
+        border-color: #A78BFA; /* purple-300 */
+      }
 
       /* Grid Pattern */
       .bg-grid-pattern {
@@ -35,16 +61,6 @@
           ),
           linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
         background-size: 40px 40px;
-      }
-
-      /* Card Hover Effect */
-      .card-hover {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
-          0 8px 10px -6px rgb(0 0 0 / 0.1);
       }
 
       /* Custom Scrollbar */
@@ -71,14 +87,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg"
-            >
-              <i class="fas fa-book-open text-white"></i>
-            </div>
+            <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo Gagasan" class="h-12 w-12 rounded-lg bg-white/30 p-1"/>
             <div>
-              <h1 class="text-xl font-semibold">gagasan</h1>
-              <p class="text-xs text-gray-600">Produk Digital Terkurasi</p>
+              <h1 class="text-xl font-semibold">GAGASAN</h1>
+              <p class="text-xs text-gray-600">Dari Gagasan Jadi Inovasi</p>
             </div>
           </div>
           
@@ -145,13 +157,6 @@
                 Mulai Jelajah
                 <i class="fas fa-chevron-down"></i>
               </a>
-              <a
-                href="{% url 'login' %}"
-                class="px-6 py-3 border-2 border-gray-300 hover:border-purple-600 rounded-lg font-medium transition-all inline-flex items-center gap-2"
-              >
-                <i class="fas fa-sign-in-alt"></i>
-                Login untuk Submit Project
-              </a>
             </div>
           </div>
 
@@ -174,8 +179,90 @@
           </div>
         </div>
       </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        <!-- TOP STAT -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center mb-16">
+            
+            <div class="space-y-2 feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-gray-50 rounded-xl p-4">
+                <div class="inline-flex w-16 h-16 bg-purple-100 rounded-full items-center justify-center mb-2 group transition-transform duration-300 hover:rotate-[8deg]">
+                    <i class="fas fa-rocket text-purple-600 text-2xl"></i>
+                </div>
+                <p class="text-4xl font-bold text-gray-900 transition-transform duration-300 group-hover:scale-110">12+</p>
+                <p class="text-sm font-medium text-gray-500">Produk Terkurasi</p>
+            </div>
+
+            <div class="space-y-2 feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-gray-50 rounded-xl p-4">
+                <div class="inline-flex w-16 h-16 bg-blue-100 rounded-full items-center justify-center mb-2 group transition-transform duration-300 hover:rotate-[8deg]">
+                    <i class="fas fa-list-ul text-blue-600 text-2xl"></i>
+                </div>
+                <p class="text-4xl font-bold text-gray-900 transition-transform duration-300 group-hover:scale-110">16</p>
+                <p class="text-sm font-medium text-gray-500">Kategori</p>
+            </div>
+
+            <div class="space-y-2 feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-gray-50 rounded-xl p-4">
+                <div class="inline-flex w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-2 group transition-transform duration-300 hover:rotate-[8deg]">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+                <p class="text-4xl font-bold text-gray-900 transition-transform duration-300 group-hover:scale-110">100%</p>
+                <p class="text-sm font-medium text-gray-500">Terkurasi</p>
+            </div>
+
+            <div class="space-y-2 feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-gray-50 rounded-xl p-4">
+                <div class="inline-flex w-16 h-16 bg-orange-100 rounded-full items-center justify-center mb-2 group transition-transform duration-300 hover:rotate-[8deg]">
+                    <i class="fas fa-award text-orange-600 text-2xl"></i>
+                </div>
+                <p class="text-4xl font-bold text-gray-900 transition-transform duration-300 group-hover:scale-110">Terpercaya</p>
+                <p class="text-sm font-medium text-gray-500">Berkualitas Tinggi</p>
+            </div>
+
+        </div>
+
+
+        <!-- TITLE -->
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Mengapa gagasan?</h2>
+            <p class="text-lg text-gray-600">Platform terpercaya untuk menemukan dan berbagi inovasi digital berkualitas tinggi</p>
+        </div>
+
+
+        <!-- FEATURE CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-md feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-white">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group transition-transform duration-300 hover:rotate-[12deg]">
+                    <i class="fas fa-lightbulb text-purple-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Kurasi Berkualitas</h3>
+                <p class="text-sm text-gray-600">Setiap proyek dinilai oleh dosen dan praktisi industri untuk memastikan kualitas tertinggi</p>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-md feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-white">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group transition-transform duration-300 hover:rotate-[12deg]">
+                    <i class="fas fa-book-open text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Beragam Kategori</h3>
+                <p class="text-sm text-gray-600">Dari Web Development hingga AI, temukan proyek dari 16 kategori teknologi berbeda</p>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-md feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-white">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group transition-transform duration-300 hover:rotate-[12deg]">
+                    <i class="fas fa-lock text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Source Code/Asset Terlindungi</h3>
+                <p class="text-sm text-gray-600">Akses source code/asset hanya diberikan setelah approval untuk mencegah penyalahgunaan</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+    
+   
     </section>
 
+    <section id="projects-section" class="bg-white border-b sticky top-[72px] z-40 shadow-sm">
+      <section class="bg-white border-b">
     <section class="border-b bg-white"></section>
 
     <section
