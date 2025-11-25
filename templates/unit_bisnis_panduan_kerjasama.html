@@ -1,0 +1,71 @@
+{% extends "_base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Panduan Alur Kerja Sama{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">Panduan Alur Kerja Sama</h1>
+        <p class="text-lg text-gray-600">Pelajari langkah-langkah mudah untuk memulai kerja sama inovasi dengan Unit Bisnis.</p>
+    </div>
+
+    <div class="relative">
+        <div class="absolute h-full border-l-4 border-purple-200 left-8 md:left-1/2 -ml-0.5"></div>
+
+        <div class="mb-8 flex justify-between items-center w-full right-timeline">
+            <div class="order-1 w-5/12 hidden md:block"></div>
+            <div class="z-10 flex items-center order-1 bg-purple-600 shadow-xl w-16 h-16 rounded-full">
+                <h1 class="mx-auto font-semibold text-lg text-white">1</h1>
+            </div>
+            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
+                <h3 class="mb-3 font-bold text-xl text-purple-600">Eksplorasi Katalog Produk</h3>
+                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Jelajahi berbagai proyek digital yang tersedia di katalog. Filter berdasarkan kategori, teknologi, atau nilai kurasi untuk menemukan inovasi yang sesuai dengan kebutuhan Unit Bisnis Anda.</p>
+            </div>
+        </div>
+
+        <div class="mb-8 flex justify-between items-center w-full left-timeline">
+            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
+                <h3 class="mb-3 font-bold text-xl text-blue-600">Ajukan Permintaan Akses</h3>
+                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Setelah menemukan proyek yang diminati, gunakan tombol "Tertarik? Hubungi Unit Bisnis" di halaman detail produk untuk mengajukan permintaan akses atau kolaborasi awal.</p>
+            </div>
+            <div class="z-10 flex items-center order-1 bg-blue-600 shadow-xl w-16 h-16 rounded-full">
+                <h1 class="mx-auto font-semibold text-lg text-white">2</h1>
+            </div>
+            <div class="order-1 w-5/12 hidden md:block"></div>
+        </div>
+        
+        <div class="mb-8 flex justify-between items-center w-full right-timeline">
+            <div class="order-1 w-5/12 hidden md:block"></div>
+            <div class="z-10 flex items-center order-1 bg-green-600 shadow-xl w-16 h-16 rounded-full">
+                <h1 class="mx-auto font-semibold text-lg text-white">3</h1>
+            </div>
+            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
+                <h3 class="mb-3 font-bold text-xl text-green-600">Diskusi & Negosiasi Proyek</h3>
+                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Tim kami akan memfasilitasi pertemuan dengan pemilik proyek (mahasiswa/dosen) untuk membahas detail proyek, kebutuhan Unit Bisnis, dan potensi ruang lingkup kerja sama.</p>
+            </div>
+        </div>
+
+        <div class="mb-8 flex justify-between items-center w-full left-timeline">
+            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
+                <h3 class="mb-3 font-bold text-xl text-yellow-600">Perjanjian & Eksekusi</h3>
+                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Setelah kesepakatan tercapai, perjanjian kerja sama (MoU/MoA) akan ditandatangani. Proyek siap untuk dieksekusi, termasuk transfer pengetahuan atau pengembangan lebih lanjut.</p>
+            </div>
+            <div class="z-10 flex items-center order-1 bg-yellow-600 shadow-xl w-16 h-16 rounded-full">
+                <h1 class="mx-auto font-semibold text-lg text-white">4</h1>
+            </div>
+            <div class="order-1 w-5/12 hidden md:block"></div>
+        </div>
+        
+    </div>
+
+    <div class="text-center mt-12 p-8 bg-gray-100 rounded-xl border border-gray-200">
+        <h2 class="text-2xl font-bold text-purple-700 mb-4">Butuh Bantuan?</h2>
+        <p class="text-gray-600 mb-6">Hubungi tim Unit Bisnis untuk pertanyaan lebih lanjut mengenai proses kerja sama.</p>
+        <a href="mailto:unitbisnis@pnj.ac.id" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all inline-flex items-center gap-2">
+            <i class="fas fa-envelope"></i>
+            Kirim Email ke Unit Bisnis
+        </a>
+    </div>
+</div>
+{% endblock %}
