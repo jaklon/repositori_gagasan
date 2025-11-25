@@ -586,6 +586,14 @@ def dashboard_unit_bisnis(request):
     return render(request, 'dashboard/unit_bisnis.html', context)
 # --- AKHIR DASHBOARD VIEWS ---
 
+def panduan_kerjasama(request):
+    """View untuk halaman Panduan Alur Kerja Sama"""
+    return render(request, 'unit_bisnis_panduan_kerjasama.html')
+
+def sistem_kurasi(request):
+    """View untuk halaman Informasi Sistem Kurasi"""
+    return render(request, 'unit_bisnis_sistem_kurasi.html')
+
 # --- VIEW BARU UNTUK DETAIL PROYEK ---
 @login_required 
 def project_detail_view(request, project_id):
