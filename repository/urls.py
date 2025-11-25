@@ -59,6 +59,8 @@ urlpatterns = [
     path('dashboard/unit-bisnis/toggle-active/<int:user_id>/', views.toggle_active_user_view, name='toggle_active_user'),
     path('dashboard/unit-bisnis/manage-products/', views.manage_products_view, name='manage_products'),
     path('dashboard/unit-bisnis/delete-product/<int:project_id>/', views.delete_product_view, name='delete_product'),
+    path('panduan-kerjasama/', views.panduan_kerjasama, name='panduan_kerjasama'),
+    path('info-sistem-kurasi/', views.sistem_kurasi, name='sistem_kurasi'),
     
     # --- URL BARU UNTUK ACCESS REQUESTS ---
     path('access-requests/', views.access_requests_view, name='access_requests'),

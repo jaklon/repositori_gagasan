@@ -210,10 +210,8 @@
             <span>{{ project.id_pemilik.username }}</span> | <span>{{ project.created_at|date:"d M Y" }}</span>
           </div>
           <div class="flex gap-2">
-            {# HAPUS LINK 'Lihat Detail' di sini karena sudah dihandle oleh div parent #}
-            {# <a href="{% url 'project_detail' project.id %}" class="flex-1 px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors text-center">
-              Lihat Detail
-            </a> #}
+            
+            
             
             {% if request.user.peran == 'unit_bisnis' and project.curation_status == 'pending' %}
               <form action="{% url 'select_for_curation' project.id %}" method="POST" class="flex-1 stop-propagation">
