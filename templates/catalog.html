@@ -26,6 +26,14 @@
         animation: slideIn 0.3s ease-out;
       }
       
+      {
+    scroll-behavior: smooth;
+  }
+  
+  section, div[id] {
+    scroll-margin-top: 100px; 
+  }
+
       /* Grid Card Animation for Attractive Loading (BARU) */
       .grid-card-animation {
         animation: slideIn 0.5s ease-out forwards;
@@ -152,6 +160,7 @@
             <div class="flex flex-wrap gap-4">
               <a
                 href="#projects-section"
+                id="scrollToProjects"
                 class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all inline-flex items-center gap-2"
               >
                 Mulai Jelajah
@@ -646,6 +655,17 @@
       document.getElementById('projectModal').addEventListener('click', function(e) {
           if (e.target === this) closeModal();
       });
+
+      document.getElementById("scrollToProjects").addEventListener("click", function (e) {
+    e.preventDefault();
+    const target = document.querySelector("#projects-section");
+    const offsetTop = target.offsetTop - 80; // biar ga ketutup header
+
+    window.scrollTo({
+        top: offsetTop,
+        behavior: "smooth"
+    });
+});
     </script>
   </body>
 </html>

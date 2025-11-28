@@ -801,7 +801,153 @@ def repository_view(request):
     }
     return render(request, 'repository.html', context)
 # --- AKHIR REPOSITORY VIEW ---
+# ==========================================
+# 1. MODIFIKASI VIEW MANAJEMEN USER
+# ==========================================
+@login_required
+@user_passes_test(is_unit_bisnis, login_url='catalog') 
+def manage_users_view(request):
+    # --- 1. Ambil Parameter Filter ---
+    q = request.GET.get('q', '')
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+    current_tab = request.GET.get('tab', 'all') # Default tab
 
+    # --- 2. Basis Query ---
+    # Exclude superuser dan sesama unit bisnis
+    base_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+
+    # --- 3. Terapkan Filter Global (Berlaku untuk semua list) ---
+    if q:
+        base_query = base_query.filter(
+            Q(username__icontains=q) | 
+            Q(email__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q)
+        )
+    
+    if role_filter:
+        base_query = base_query.filter(peran=role_filter)
+
+    if status_filter:
+        if status_filter == 'approved':
+            base_query = base_query.filter(is_approved=True)
+        elif status_filter == 'pending':
+            base_query = base_query.filter(is_approved=False)
+        elif status_filter == 'aktif':
+            base_query = base_query.filter(status='aktif')
+        elif status_filter == 'nonaktif':
+            base_query = base_query.filter(status='nonaktif')
+
+    # --- 4. Siapkan List untuk Tab ---
+    # Tab 'All Users': Urutkan username
+    all_users_list = base_query.order_by('username')
+
+    # Tab 'Pending': Khusus yang belum diapprove
+    # Catatan: Kita ambil dari base_query agar filter pencarian tetap jalan di tab pending
+    users_pending_list = base_query.filter(is_approved=False).order_by('date_joined')
+
+    # --- 5. Hitung Statistik (Tanpa Filter agar angka tetap real) ---
+    # Kita butuh query baru yang bersih untuk statistik murni
+    stat_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+    
+    total_users_count = stat_query.count()
+    active_users_count = stat_query.filter(is_active=True, status='aktif', is_approved=True).count()
+    pending_approval_count = stat_query.filter(is_approved=False).count()
+    
+    mahasiswa_count = stat_query.filter(peran='mahasiswa').count()
+    dosen_count = stat_query.filter(peran='dosen').count()
+    mitra_count = stat_query.filter(peran='mitra').count()
+
+    # Tentukan list mana yang ditampilkan berdasarkan tab
+    if current_tab == 'pending':
+        users_list_to_display = users_pending_list
+    else:
+        users_list_to_display = all_users_list
+
+    context = {
+        'users_list': users_list_to_display,
+        'all_users_list': all_users_list,
+        
+        # Stats
+        'total_users_count': total_users_count,
+        'active_users_count': active_users_count,
+        'pending_approval_count': pending_approval_count,
+        'mahasiswa_count': mahasiswa_count,
+        'dosen_count': dosen_count,
+        'mitra_count': mitra_count,
+
+        # State Filter & Tab
+        'current_tab': current_tab,
+        'current_q': q,
+        'current_role': role_filter,
+        'current_status': status_filter,
+    }
+    return render(request, 'dashboard/manage_users.html', context)
+
+
+# ==========================================
+# 2. MODIFIKASI VIEW MANAJEMEN PRODUK
+# ==========================================
+@login_required
+@user_passes_test(is_unit_bisnis, login_url='catalog')
+def manage_products_view(request):
+    # --- 1. Ambil Parameter Filter ---
+    q = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    status_filter = request.GET.get('status', '')
+
+    # --- 2. Query Dasar ---
+    products_query = Produk.objects.all().select_related('id_pemilik').prefetch_related('kategori').order_by('-created_at')
+
+    # --- 3. Terapkan Filter ---
+    if q:
+        products_query = products_query.filter(
+            Q(title__icontains=q) |
+            Q(id_pemilik__username__icontains=q)
+        )
+    
+    if category_id:
+        products_query = products_query.filter(kategori__id=category_id)
+
+    if status_filter:
+        if status_filter == 'published':
+            products_query = products_query.filter(dipublikasikan=True)
+        elif status_filter == 'draft':
+            products_query = products_query.filter(dipublikasikan=False)
+        else:
+            # Filter berdasarkan field curation_status
+            products_query = products_query.filter(curation_status=status_filter)
+
+    # --- 4. Statistik Global (Tanpa Filter) ---
+    all_products_stats = Produk.objects.all()
+    total_produk_count = all_products_stats.count()
+    published_count = all_products_stats.filter(dipublikasikan=True).count()
+    pending_count = all_products_stats.filter(curation_status='pending').count()
+    in_curation_count = all_products_stats.filter(curation_status__in=[
+        'selected', 'curators-assigned', 'assessment-complete', 
+        'ready-for-publication', 'revision-minor'
+    ]).count()
+
+    # Ambil list kategori untuk dropdown
+    categories = Kategori.objects.all()
+
+    context = {
+        'all_products_list': products_query,
+        'categories': categories,
+
+        # Stats
+        'total_produk_count': total_produk_count,
+        'published_count': published_count,
+        'pending_count': pending_count,
+        'in_curation_count': in_curation_count,
+        
+        # State Filter
+        'current_q': q,
+        'current_category': int(category_id) if category_id else '',
+        'current_status': status_filter,
+    }
+    return render(request, 'dashboard/manage_products.html', context)
 
 @login_required
 @require_POST
