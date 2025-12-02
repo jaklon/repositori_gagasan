@@ -1,71 +1,190 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Panduan Alur Kerja Sama{% endblock %}
+{% block title %}Panduan Alur Kerja Unit Bisnis{% endblock %}
 
-{% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="text-center mb-10">
-        <h1 class="text-4xl font-bold text-gray-900 mb-2">Panduan Alur Kerja Sama</h1>
-        <p class="text-lg text-gray-600">Pelajari langkah-langkah mudah untuk memulai kerja sama inovasi dengan Unit Bisnis.</p>
+{% block dashboard_content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-8 mb-10">
+        <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-info-circle"></i>
+            Panduan Alur Kerja Unit Bisnis
+        </h2>
+
+        <p class="text-gray-700 mb-4">
+            Sistem Terpadu - Tidak Ada Login Terpisah
+        </p>
+
+        <p class="text-gray-600">
+            Sebagai Unit Bisnis, Anda mengelola <strong>seluruh proses kurasi produk</strong> dari awal hingga akhir
+            dalam satu sistem terpadu. Tidak ada login terpisah untuk “Admin Repository” atau role lainnya — semua
+            fungsi terintegrasi dalam dashboard Anda.
+        </p>
+
+        <!-- Responsibilities Box -->
+        <div class="mt-6 bg-blue-100 border border-blue-200 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-blue-700 mb-3">Tanggung Jawab Utama:</h3>
+
+            <ul class="space-y-2 text-gray-700">
+                <li>• Mengelola seleksi awal produk mahasiswa</li>
+                <li>• Menugaskan kurator yang tepat untuk setiap produk</li>
+                <li>• Memantau progres penilaian kurator</li>
+                <li>• Membuat keputusan final berdasarkan skor kurator</li>
+                <li>• Mempublikasikan produk layak ke katalog digital publik</li>
+            </ul>
+        </div>
     </div>
 
-    <div class="relative">
-        <div class="absolute h-full border-l-4 border-purple-200 left-8 md:left-1/2 -ml-0.5"></div>
+    <!-- Tahap 1 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold text-blue-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-clipboard-check"></i>
+            Tahap 1: Repository – Seleksi Awal
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Pilih proyek dari repository yang layak masuk ke proses kurasi berdasarkan kualitas dan kelengkapan.
+        </p>
 
-        <div class="mb-8 flex justify-between items-center w-full right-timeline">
-            <div class="order-1 w-5/12 hidden md:block"></div>
-            <div class="z-10 flex items-center order-1 bg-purple-600 shadow-xl w-16 h-16 rounded-full">
-                <h1 class="mx-auto font-semibold text-lg text-white">1</h1>
+        <div class="flex justify-between">
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">⏳ Deadline</p>
+                <p class="text-gray-600">Tidak ada batas waktu khusus</p>
             </div>
-            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
-                <h3 class="mb-3 font-bold text-xl text-purple-600">Eksplorasi Katalog Produk</h3>
-                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Jelajahi berbagai proyek digital yang tersedia di katalog. Filter berdasarkan kategori, teknologi, atau nilai kurasi untuk menemukan inovasi yang sesuai dengan kebutuhan Unit Bisnis Anda.</p>
-            </div>
-        </div>
 
-        <div class="mb-8 flex justify-between items-center w-full left-timeline">
-            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
-                <h3 class="mb-3 font-bold text-xl text-blue-600">Ajukan Permintaan Akses</h3>
-                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Setelah menemukan proyek yang diminati, gunakan tombol "Tertarik? Hubungi Unit Bisnis" di halaman detail produk untuk mengajukan permintaan akses atau kolaborasi awal.</p>
-            </div>
-            <div class="z-10 flex items-center order-1 bg-blue-600 shadow-xl w-16 h-16 rounded-full">
-                <h1 class="mx-auto font-semibold text-lg text-white">2</h1>
-            </div>
-            <div class="order-1 w-5/12 hidden md:block"></div>
-        </div>
-        
-        <div class="mb-8 flex justify-between items-center w-full right-timeline">
-            <div class="order-1 w-5/12 hidden md:block"></div>
-            <div class="z-10 flex items-center order-1 bg-green-600 shadow-xl w-16 h-16 rounded-full">
-                <h1 class="mx-auto font-semibold text-lg text-white">3</h1>
-            </div>
-            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
-                <h3 class="mb-3 font-bold text-xl text-green-600">Diskusi & Negosiasi Proyek</h3>
-                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Tim kami akan memfasilitasi pertemuan dengan pemilik proyek (mahasiswa/dosen) untuk membahas detail proyek, kebutuhan Unit Bisnis, dan potensi ruang lingkup kerja sama.</p>
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">✓ Aksi yang Dapat Dilakukan</p>
+                <ul class="text-gray-600 space-y-1">
+                    <li>✔ Browse repository proyek</li>
+                    <li>✔ Review detail proyek</li>
+                    <li>✔ Pilih untuk kurasi atau tolak</li>
+                </ul>
             </div>
         </div>
-
-        <div class="mb-8 flex justify-between items-center w-full left-timeline">
-            <div class="order-1 w-full md:w-5/12 bg-white rounded-xl shadow-xl px-6 py-4 transition-all duration-300 hover:shadow-2xl hover:translate-y-[-2px]">
-                <h3 class="mb-3 font-bold text-xl text-yellow-600">Perjanjian & Eksekusi</h3>
-                <p class="text-sm leading-snug tracking-wide text-gray-600 text-opacity-100">Setelah kesepakatan tercapai, perjanjian kerja sama (MoU/MoA) akan ditandatangani. Proyek siap untuk dieksekusi, termasuk transfer pengetahuan atau pengembangan lebih lanjut.</p>
-            </div>
-            <div class="z-10 flex items-center order-1 bg-yellow-600 shadow-xl w-16 h-16 rounded-full">
-                <h1 class="mx-auto font-semibold text-lg text-white">4</h1>
-            </div>
-            <div class="order-1 w-5/12 hidden md:block"></div>
-        </div>
-        
     </div>
 
-    <div class="text-center mt-12 p-8 bg-gray-100 rounded-xl border border-gray-200">
-        <h2 class="text-2xl font-bold text-purple-700 mb-4">Butuh Bantuan?</h2>
-        <p class="text-gray-600 mb-6">Hubungi tim Unit Bisnis untuk pertanyaan lebih lanjut mengenai proses kerja sama.</p>
-        <a href="mailto:unitbisnis@pnj.ac.id" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all inline-flex items-center gap-2">
-            <i class="fas fa-envelope"></i>
-            Kirim Email ke Unit Bisnis
-        </a>
+    <!-- Tahap 2 -->
+    <div class="bg-purple-50 border border-purple-200 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold text-purple-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-user-check"></i>
+            Tahap 2: Curator Assignment – Penugasan
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Tugaskan satu Dosen dan satu Mitra Industri sebagai kurator untuk menilai setiap produk terpilih.
+        </p>
+
+        <div class="flex justify-between">
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">⏳ Deadline</p>
+                <p class="text-gray-600">3 hari kerja setelah seleksi</p>
+            </div>
+
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">✓ Aksi yang Dapat Dilakukan</p>
+                <ul class="text-gray-600 space-y-1">
+                    <li>✔ Pilih kurator dosen</li>
+                    <li>✔ Pilih kurator mitra industri</li>
+                    <li>✔ Assign dan notifikasi kurator</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tahap 3 -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold text-yellow-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-clock"></i>
+            Tahap 3: Assessment Monitoring – Pantau Penilaian
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Pantau progress penilaian dari kedua kurator dan pastikan selesai tepat waktu sesuai deadline.
+        </p>
+
+        <div class="flex justify-between">
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">⏳ Deadline</p>
+                <p class="text-gray-600">Kurator memiliki 10 hari kalender untuk menilai</p>
+            </div>
+
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">✓ Aksi yang Dapat Dilakukan</p>
+                <ul class="text-gray-600 space-y-1">
+                    <li>✔ Monitor status penilaian real-time</li>
+                    <li>✔ Track deadline penilaian</li>
+                    <li>✔ Kirim reminder jika mendekati deadline</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tahap 4 -->
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold text-orange-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-file-signature"></i>
+            Tahap 4: Final Review Decision – Keputusan Akhir
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Tinjau skor dari kedua kurator dan tentukan apakah produk “Curated” atau “Not Curated”.
+        </p>
+
+        <div class="flex justify-between">
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">⏳ Deadline</p>
+                <p class="text-gray-600">5 hari kerja setelah penilaian selesai</p>
+            </div>
+
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">✓ Aksi yang Dapat Dilakukan</p>
+                <ul class="text-gray-600 space-y-1">
+                    <li>✔ Review skor dan feedback kurator</li>
+                    <li>✔ Analisis kualitas produk</li>
+                    <li>✔ Buat keputusan Curated / Not Curated</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tahap 5 -->
+    <div class="bg-green-50 border border-green-200 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold text-green-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-paper-plane"></i>
+            Tahap 5: Publication – Publikasi Produk Terkurasi
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Publikasikan produk berstatus “Curated” ke katalog digital publik.
+        </p>
+
+        <div class="flex justify-between">
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">⏳ Deadline</p>
+                <p class="text-gray-600">3 hari kerja setelah keputusan</p>
+            </div>
+
+            <div>
+                <p class="font-semibold text-gray-700 mb-1">✓ Aksi yang Dapat Dilakukan</p>
+                <ul class="text-gray-600 space-y-1">
+                    <li>✔ Preview produk terkurasi</li>
+                    <li>✔ Verifikasi informasi</li>
+                    <li>✔ Publikasi ke katalog digital</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hasil Akhir -->
+    <div class="bg-white border border-green-300 rounded-2xl p-8">
+        <h3 class="text-xl font-bold text-green-700 mb-3 flex items-center gap-2">
+            <i class="fas fa-check-circle"></i>
+            Hasil Akhir
+        </h3>
+
+        <ul class="text-gray-700 space-y-2">
+            <li>• Terpublikasi di Katalog Digital Gagasan PNJ</li>
+            <li>• Menampilkan badge “Produk Terkurasi” dengan nama kurator</li>
+            <li>• Dapat diakses oleh publik dengan nilai dan informasi lengkap</li>
+            <li>• Menjadi bagian dari repository resmi Jurusan Teknik Informatika</li>
+        </ul>
     </div>
 </div>
 {% endblock %}
