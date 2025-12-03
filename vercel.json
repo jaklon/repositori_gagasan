@@ -1,0 +1,13 @@
+{
+    "builds": [{
+        "src": "gagasan_backend/wsgi.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    }],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "gagasan_backend/wsgi.py"
+        }
+    ]
+}
