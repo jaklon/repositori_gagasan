@@ -6,76 +6,90 @@
 {% block dashboard_content %}
 <div class="p-8 space-y-8">
   
+  <!-- Header -->
   <div class="p-8 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg">
-    <h1 class="text-3xl font-bold">Welcome back, {{ request.user.username }}!</h1>
+    <h1 class="text-3xl font-bold">Selamat datang kembali, {{ request.user.username }}!</h1>
     <p class="text-white/90 mt-2 max-w-2xl">
-      Review assigned projects and provide your industry expertise to help curate the best student work.
+      Tinjau proyek yang ditugaskan dan berikan masukan serta penilaian berdasarkan keahlian Anda sebagai mitra industri.
     </p>
   </div>
 
+  <!-- Statistik -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Pending Tasks -->
     <a href="{% url 'mitra_kurasi_produk_list' %}" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4 hover:shadow-md hover:border-purple-300 transition-all">
       <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
         <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Pending Tasks</p>
+        <p class="text-sm font-medium text-gray-500">Tugas yang Belum Dikerjakan</p>
         <p class="text-3xl font-bold text-gray-900">{{ pending_tasks_count }}</p>
       </div>
     </a>
+
+    <!-- Completed Tasks -->
     <a href="{% url 'mitra_kurasi_produk_list' %}" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4 hover:shadow-md hover:border-purple-300 transition-all">
       <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
         <i class="fas fa-check-circle text-green-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Curated (Completed)</p>
+        <p class="text-sm font-medium text-gray-500">Tugas yang Selesai</p>
         <p class="text-3xl font-bold text-gray-900">{{ curated_count }}</p>
       </div>
     </a>
+
   </div>
 
+  <!-- Recently Reviewed Projects -->
   <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
     <div class="flex justify-between items-center mb-4">
         <div>
-            <h2 class="text-xl font-semibold text-gray-800">Recently Reviewed Projects</h2>
-            <p class="text-sm text-gray-500">A quick look at projects you've recently completed.</p>
+            <h2 class="text-xl font-semibold text-gray-800">Proyek yang Baru Saja Dinilai</h2>
+            <p class="text-sm text-gray-500">Ringkasan proyek yang telah Anda selesaikan penilaiannya.</p>
         </div>
         <a
             href="{% url 'mitra_kurasi_produk_list' %}"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors"
         >
-            View All Tasks
+            Lihat Semua Tugas
         </a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {% for kurasi in recent_projects|slice:":3" %}
       <div class="bg-white rounded-lg border border-gray-200 overflow-hidden group">
-       {% if kurasi.tanggal_selesai_mitra %}
-    <button
-       class="px-4 py-2 bg-gray-300 text-gray-600 text-sm font-medium rounded-md cursor-not-allowed whitespace-nowrap"
-       disabled
-    >
-        <i class="fas fa-check-circle mr-1"></i> Sudah Dinilai
-    </button>
-{% else %}
-    <a href="{% url 'assess_project' kurasi.id %}"
-       class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors whitespace-nowrap"
-    >
-         <i class="fas fa-clipboard-check mr-1"></i> Nilai Produk
-    </a>
-{% endif %}
+
+        {% if kurasi.tanggal_selesai_mitra %}
+            <button
+              class="px-4 py-2 bg-gray-300 text-gray-600 text-sm font-medium rounded-md cursor-not-allowed whitespace-nowrap"
+              disabled
+            >
+                <i class="fas fa-check-circle mr-1"></i> Sudah Dinilai
+            </button>
+        {% else %}
+            <a href="{% url 'assess_project' kurasi.id %}"
+              class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors whitespace-nowrap"
+            >
+                <i class="fas fa-clipboard-check mr-1"></i> Nilai Proyek
+            </a>
+        {% endif %}
+        
         <div class="p-4">
           <h3 class="font-semibold text-gray-800 mb-1 line-clamp-1">{{ kurasi.id_produk.title }}</h3>
           <p class="text-sm text-gray-500">
-             Nilai Anda: <span class="font-medium text-purple-600">{{ kurasi.nilai_akhir_mitra|floatformat:2|default:"N/A" }}</span>
+             Nilai Anda: 
+             <span class="font-medium text-purple-600">
+                 {{ kurasi.nilai_akhir_mitra|floatformat:2|default:"N/A" }}
+             </span>
           </p>
         </div>
       </div>
+
       {% empty %}
       <div class="md:col-span-3 text-center py-8 border border-dashed rounded-lg">
           <i class="fas fa-folder-open text-gray-400 text-3xl mb-3"></i>
-          <p class="text-gray-500">Anda belum menyelesaikan penilaian proyek apapun.</p>
+          <p class="text-gray-500">Anda belum menyelesaikan penilaian proyek apa pun.</p>
       </div>
       {% endfor %}
     </div>
