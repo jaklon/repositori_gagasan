@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gagasan_db',         # Nama database yang Anda buat
         'USER': 'postgres',           # User default postgres
-        'PASSWORD': 'admin',  # Password yang Anda set saat instalasi
+        'PASSWORD': '1613',  # Password yang Anda set saat instalasi
         'HOST': 'localhost',          # Atau 127.0.0.1
         'PORT': '5432',               # Port default postgres
     }
