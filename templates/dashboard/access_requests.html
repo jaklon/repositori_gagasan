@@ -1,8 +1,8 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
-{% load repository_extras %} {# Muat custom tag #}
+{% load repository_extras %}
 
-{% block title %}Source Code/Asset Access Requests - Gagasan{% endblock %}
+{% block title %}Permintaan Akses Source Code/Aset - Gagasan{% endblock %}
 
 {% block dashboard_content %}
 <div class="p-8 max-w-6xl mx-auto">
@@ -14,7 +14,7 @@
       <i class="fas fa-key text-purple-600 text-xl"></i>
     </div>
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Source Code/Asset Access Requests</h1>
+      <h1 class="text-2xl font-bold text-gray-900">Permintaan Akses Source Code / Aset</h1>
       {% if is_admin_view %}
       <p class="text-sm text-gray-600">Kelola semua permintaan akses source code dalam sistem.</p>
       {% else %}
@@ -38,7 +38,7 @@
   {% endif %}
 
   <div class="mb-10">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">Pending Requests ({{ pending_requests.count }})</h2>
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Permintaan Menunggu ({{ pending_requests.count }})</h2>
       <div class="space-y-4">
           {% for req in pending_requests %}
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -56,28 +56,30 @@
                       <form action="{% url 'handle_access_request' req.id 'deny' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menolak permintaan ini?');">
                           {% csrf_token %}
                           <button type="submit" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center gap-1">
-                              <i class="fas fa-times"></i> Deny
+                              <i class="fas fa-times"></i> Tolak
                           </button>
                       </form>
                       <form action="{% url 'handle_access_request' req.id 'approve' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui permintaan ini?');">
                           {% csrf_token %}
                           <button type="submit" class="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md flex items-center gap-1">
-                              <i class="fas fa-check"></i> Approve
+                              <i class="fas fa-check"></i> Setujui
                           </button>
                       </form>
                   </div>
               </div>
               
               <p class="text-sm text-gray-500 mt-3">
-                Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
+                Meminta akses ke: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
                 {% if is_admin_view %}
-                 (Owner: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
+                 (Pemilik: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
                 {% endif %}
               </p>
               
               <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
-                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan request:</p>
-                  <p class="text-sm text-gray-800">{{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}</p> {# TODO: Tambah field 'alasan_request' di model #}
+                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan permintaan:</p>
+                  <p class="text-sm text-gray-800">
+                      {{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}
+                  </p>
               </div>
               
               <p class="text-xs text-gray-400 mt-3">{{ req.tanggal_request|date:"d F Y \p\u\k\u\l H:i" }}</p>
@@ -115,14 +117,16 @@
                    </div>
               </div>
               <p class="text-sm text-gray-500 mt-3">
-                Requesting access to: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
+                Meminta akses ke: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
                 {% if is_admin_view %}
-                 (Owner: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
+                 (Pemilik: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
                 {% endif %}
               </p>
               <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
-                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan request:</p>
-                  <p class="text-sm text-gray-800">{{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}</p>
+                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan permintaan:</p>
+                  <p class="text-sm text-gray-800">
+                      {{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}
+                  </p>
               </div>
               <p class="text-xs text-gray-400 mt-3">{{ req.tanggal_request|date:"d F Y \p\u\k\u\l H:i" }}</p>
           </div>
@@ -139,5 +143,4 @@
 {% endblock %}
 
 {% block extra_scripts %}
-{# Tidak perlu JS tambahan jika menggunakan form submit standar #}
-{% endblock %} 
+{% endblock %}

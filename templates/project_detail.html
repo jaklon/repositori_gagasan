@@ -203,7 +203,7 @@
                                 <span class="text-sm font-medium text-gray-700">
                                     <i class="fab fa-github mr-2"></i>
                                     {% if existing_request %}
-                                        Akses Diminta (Status: **{{ existing_request.get_status_display }}**)
+                                        Akses Diminta (Status: *{{ existing_request.get_status_display }}*)
                                     {% else %}
                                         Minta Akses Source Code
                                     {% endif %}
@@ -215,13 +215,13 @@
                     
                     {# === AKHIR AKSES SOURCE CODE LOGIC === #}
 
-          {% endif %}
+          {% endif %}
 
-        </div>
-      </div>
+        </div>
+      </div>
 
-    </div>
-  </div>
+    </div>
+  </div>
 </div>
 
 <div id="requestModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
@@ -275,20 +275,20 @@
 
 {% block extra_scripts %}
 <script>
-  const requestModal = document.getElementById('requestModal');
+  const requestModal = document.getElementById('requestModal');
 
-  function openRequestModal() {
-    if (requestModal) requestModal.classList.replace('hidden', 'flex');
-  }
+  function openRequestModal() {
+    if (requestModal) requestModal.classList.replace('hidden', 'flex');
+  }
 
-  function closeRequestModal() {
-    if (requestModal) requestModal.classList.replace('flex', 'hidden');
-  }
+  function closeRequestModal() {
+    if (requestModal) requestModal.classList.replace('flex', 'hidden');
+  }
 
-  if (requestModal) {
-    requestModal.addEventListener('click', function(event) {
-      if (event.target === requestModal) closeRequestModal();
-    });
-  }
+  if (requestModal) {
+    requestModal.addEventListener('click', function(event) {
+      if (event.target === requestModal) closeRequestModal();
+    });
+  }
 </script>
 {% endblock %}
