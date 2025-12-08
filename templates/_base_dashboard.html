@@ -11,6 +11,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
+      /* Keep existing custom styles */
       body { font-family: "Inter", sans-serif; }
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -25,12 +26,28 @@
       .modal-vjs.flex { display: flex; opacity: 1; }
       .modal-box-vjs { transform: scale(0.95); opacity: 0; transition: transform 0.3s ease-out, opacity 0.3s ease-out; }
       .modal-vjs.flex .modal-box-vjs { transform: scale(1); opacity: 1; }
+
+      /* Custom utility classes for responsive sidebar toggle */
+      #sidebar.open {
+          transform: translateX(0);
+      }
+      #overlay.visible {
+          display: block;
+          opacity: 0.5;
+      }
     </style>
     {% block extra_head %}{% endblock %}
   </head>
   <body class="bg-gray-50 flex">
+
+    <div id="overlay" onclick="closeSidebar()" 
+         class="fixed inset-0 bg-black z-10 hidden lg:hidden opacity-0 transition-opacity duration-300"></div>
+
     <aside
-      class="w-72 bg-gradient-to-b from-purple-700 to-blue-700 text-white flex flex-col fixed h-screen shadow-lg z-20"
+      id="sidebar"
+      class="w-72 bg-gradient-to-b from-purple-700 to-blue-700 text-white flex flex-col fixed h-screen shadow-lg z-20 
+             transform -translate-x-full lg:translate-x-0 transition-transform duration-300" 
+      style="min-width: 288px;" 
     >
         <div class="p-6 flex items-center gap-3 border-b border-white/20">
         <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo Gagasan" class="h-10 w-10 rounded-lg bg-white/30 p-1"/>
@@ -49,60 +66,67 @@
      <nav class="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto">
         
         {% if request.user.peran == 'unit_bisnis' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repository</span></a>
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
+        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repositori</span></a>
+        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Katalog</span></a>
         <a href="{% url 'dashboard_unit_bisnis' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_unit_bisnis' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a>
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
+        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-user-circle w-5 text-center"></i><span>Profil</span></a>
 
         <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Administrasi</p>
-        <a href="{% url 'manage_users' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'approve_user' or request.resolver_match.url_name == 'toggle_active_user' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-users-cog w-5 text-center"></i><span>Manajemen User</span></a>
+        <a href="{% url 'manage_users' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'approve_user' or request.resolver_match.url_name == 'toggle_active_user' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-users-cog w-5 text-center"></i><span>Manajemen Pengguna</span></a>
         <a href="{% url 'manage_products' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_products' or request.resolver_match.url_name == 'delete_product' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-archive w-5 text-center"></i><span>Manajemen Produk</span></a>
-        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-file-code w-5 text-center"></i><span>Source Code Requests</span></a>
+        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-file-code w-5 text-center"></i><span>Permintaan Akses Source Code</span></a>
 
         <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Alur Kerja Kurasi</p>
         <a href="{% url 'panduan_kerjasama' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-clipboard-list w-5 text-center"></i><span>Panduan Alur Kerja</span></a>
         <a href="{% url 'assign_curator_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'assign_curator_list' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-check w-5 text-center"></i><span>1. Penugasan Kurator</span></a>
-        <a href="{% url 'monitoring_penilaian_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'monitoring_penilaian_list' or request.resolver_match.url_name == 'get_monitoring_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-chart-line w-5 text-center"></i><span>2. Monitoring Penilaian</span></a>
-        <a href="{% url 'review_decision_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'review_decision_list' or request.resolver_match.url_name == 'get_review_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-gavel w-5 text-center"></i><span>3. Review & Keputusan</span></a>
+        <a href="{% url 'monitoring_penilaian_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'monitoring_penilaian_list' or request.resolver_match.url_name == 'get_monitoring_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-chart-line w-5 text-center"></i><span>2. Pemantauan Penilaian</span></a>
+        <a href="{% url 'review_decision_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'review_decision_list' or request.resolver_match.url_name == 'get_review_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-gavel w-5 text-center"></i><span>3. Tinjauan & Keputusan</span></a>
         <a href="{% url 'publish_catalog_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'publish_catalog_list' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-upload w-5 text-center"></i><span>4. Publikasi Katalog</span></a>
         <a href="{% url 'sistem_kurasi' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-info-circle w-5 text-center"></i><span>Info Sistem Kurasi</span></a>
 
         {% elif request.user.peran == 'mahasiswa' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repository</span></a>
-         <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
+        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repositori</span></a>
+         <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Katalog</span></a>
          <a href="{% url 'dashboard_mahasiswa' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_mahasiswa' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-home w-5 text-center"></i><span>Dashboard</span></a>
-         <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
-         <a href="{% url 'my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>My Projects</span></a>
-         <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Access Requests</span></a>
+         <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profil</span></a>
+         <a href="{% url 'my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>Proyek Saya</span></a>
+         <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Permintaan Akses</span></a>
          
         {% elif request.user.peran == 'dosen' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}" > <i class="fas fa-book-open w-5 text-center"></i> <span>Repository</span> </a>
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
+        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}" > <i class="fas fa-book-open w-5 text-center"></i> <span>Repositori</span> </a>
+        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Katalog</span></a>
         
         <a href="{% url 'dashboard_dosen' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_dosen' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-home w-5 text-center"></i> <span>Dashboard</span></a>
         
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
+        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profil</span></a>
         
-        <a href="{% url 'dosen_my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dosen_my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>My Projects</span></a>
+        <a href="{% url 'dosen_my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dosen_my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>Proyek Saya</span></a>
         
         <a href="{% url 'kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'kurasi_produk_list' or request.resolver_match.url_name == 'assess_project' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-tasks w-5 text-center"></i> <span>Kurasi Produk</span></a>
         
-        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Access Requests</span></a>
+        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Permintaan Akses</span></a>
 
         {% elif request.user.peran == 'mitra' %}
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
+        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Katalog</span></a>
         <a href="{% url 'dashboard_mitra' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_mitra' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-home w-5 text-center"></i> <span>Dashboard</span></a>
         <a href="{% url 'mitra_kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mitra_kurasi_produk_list' or request.resolver_match.url_name == 'assess_project' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-tasks w-5 text-center"></i> <span>Kurasi Produk</span></a>
         
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
+        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profil</span></a>
         {% endif %}
       </nav>
       <div class="p-4 border-t border-white/20">
-        <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-red-500 hover:text-white transition-colors"><i class="fas fa-sign-out-alt w-5 text-center"></i><span>Logout</span></a>
+        <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-red-500 hover:text-white transition-colors"><i class="fas fa-sign-out-alt w-5 text-center"></i><span>Keluar</span></a>
       </div>
     </aside>
 
-    <main class="ml-72 flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto lg:ml-72 ml-0">
+      
+      <header class="p-4 flex items-center justify-between lg:hidden border-b bg-white shadow-sm sticky top-0 z-10">
+        <h1 class="text-xl font-bold">{% block title_mobile %}Dashboard - Gagasan{% endblock %}</h1>
+        <button id="menu-toggle" class="text-purple-700 hover:text-purple-900 focus:outline-none">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
+      </header>
       {% block dashboard_content %}
       <div class="p-8">
         <h1 class="text-2xl font-bold">Selamat Datang</h1>
@@ -111,6 +135,51 @@
       {% endblock %}
     </main>
 
-     {% block extra_scripts %}{% endblock %}
+     <script>
+      function closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+        overlay.classList.add('hidden');
+      }
+
+      function openSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.add('open');
+        overlay.classList.remove('hidden');
+        // Force reflow before changing opacity to ensure transition works
+        void overlay.offsetWidth; 
+        overlay.classList.add('visible');
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          const sidebar = document.getElementById('sidebar');
+          const menuToggle = document.getElementById('menu-toggle');
+          const overlay = document.getElementById('overlay');
+          const navLinks = sidebar.querySelectorAll('a');
+
+          // Toggle sidebar on button click
+          menuToggle.addEventListener('click', openSidebar);
+
+          // Close sidebar when clicking the overlay
+          overlay.addEventListener('click', closeSidebar);
+
+          // Close sidebar when a navigation link is clicked (good UX for single-page style apps or to confirm selection)
+          navLinks.forEach(link => {
+              link.addEventListener('click', closeSidebar);
+          });
+          
+          // Also close the sidebar if the screen size changes to large (lg)
+          // The CSS handles the visibility via transform, but this ensures the JS state is cleared on desktop.
+          window.addEventListener('resize', () => {
+              if (window.innerWidth >= 1024) { // Tailwind's 'lg' breakpoint is 1024px
+                  closeSidebar();
+              }
+          });
+      });
+    </script>
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

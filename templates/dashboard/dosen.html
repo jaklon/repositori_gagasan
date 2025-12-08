@@ -8,9 +8,9 @@
   
   <div class="p-8 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg flex justify-between items-center">
     <div>
-      <h1 class="text-3xl font-bold">Welcome back, {{ request.user.username }}! 👋</h1>
+      <h1 class="text-3xl font-bold">Selamat datang kembali, {{ request.user.username }}! 👋</h1>
       <p class="text-white/90 mt-2 max-w-2xl">
-        Monitor your supervised projects, complete curation assessments, and guide students towards excellence.
+        Pantau proyek bimbingan Anda, selesaikan penilaian kurasi, dan bimbing mahasiswa menuju hasil terbaik.
       </p>
     </div>
     <a
@@ -18,7 +18,7 @@
         class="px-4 py-2 bg-white text-green-700 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors hover:bg-gray-100 shadow-sm shrink-0"
     >
         <i class="fas fa-plus"></i>
-        Upload Project
+        Unggah Proyek
     </a>
   </div>
 
@@ -28,34 +28,37 @@
         <i class="fas fa-user-friends text-blue-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Supervised</p>
+        <p class="text-sm font-medium text-gray-500">Dibimbing</p>
         <p class="text-3xl font-bold text-gray-900">{{ supervised_count }}</p>
       </div>
     </div>
+
     <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
       <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
         <i class="fas fa-folder text-indigo-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">My Projects</p>
+        <p class="text-sm font-medium text-gray-500">Proyek Saya</p>
         <p class="text-3xl font-bold text-gray-900">{{ my_projects_count }}</p>
       </div>
     </div>
+
      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
       <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
         <i class="fas fa-check-circle text-green-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Curated</p>
+        <p class="text-sm font-medium text-gray-500">Sudah Dikurasi</p>
         <p class="text-3xl font-bold text-gray-900">{{ curated_count }}</p>
       </div>
     </div>
+
      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
       <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
         <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Pending Tasks</p>
+        <p class="text-sm font-medium text-gray-500">Tugas Pending</p>
         <p class="text-3xl font-bold text-gray-900">{{ pending_tasks_count }}</p>
       </div>
     </div>
@@ -64,15 +67,15 @@
   <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-6">
     <div class="flex justify-between items-center mb-4">
         <div>
-            <h2 class="text-xl font-semibold text-gray-800">Recently Supervised Projects</h2>
-            <p class="text-sm text-gray-500">Projects from students under your supervision.</p>
-             <p class="text-xs text-red-500 mt-1">(Note: Currently showing "My Projects" as placeholder)</p>
+            <h2 class="text-xl font-semibold text-gray-800">Proyek Terbaru yang Dibimbing</h2>
+            <p class="text-sm text-gray-500">Daftar proyek dari mahasiswa yang Anda bimbing.</p>
+            <p class="text-xs text-red-500 mt-1">(Catatan: Saat ini masih menampilkan "Proyek Saya" sebagai pengganti)</p>
         </div>
         <a
             href="{% url 'dosen_my_projects' %}"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors"
         >
-            View All
+            Lihat Semua
         </a>
     </div>
 
@@ -89,14 +92,14 @@
         <div class="p-4">
           <h3 class="font-semibold text-gray-800 mb-1 line-clamp-1">{{ project.title }}</h3>
           <p class="text-sm text-gray-500">
-             By: <span class="font-medium text-gray-700">{{ project.id_pemilik.username }}</span>
+             Oleh: <span class="font-medium text-gray-700">{{ project.id_pemilik.username }}</span>
           </p>
         </div>
       </div>
       {% empty %}
       <div class="md:col-span-3 text-center py-8 border border-dashed rounded-lg">
           <i class="fas fa-folder-open text-gray-400 text-3xl mb-3"></i>
-          <p class="text-gray-500">Belum ada proyek yang disupervisi (atau Anda unggah).</p>
+          <p class="text-gray-500">Belum ada proyek yang dibimbing atau diunggah.</p>
       </div>
       {% endfor %}
     </div>
