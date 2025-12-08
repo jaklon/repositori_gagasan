@@ -12,7 +12,7 @@
   </div>
 
   <!-- Alur Kerja Kurasi Produk (dari image_a1d75a.png) -->
-  <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+  <div class="bg-white p-1 rounded-lg shadow-sm border border-gray-200">
       <div class="flex items-center gap-3 mb-4">
           <i class="fas fa-sitemap text-purple-600 text-lg"></i>
           <h2 class="text-xl font-semibold">Alur Kerja Kurasi Produk</h2>
@@ -31,12 +31,12 @@
           <div class="flex-1 h-px bg-gray-200 mx-2"></div>
           <div class="text-gray-400"> <!-- Monitoring -->
               <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1">2</div>
-              Monitoring Penilaian
+              Pemantauan Penilaian
           </div>
           <div class="flex-1 h-px bg-gray-200 mx-2"></div>
           <div class="text-gray-400"> <!-- Review -->
               <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1">3</div>
-              Review & Keputusan
+              Tinjau & Keputusan
           </div>
            <div class="flex-1 h-px bg-gray-200 mx-2"></div>
           <div class="text-gray-400"> <!-- Publikasi -->
@@ -49,7 +49,7 @@
         <i class="fas fa-info-circle text-blue-600 mt-1"></i>
         <div>
           <h3 class="font-semibold text-blue-800">Alur Baru</h3>
-          <p class="text-sm text-blue-700">Seleksi proyek dilakukan di halaman <strong>Repository</strong>. Proyek yang dipilih akan otomatis masuk ke workflow kurasi mulai dari tahap <strong>Penugasan</strong>.</p>
+          <p class="text-sm text-blue-700">Seleksi proyek dilakukan di halaman <strong>Repositori</strong>. Proyek yang dipilih akan otomatis masuk ke alur kerja kurasi mulai dari tahap <strong>Penugasan</strong>.</p>
         </div>
       </div>
   </div>
@@ -62,7 +62,7 @@
         <i class="fas fa-book-open text-blue-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Proyek di Repository</p>
+        <p class="text-sm font-medium text-gray-500">Proyek di Repositori</p>
         <p class="text-3xl font-bold text-gray-900">{{ proyek_di_repository }}</p>
         <p class="text-xs text-gray-400">Siap dipilih untuk kurasi</p>
       </div>
@@ -86,7 +86,7 @@
       <div>
         <p class="text-sm font-medium text-gray-500">Dalam Penilaian</p>
         <p class="text-3xl font-bold text-gray-900">{{ proyek_dalam_penilaian }}</p>
-        <p class="text-xs text-gray-400">Proses assessment berlangsung</p>
+        <p class="text-xs text-gray-400">Proses penilaian berlangsung</p>
       </div>
     </a>
      <!-- Menunggu Keputusan -->
@@ -97,7 +97,7 @@
       <div>
         <p class="text-sm font-medium text-gray-500">Menunggu Keputusan</p>
         <p class="text-3xl font-bold text-gray-900">{{ proyek_menunggu_keputusan }}</p>
-        <p class="text-xs text-gray-400">Siap untuk review final</p>
+        <p class="text-xs text-gray-400">Siap untuk ulasan akhir</p>
       </div>
     </a>
     <!-- Produk Terpublikasi -->
@@ -117,7 +117,7 @@
         <i class="fas fa-database text-gray-600 text-xl"></i>
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500">Total Produk</p>
+        <p class="text-sm font-medium text-gray-500">Jumlah Produk</p>
         <p class="text-3xl font-bold text-gray-900">{{ total_produk }}</p>
         <p class="text-xs text-gray-400">Semua produk dalam sistem</p>
       </div>
@@ -157,7 +157,7 @@
                    <div>
                       <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-700">Sangat Mendesak</span>
                       <p class="font-medium mt-1">{{ tugas_keputusan_mendesak }} produk menunggu keputusan final</p>
-                      <p class="text-xs text-gray-500">Sudah melewati batas review</p>
+                      <p class="text-xs text-gray-500">Sudah melewati batas tinjauan</p>
                   </div>
                   <a href="{% url 'review_decision_list' %}" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shrink-0">
                       Tindak Lanjuti <i class="fas fa-arrow-right ml-1"></i>
@@ -194,7 +194,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <a href="{% url 'repository' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Seleksi Awal</p>
-                  <p class="font-semibold text-gray-800">Lihat Repository</p>
+                  <p class="font-semibold text-gray-800">Lihat Repositori</p>
               </a>
                <a href="{% url 'assign_curator_list' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Tahap 1</p>
@@ -202,11 +202,11 @@
               </a>
                <a href="{% url 'monitoring_penilaian_list' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Tahap 2</p>
-                  <p class="font-semibold text-gray-800">Monitor Penilaian</p>
+                  <p class="font-semibold text-gray-800">Memantau Penilaian</p>
               </a>
                <a href="{% url 'review_decision_list' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Tahap 3</p>
-                  <p class="font-semibold text-gray-800">Review & Keputusan</p>
+                  <p class="font-semibold text-gray-800">Tinjauan & Keputusan</p>
               </a>
                 <a href="{% url 'publish_catalog_list' %}" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Tahap 4</p>
@@ -214,7 +214,7 @@
               </a>
                <a href="#" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 border transition-all">
                   <p class="text-sm font-medium text-gray-500">Panduan</p>
-                  <p class="font-semibold text-gray-800">Lihat Workflow</p>
+                  <p class="font-semibold text-gray-800">Lihat Alur kerja</p>
               </a>
           </div>
       </div>

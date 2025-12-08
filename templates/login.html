@@ -1,282 +1,183 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="id">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - gagasan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
 
     <style>
-      .bg-grid-pattern {
-        background-image: linear-gradient(
-            to right,
-            rgb(0 0 0 / 0.05) 1px,
-            transparent 1px
-          ),
-          linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
-        background-size: 40px 40px;
-      }
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgb(0 0 0 / 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      .animate-spin {
-        animation: spin 1s linear infinite;
-      }
-
-      input:focus, select:focus {
-          outline: none;
-          border-color: rgb(147, 51, 234);
-          box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
-      }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);} }
+        .animate-spin { animation: spin 1s linear infinite; }
     </style>
-  </head>
-  <body
-    class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 min-h-screen relative overflow-hidden"
-  >
-    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
-    <div
-      class="absolute -top-20 -left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-    ></div>
-    <div
-      class="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-    ></div>
+</head>
 
+<body class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 min-h-screen relative overflow-x-hidden">
+
+    <!-- Background -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
+    <div class="absolute -top-28 -left-20 w-80 h-80 bg-purple-300 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+    <div class="absolute -bottom-28 -right-20 w-80 h-80 bg-blue-300 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+
+    <!-- Tombol kembali -->
     <div class="absolute top-6 left-6 z-50">
-      <a
-        href="{% url 'catalog' %}" class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
-      >
-        <i class="fas fa-arrow-left"></i>
-        Kembali ke Katalog
-      </a>
+        <a href="{% url 'catalog' %}"
+           class="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition">
+            <i class="fas fa-arrow-left"></i> Kembali ke Katalog
+        </a>
     </div>
 
-    <div
-      class="min-h-screen flex items-center justify-center p-4 relative z-10"
-    >
-      <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
-        <div class="hidden lg:block space-y-8">
-          <div>
-            <div class="flex items-center gap-3 mb-6">
-              <div
-                class="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl"
-              >
-                 <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-13 w-13 object-contain"/>
-              </div>
-              <div>
-                <h1
-                  class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
-                >
-                  gagasan
-                </h1>
-                <p class="text-gray-600">Repository Produk Digital</p>
-              </div>
+    <!-- Container utama -->
+    <div class="max-w-6xl mx-auto px-6 pt-32 pb-24 relative z-10">
+
+        <!-- Logo & deskripsi -->
+        <div class="text-center mb-14">
+            <div class="flex flex-col items-center gap-4 mb-4">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+                    <img src="{% static 'images/LOGO GAGASAN.png' %}" class="h-14 w-14 object-contain">
+                </div>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">gagasan</h1>
+                <p class="text-gray-600 text-lg">Repositori Produk Digital</p>
             </div>
-            <p class="text-lg text-gray-600 mb-8">
-              Platform terpercaya untuk mengelola dan berbagi proyek digital
-              berkualitas tinggi dari Fakultas Ilmu Komputer PNJ.
+
+            <p class="text-gray-700 max-w-2xl mx-auto text-lg leading-relaxed">
+                Platform terpercaya untuk mengelola dan berbagi proyek digital berkualitas tinggi dari Fakultas Ilmu Komputer PNJ.
             </p>
-          </div>
-          <div class="space-y-4">
-            <div
-              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50"
-            >
-              <div
-                class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0"
-              >
-                <i class="fas fa-shield-alt text-purple-600"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold mb-1">Kurasi Profesional</h4>
-                <p class="text-sm text-gray-600">
-                  Setiap proyek dinilai oleh dosen dan praktisi industri.
-                </p>
-              </div>
-            </div>
-            <div
-              class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50"
-            >
-              <div
-                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0"
-              >
-                <i class="fas fa-users text-blue-600"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold mb-1">Kolaborasi Tim</h4>
-                <p class="text-sm text-gray-600">
-                  Kelola proyek bersama dosen dan mitra industri.
-                </p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50">
-              <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-briefcase text-indigo-600"></i>
-              </div>
-              <div>
-                <h4 class="font-semibold mb-1">Showcase Portofolio</h4>
-                <p class="text-sm text-gray-600">
-                  Publikasikan karya terbaik Anda ke katalog publik.
-                </p>
-              </div>
-            </div>
-
-          </div>
         </div>
 
-        <div class="w-full">
-          <div
-            class="border border-gray-200/50 shadow-xl bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden"
-          >
-            <div class="p-6 space-y-1 pb-6">
-              <h2 class="text-2xl font-semibold">Selamat Datang Kembali</h2>
-              <p class="text-gray-600">
-                Masuk untuk mengakses proyek dan tugas Anda.
-              </p>
+        <!-- 3 Fitur (rapi & center) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+
+            <div class="p-5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm flex gap-4">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-xl">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-1 text-gray-900">Kurasi Profesional</h4>
+                    <p class="text-sm text-gray-600">Setiap proyek dinilai oleh dosen dan praktisi industri.</p>
+                </div>
             </div>
 
-            <form
-              method="POST"
-              action="{% url 'login' %}"
-              class="px-6 pb-6 space-y-4"
-            >
-              {% csrf_token %}
-
-              {% if messages %}
-                {% for message in messages %}
-                  <div
-                    class="p-3
-                      {% if message.tags == 'error' %} bg-red-50 border border-red-200 text-red-700
-                      {% elif message.tags == 'success' %} bg-green-50 border border-green-200 text-green-700
-                      {% else %} bg-blue-50 border border-blue-200 text-blue-700 {% endif %}
-                      rounded-lg flex items-start gap-2 text-sm"
-                  >
-                    {% if message.tags == 'error' %} <i class="fas fa-exclamation-circle mt-0.5"></i>
-                    {% elif message.tags == 'success' %} <i class="fas fa-check-circle mt-0.5"></i>
-                    {% else %} <i class="fas fa-info-circle mt-0.5"></i> {% endif %}
-                    <span>{{ message }}</span>
-                  </div>
-                {% endfor %}
-              {% endif %}
-
-              <div class="space-y-2">
-                <label for="email" class="block font-medium text-sm text-gray-700"
-                  >Masukan Email</label
-                >
-                <div class="relative">
-                  <i
-                    class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                  <input
-                    id="email"
-                    type="email"
-                    name="username"
-                    placeholder="nama@pnj.ac.id"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
-                    required
-                  />
+            <div class="p-5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm flex gap-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fas fa-users"></i>
                 </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="password" class="block font-medium text-sm text-gray-700">Masukan Password</label>
-                <div class="relative">
-                  <i
-                    class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                  <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="Masukkan password"
-                    class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onclick="togglePassword()"
-                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Toggle password visibility"
-                  >
-                    <i id="eyeIcon" class="fas fa-eye"></i>
-                  </button>
+                <div>
+                    <h4 class="font-semibold mb-1 text-gray-900">Kolaborasi Tim</h4>
+                    <p class="text-sm text-gray-600">Kelola proyek bersama dosen dan mitra industri.</p>
                 </div>
-              </div>
-              
-              <div class="text-right">
-                <a href="#" class="text-sm font-medium text-purple-600 hover:text-purple-700">
-                  Lupa password?
-                </a>
-              </div>
+            </div>
 
-              <div class="pt-2">
-                <button
-                  type="submit"
-                  class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                  id="submitBtn"
-                >
-                  <i class="fas fa-lock"></i>
-                  <span id="btnText">Masuk</span>
-                  <span id="btnLoading" class="hidden animate-spin">
-                     <i class="fas fa-spinner"></i>
-                  </span>
-                </button>
-              </div>
+            <div class="p-5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm flex gap-4">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 text-xl">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-1 text-gray-900">Memamerkan Portofolio</h4>
+                    <p class="text-sm text-gray-600">Publikasikan karya terbaik Anda ke katalog publik.</p>
+                </div>
+            </div>
 
-              <div class="text-center pt-2">
-                <span class="text-sm text-gray-600"> Belum punya akun? </span>
-                <a
-                  href="{% url 'register' %}"
-                  class="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  Daftar di sini
-                </a>
-              </div>
-            </form>
-          </div>
         </div>
-      </div>
+
+        <!-- Form login -->
+        <div class="max-w-xl mx-auto">
+            <div class="border border-gray-200 shadow-xl bg-white/90 backdrop-blur-sm rounded-xl">
+
+                <div class="p-6 pb-3">
+                    <h2 class="text-2xl font-semibold">Selamat Datang Kembali</h2>
+                    <p class="text-gray-600">Masuk untuk mengakses proyek dan tugas Anda.</p>
+                </div>
+
+                <form method="POST" action="{% url 'login' %}" class="px-6 pb-6 space-y-4">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="p-3 rounded-lg flex gap-2 text-sm border
+                                {% if message.tags == 'error' %} bg-red-50 border-red-300 text-red-700
+                                {% elif message.tags == 'success' %} bg-green-50 border-green-300 text-green-700
+                                {% else %} bg-blue-50 border-blue-300 text-blue-700 {% endif %}
+                            ">
+                                <i class="fas fa-info-circle mt-0.5"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium">Email</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="email" name="username" required
+                                   placeholder="nama@pnj.ac.id"
+                                   class="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="password" name="password" required
+                                   placeholder="Masukkan password"
+                                   class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500">
+                            <button type="button" onclick="togglePassword()"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <i id="eyeIcon" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <a href="#" class="text-sm text-purple-600 hover:text-purple-700">Lupa password?</a>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium flex justify-center gap-2 hover:opacity-95 transition"
+                            id="submitBtn">
+                        <i class="fas fa-lock"></i> 
+                        <span id="btnText">Masuk</span>
+                        <span id="btnLoading" class="hidden animate-spin">
+                            <i class="fas fa-spinner"></i>
+                        </span>
+                    </button>
+
+                    <div class="text-center pt-1">
+                        <span class="text-sm">Belum punya akun?</span>
+                        <a href="{% url 'register' %}" class="text-sm text-purple-600">Daftar di sini</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
     </div>
 
     <script>
-      // Toggle password visibility
-      function togglePassword() {
-        const passwordInput = document.getElementById("password");
-        const eyeIcon = document.getElementById("eyeIcon");
-
-        if (passwordInput.type === "password") {
-          passwordInput.type = "text";
-          eyeIcon.classList.remove("fa-eye");
-          eyeIcon.classList.add("fa-eye-slash");
-        } else {
-          passwordInput.type = "password";
-          eyeIcon.classList.remove("fa-eye-slash");
-          eyeIcon.classList.add("fa-eye");
+        function togglePassword() {
+            const pwd = document.getElementById("password");
+            const icon = document.getElementById("eyeIcon");
+            if (pwd.type === "password") { pwd.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash"); }
+            else { pwd.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye"); }
         }
-      }
 
-      // Menampilkan spinner saat form disubmit 
-      const loginForm = document.querySelector('form');
-      const submitBtn = document.getElementById('submitBtn');
-      const btnText = document.getElementById('btnText');
-      const btnLoading = document.getElementById('btnLoading');
-
-      if (loginForm && submitBtn) {
-          loginForm.addEventListener('submit', function() {
-              btnText.classList.add('hidden');
-              btnLoading.classList.remove('hidden');
-              submitBtn.disabled = true; 
-          });
-      }
+        const form = document.querySelector("form");
+        form.addEventListener("submit", () => {
+            document.getElementById("btnText").classList.add("hidden");
+            document.getElementById("btnLoading").classList.remove("hidden");
+        });
     </script>
-  </body>
+
+</body>
 </html>

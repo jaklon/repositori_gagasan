@@ -45,17 +45,17 @@ class Produk(models.Model):
         max_length=50,
         default='pending',
         choices=[ # Menambahkan choices agar lebih jelas
-            ('pending', 'Pending (Menunggu Seleksi)'),
-            ('selected', 'Selected (Terpilih untuk Kurasi)'),
-            ('curators-assigned', 'Curators Assigned (Menunggu Penilaian)'),
-            ('assessment-dosen-done', 'Assessment Dosen Done'),
-            ('assessment-mitra-done', 'Assessment Mitra Done'),
-            ('assessment-complete', 'Assessment Complete (Menunggu Review)'),
-            ('ready-for-publication', 'Ready for Publication (Layak)'),
-            ('revision-minor', 'Revision Minor (Revisi Minor)'),
-            ('needs-coaching', 'Needs Coaching (Perlu Pembinaan)'),
-            ('rejected', 'Rejected (Tidak Layak)'),
-            ('published', 'Published (Dipublikasikan)'),
+            ('pending', 'Menunggu Seleksi'),
+            ('selected', 'Terpilih untuk Kurasi'),
+            ('curators-assigned', 'Menunggu Penilaian'),
+            ('assessment-dosen-done', 'Penilaian Dosen Selesai'),
+            ('assessment-mitra-done', 'Penilaian Mitra Selesai'),
+            ('assessment-complete', 'Menunggu Review'),
+            ('ready-for-publication', 'Layak'),
+            ('revision-minor', 'Revisi Minor'),
+            ('needs-coaching', 'Perlu Pembinaan'),
+            ('rejected', 'Tidak Layak'),
+            ('published', 'Dipublikasikan'),
         ]
     )
     final_decision = models.CharField(max_length=50, blank=True, null=True) # Keputusan dari Unit Bisnis

@@ -3,7 +3,7 @@
 {# Impor template tag custom #}
 {% load repository_extras %}
 
-{% block title %}Tahap 3: Review & Keputusan - Gagasan{% endblock %}
+{% block title %}Tahap 3: Tinjauan & Keputusan - Gagasan{% endblock %}
 
 {% block dashboard_content %}
 <div class="p-8"> {# Hapus x-data #}
@@ -13,7 +13,7 @@
       <i class="fas fa-gavel text-purple-600 text-xl"></i>
     </div>
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Tahap 3: Review & Keputusan</h1>
+      <h1 class="text-2xl font-bold text-gray-900">Tahap 3: Tinjauan & Keputusan</h1>
       <p class="text-sm text-gray-600">Tinjau hasil penilaian kurator dan tetapkan keputusan akhir untuk setiap produk (Batas: 5 hari kerja).</p>
     </div>
   </div>
@@ -29,11 +29,11 @@
       </div>
       <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
       <div class="text-green-600 font-semibold"> <!-- Monitoring -->
-           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Monitoring Penilaian
+           <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div> Pemantauan Penilaian
       </div>
       <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
        <div class="text-purple-600 font-semibold"> <!-- Review -->
-           <div class="w-6 h-6 mx-auto rounded-full bg-purple-100 ring-2 ring-purple-300 flex items-center justify-center mb-1"><i class="fas fa-gavel"></i></div> Review & Keputusan
+           <div class="w-6 h-6 mx-auto rounded-full bg-purple-100 ring-2 ring-purple-300 flex items-center justify-center mb-1"><i class="fas fa-gavel"></i></div> Tinjauan & Keputusan
       </div>
        <div class="flex-1 h-px bg-gray-200 mx-2"></div>
       <div class="text-gray-400"> <!-- Publikasi -->
@@ -125,14 +125,14 @@
                 onclick="openReviewModal({{ kurasi.id }})"
                 class="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors"
               >
-                <i class="fas fa-search-plus mr-1"></i> Review & Putuskan
+                <i class="fas fa-search-plus mr-1"></i> Tinjauan & Putuskan
               </button>
             </td>
           </tr>
           {% empty %}
           <tr>
             <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
-              Tidak ada produk yang menunggu review dan keputusan.
+              Tidak ada produk yang menunggu Tinjauan dan keputusan.
             </td>
           </tr>
           {% endfor %}
@@ -184,7 +184,7 @@
                             </tbody>
                              <tfoot class="bg-gray-50 font-semibold">
                                  <tr>
-                                     <td class="px-4 py-2 text-left">Rata-rata Total</td>
+                                     <td class="px-4 py-2 text-left">Rata-rata Jumlah</td>
                                      <td class="px-4 py-2 text-center" id="modalAvgDosen"></td>
                                      <td class="px-4 py-2 text-center" id="modalAvgMitra"></td>
                                      <td class="px-4 py-2 text-center text-lg font-bold" id="modalAvgFinal"></td>

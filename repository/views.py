@@ -60,7 +60,7 @@ class ProjectForm(forms.ModelForm):
     )
 
     tags_input = forms.CharField(
-        label="Technologies & Tags (Pisahkan dengan koma)",
+        label="Teknologi (Pisahkan dengan koma)",
         required=False,
         help_text="Contoh: React, Python, UI/UX",
         widget=forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
