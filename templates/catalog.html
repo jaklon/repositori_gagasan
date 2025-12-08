@@ -108,7 +108,7 @@
               class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all text-sm font-medium"
             >
               <i class="fas fa-sign-out-alt"></i>
-              Logout
+              Keluar
             </a>
           </div>
           {% else %}
@@ -117,7 +117,7 @@
             class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all"
           >
             <i class="fas fa-sign-in-alt"></i>
-            Login
+            Masuk
           </a>
           {% endif %}
         </div>
@@ -142,7 +142,7 @@
             <h1
               class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
             >
-              Repository Inovasi Digital
+              Repositori Inovasi Digital
             </h1>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
               Jelajahi koleksi proyek mahasiswa terbaik yang telah dikurasi oleh
@@ -152,7 +152,7 @@
             <div class="flex flex-wrap gap-4">
               <a
                 href="#projects-section"
-                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all inline-flex items-center gap-2"
+                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-500 transform hover:-translate-y-1 hover:shadow-xl inline-flex items-center gap-2"
               >
                 Mulai Jelajah
                 <i class="fas fa-chevron-down"></i>
@@ -181,7 +181,6 @@
       </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-        <!-- TOP STAT -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center mb-16">
             
             <div class="space-y-2 feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-gray-50 rounded-xl p-4">
@@ -219,14 +218,12 @@
         </div>
 
 
-        <!-- TITLE -->
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold text-gray-900 mb-2">Mengapa gagasan?</h2>
             <p class="text-lg text-gray-600">Platform terpercaya untuk menemukan dan berbagi inovasi digital berkualitas tinggi</p>
         </div>
 
 
-        <!-- FEATURE CARDS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
             <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-md feature-card transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-white">
@@ -261,129 +258,127 @@
    
     </section>
 
-    <section id="projects-section" class="bg-white border-b sticky top-[72px] z-40 shadow-sm">
-      <section class="bg-white border-b">
-    <section class="border-b bg-white"></section>
-
-    <section
-      class="bg-gradient-to-br from-gray-50 to-gray-100 border-b"
-    ></section>
-
     <section id="projects-section" class="bg-white border-b sticky top-[72px] z-40 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-              <div class="flex items-center gap-2 mb-4 text-gray-800">
-                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
-                   <i class="fas fa-filter text-sm"></i>
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 mb-8">
+              
+              <div id="filterToggleBtn" class="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-2 text-gray-800">
+                  <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+                    <i class="fas fa-filter text-sm"></i>
+                  </div>
+                  <h3 class="font-bold text-lg">Filter & Pencarian</h3>
                 </div>
-                <h3 class="font-bold text-lg">Filter & Pencarian</h3>
+                <i id="toggleIcon" class="fas fa-chevron-up text-gray-500 transition-transform duration-300 transform"></i>
               </div>
 
-              <form method="GET" action="{% url 'catalog' %}">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+              <div id="filterContent" class="overflow-hidden transition-all duration-500">
+                <form method="GET" action="{% url 'catalog' %}" class="px-6 pb-6 pt-0">
+                  <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
             
-                  <div class="md:col-span-4">
-                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Kata Kunci</label>
-                    <div class="relative group">
-                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
-                      </div>
-                      <input
-                        type="text"
-                        name="q"
-                        placeholder="Cari judul, deskripsi, atau inovator..."
-                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200 placeholder-gray-400"
-                        value="{{ current_query|default:'' }}"
-                      />
-                    </div>
-                  </div>
-              
-                  <div class="md:col-span-3">
-                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Kategori</label>
-                    <div class="relative">
-                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-tags text-gray-400"></i>
-                      </div>
-                      <select
-                        name="category"
-                        class="w-full pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white cursor-pointer appearance-none transition-all duration-200"
-                      >
-                        <option value="" class="text-gray-400">Semua Kategori</option>
-                        {% for cat in categories_list %}
-                          <option value="{{ cat.slug }}" {% if current_category_slug == cat.slug %}selected{% endif %}>
-                            {{ cat.nama }}
-                          </option>
-                        {% endfor %}
-                      </select>
-                      <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    <div class="md:col-span-4">
+                      <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Kata Kunci</label>
+                      <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <i class="fas fa-search text-gray-400 group-focus-within:text-purple-500 transition-colors"></i>
+                        </div>
+                        <input
+                          type="text"
+                          name="q"
+                          placeholder="Cari judul, deskripsi, atau inovator..."
+                          class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200 placeholder-gray-400"
+                          value="{{ current_query|default:'' }}"
+                        />
                       </div>
                     </div>
-                  </div>
-
-                  <div class="md:col-span-2">
-                      <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Urutkan</label>
+                
+                    <div class="md:col-span-3">
+                      <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Kategori</label>
                       <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <i class="fas fa-sort-amount-down text-gray-400"></i>
+                          <i class="fas fa-tags text-gray-400"></i>
                         </div>
                         <select
-                          name="sort"
+                          name="category"
                           class="w-full pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white cursor-pointer appearance-none transition-all duration-200"
                         >
-                          <option value="terbaru" {% if current_sort == 'terbaru' %}selected{% endif %}>Terbaru</option>
-                          <option value="terlama" {% if current_sort == 'terlama' %}selected{% endif %}>Terlama</option>
+                          <option value="" class="text-gray-400">Semua Kategori</option>
+                          {% for cat in categories_list %}
+                            <option value="{{ cat.slug }}" {% if current_category_slug == cat.slug %}selected{% endif %}>
+                              {{ cat.nama }}
+                            </option>
+                          {% endfor %}
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                           <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
                         </div>
                       </div>
                     </div>
-              
-                  <div class="md:col-span-3 grid grid-cols-2 gap-2">
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Mulai</label>
-                      <input
-                        type="date"
-                        name="start_date"
-                        class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200"
-                        value="{{ current_start_date|default:'' }}"
-                      >
-                    </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Selesai</label>
-                      <input
-                        type="date"
-                        name="end_date"
-                        class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200"
-                        value="{{ current_end_date|default:'' }}"
-                      >
-                    </div>
-                  </div>
-              
-                  <div class="md:col-span-12 flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-100 mt-2">
-                    <button
-                      type="submit"
-                      class="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <i class="fas fa-search"></i>
-                      Terapkan Filter
-                    </button>
 
-                    {% if current_query or current_category_slug or current_start_date or current_end_date %}
-                    <a 
-                      href="{% url 'catalog' %}" 
-                      class="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-red-600 font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group"
-                    >
-                      <i class="fas fa-undo group-hover:rotate-[-45deg] transition-transform duration-300"></i>
-                      Reset
-                    </a>
-                    {% endif %}
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Urutkan</label>
+                        <div class="relative">
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-sort-amount-down text-gray-400"></i>
+                          </div>
+                          <select
+                            name="sort"
+                            class="w-full pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white cursor-pointer appearance-none transition-all duration-200"
+                          >
+                            <option value="terbaru" {% if current_sort == 'terbaru' %}selected{% endif %}>Terbaru</option>
+                            <option value="terlama" {% if current_sort == 'terlama' %}selected{% endif %}>Terlama</option>
+                          </select>
+                          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                          </div>
+                        </div>
+                      </div>
+                
+                    <div class="md:col-span-3 grid grid-cols-2 gap-2">
+                      <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Mulai</label>
+                        <input
+                          type="date"
+                          name="start_date"
+                          class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200"
+                          value="{{ current_start_date|default:'' }}"
+                        >
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 ml-1 uppercase tracking-wider">Selesai</label>
+                        <input
+                          type="date"
+                          name="end_date"
+                          class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all duration-200"
+                          value="{{ current_end_date|default:'' }}"
+                        >
+                      </div>
+                    </div>
+                
+                    <div class="md:col-span-12 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                      <button
+                        type="submit"
+                        class="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                      >
+                        <i class="fas fa-search"></i>
+                        Terapkan Filter
+                      </button>
+
+                      {% if current_query or current_category_slug or current_start_date or current_end_date %}
+                      <a 
+                        href="{% url 'catalog' %}" 
+                        class="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-red-600 font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group filter-reset-link"
+                      >
+                        <i class="fas fa-undo group-hover:rotate-[-45deg] transition-transform duration-300"></i>
+                        Reset
+                      </a>
+                      {% endif %}
+                    </div>
+                
                   </div>
-              
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="text-gray-600 text-sm">
@@ -394,7 +389,7 @@
                 
                 <div class="flex items-center gap-2">
                    {% if current_query or current_category_slug or current_start_date or current_end_date %}
-                      <span class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-full border border-purple-100 animate-pulse">
+                      <span class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-full border border-purple-100 animate-pulse filter-aktif">
                         <i class="fas fa-filter mr-1"></i> Filter Aktif
                       </span>
                    {% endif %}
@@ -406,7 +401,6 @@
             </div>
         </div>
     </section>
-
     <section class="bg-gradient-to-b from-white to-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3" id="projectsGrid">
@@ -645,6 +639,63 @@
       // Close modal on outside click
       document.getElementById('projectModal').addEventListener('click', function(e) {
           if (e.target === this) closeModal();
+      });
+
+      // Filter Toggle Functionality
+      const filterToggleBtn = document.getElementById('filterToggleBtn');
+      const filterContent = document.getElementById('filterContent');
+      const toggleIcon = document.getElementById('toggleIcon');
+      
+      // Check if any filters are active (by checking for the 'Filter Aktif' badge)
+      const isFilterActive = document.querySelector('.filter-aktif') !== null;
+
+      // 1. Initial state setup (collapsed if no filters are active on load)
+      if (!isFilterActive) {
+          filterContent.style.maxHeight = '0px';
+          toggleIcon.classList.remove('fa-chevron-up');
+          toggleIcon.classList.add('fa-chevron-down');
+      } else {
+          // If filters are active, ensure it is open by setting a high max-height.
+          filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+          toggleIcon.classList.remove('fa-chevron-down');
+          toggleIcon.classList.add('fa-chevron-up');
+      }
+
+      // 2. Toggle functionality on click
+      filterToggleBtn.addEventListener('click', () => {
+        if (filterContent.style.maxHeight === '0px' || filterContent.style.maxHeight === '') {
+          // Expand: Set to its calculated scrollHeight
+          filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+          toggleIcon.classList.remove('fa-chevron-down');
+          toggleIcon.classList.add('fa-chevron-up');
+        } else {
+          // Collapse: Set current max-height explicitly first, then set to 0.
+          // This forces the transition to run smoothly from the actual height.
+          filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+          window.getComputedStyle(filterContent).maxHeight; // Force reflow
+          filterContent.style.maxHeight = '0px';
+          toggleIcon.classList.remove('fa-chevron-up');
+          toggleIcon.classList.add('fa-chevron-down');
+        }
+      });
+      
+      // 3. Re-adjust max-height on window resize if content is open (important for responsive design)
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+              // Only recalculate max-height if it's not fully collapsed (maxHeight !== '0px')
+              if (filterContent.style.maxHeight !== '0px' && filterContent.style.maxHeight !== '') {
+                  // Temporarily remove transition for a quick height update
+                  filterContent.style.transition = 'none';
+                  // Set new maximum height
+                  filterContent.style.maxHeight = filterContent.scrollHeight + 'px';
+                  // Re-enable transition after a short delay
+                  setTimeout(() => {
+                      filterContent.style.transition = 'max-height 0.5s ease-in-out';
+                  }, 10);
+              }
+          }, 150);
       });
     </script>
   </body>
