@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
 
     <style>
+<<<<<<< HEAD
       .bg-grid-pattern {
         background-image: linear-gradient(
             to right,
@@ -25,6 +26,12 @@
       @keyframes spin {
         from {
           transform: rotate(0deg);
+=======
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgb(0 0 0 / 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+>>>>>>> 7144290103a9eb05c66a46a80d034dbb3d62a1b1
         }
         to {
           transform: rotate(360deg);
@@ -144,6 +151,7 @@
               </p>
             </div>
 
+<<<<<<< HEAD
             <form
               method="POST"
               action="{% url 'login' %}"
@@ -217,6 +225,17 @@
                   Lupa password?
                 </a>
               </div>
+=======
+            <div class="p-5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm flex gap-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xl">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-1 text-gray-900">Kolaborasi Tim</h4>
+                    <p class="text-sm text-gray-600">Kelola proyek bersama dosen dan mitra industri.</p>
+                </div>
+            </div>
+>>>>>>> 7144290103a9eb05c66a46a80d034dbb3d62a1b1
 
               <div class="pt-2">
                 <button
