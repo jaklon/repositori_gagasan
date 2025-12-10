@@ -3,7 +3,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-
+from django.db import transaction
 
 # --- Models ---
 from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian, RequestSourceCode
@@ -18,6 +18,7 @@ from django.core.validators import URLValidator
 from django.utils import timezone 
 from django.http import JsonResponse
 from django.urls import reverse 
+from .forms import ProdukForm, DokumenProyekFormSet
 
 # --- PINDAHKAN FUNGSI HELPER INI KE ATAS ---
 # Helper function untuk mengecek apakah user adalah Unit Bisnis
@@ -599,24 +600,27 @@ def sistem_kurasi(request):
 def project_detail_view(request, project_id):
     project = get_object_or_404(Produk.objects.select_related('id_pemilik').prefetch_related('kategori', 'tags'), id=project_id)
     
-    # Coba ambil data kurasi terkait (jika ada)
+    kurasi = None
+    existing_request = None
+    
+    # Cek status kurasi (bisa diakses publik)
     try:
         kurasi = Kurasi.objects.get(id_produk=project)
     except Kurasi.DoesNotExist:
-        kurasi = None
+        pass
 
-    # Cek apakah user yang login sudah pernah request
-    existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    # Cek request hanya jika user sudah login
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
 
-    # Langsung kirim data ke template
     context = {
         'project': project,
         'kurasi': kurasi,
         'existing_request': existing_request, 
+        # Tambahkan flag untuk cek di template
+        'is_authenticated': request.user.is_authenticated 
     }
     return render(request, 'project_detail.html', context)
-# --- AKHIR VIEW DETAIL PROYEK ---
-
 
 # --- VIEW BARU UNTUK HANDLE REQUEST SOURCE CODE ---
 @login_required
@@ -964,31 +968,134 @@ def select_for_curation(request, project_id):
         referer = request.META.get('HTTP_REFERER', reverse('repository'))
         return redirect(referer)
 # --- AKHIR REPOSITORY VIEWS ---
-
-
-# --- UPLOAD PROJECT VIEW ---
 @login_required
+@transaction.atomic 
 def upload_project_view(request):
     if request.user.peran not in ['mahasiswa', 'dosen']:
-         messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
-         if request.user.peran == 'mitra': return redirect('dashboard_mitra')
-         if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
-         return redirect('catalog')
+        messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
+        if request.user.peran == 'mitra': return redirect('dashboard_mitra')
+        if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
+        return redirect('catalog')
+        
     if request.method == 'POST':
-        form = ProjectForm(request.POST, request.FILES)
-        if form.is_valid():
+        # Pastikan Anda sudah mengimpor DokumenProyekFormSet di awal file
+        produk_form = ProdukForm(request.POST, request.FILES)
+        dokumen_formset = DokumenProyekFormSet(request.POST, request.FILES, prefix='dokumen') 
+        
+        if produk_form.is_valid() and dokumen_formset.is_valid():
             try:
-                project = form.save(commit=True, owner=request.user)
-                messages.success(request, f"Proyek '{project.title}' berhasil diunggah dan menunggu seleksi.")
-                if request.user.peran == 'mahasiswa': return redirect('dashboard_mahasiswa')
-                elif request.user.peran == 'dosen': return redirect('dashboard_dosen')
+                # 1. Simpan Produk utama
+                produk = produk_form.save(commit=True, owner=request.user) 
+                
+                # 2. Simpan Dokumen Proyek dari formset
+                dokumen_instances = dokumen_formset.save(commit=False)
+                
+                for dokumen in dokumen_instances:
+                    dokumen.produk = produk 
+                    dokumen.save()
+                    
+                # Simpan instans yang ditandai untuk dihapus dan M2M
+                dokumen_formset.save() 
+                produk_form.save_m2m() 
+                
+                messages.success(request, f"Proyek '{produk.title}' berhasil diunggah dan menunggu seleksi. 🎉")
+                
+                # KOREKSI PENTING: Menggunakan nama URL yang ada di repository/urls.py
+                if request.user.peran == 'mahasiswa': 
+                    # Nama URL yang benar adalah 'my_projects'
+                    return redirect('my_projects')
+                elif request.user.peran == 'dosen': 
+                    # Nama URL yang benar adalah 'dosen_my_projects'
+                    return redirect('dosen_my_projects')
+                # Fallback jika peran tidak jelas
+                return redirect('profile') 
+                
             except Exception as e:
+                # Tangani error yang terjadi selama proses penyimpanan
                 messages.error(request, f"Terjadi kesalahan saat menyimpan proyek: {e}")
+                context = {
+                    'form': produk_form, 
+                    'dokumen_formset': dokumen_formset,
+                }
+                return render(request, 'upload_project.html', context)
+        else:
+            messages.error(request, 'Terjadi kesalahan pada formulir. Silakan cek ulang isian Anda. ❌')
+            context = {
+                'form': produk_form,
+                'dokumen_formset': dokumen_formset,
+            }
+            return render(request, 'upload_project.html', context)
+    
+    # Jika method adalah GET
     else:
-        form = ProjectForm()
-    context = {'form': form}
+        initial_data = {}
+        if request.user.peran == 'mahasiswa' and request.user.program_studi:
+            initial_data['program_studi'] = request.user.program_studi
+            
+        produk_form = ProdukForm(initial=initial_data)
+        dokumen_formset = DokumenProyekFormSet(queryset=Produk.objects.none(), prefix='dokumen')
+
+    context = {
+        'form': produk_form, 
+        'dokumen_formset': dokumen_formset, 
+    }
     return render(request, 'upload_project.html', context)
-# --- AKHIR UPLOAD PROJECT VIEW ---
+
+def project_detail_view(request, project_id):
+    # Mengambil Produk dan prefetch relasi kurasi, tags, dan dokumen
+    project = get_object_or_404(
+        Produk.objects.select_related('id_pemilik')
+                      .prefetch_related('kategori', 'tags', 'dokumen'), 
+        id=project_id
+    )
+    
+    try:
+        kurasi = project.kurasi
+    except Kurasi.DoesNotExist:
+        kurasi = None
+
+    existing_request = None
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    
+    dokumen_list = project.dokumen.all() 
+
+    context = {
+        'project': project,
+        'kurasi': kurasi,
+        'existing_request': existing_request,
+        'dokumen_list': dokumen_list, 
+    }
+    return render(request, 'project_detail.html', context)
+
+
+def project_detail_view(request, project_id):
+    # Menggunakan related_name 'dokumen' dari Produk untuk prefetch
+    project = get_object_or_404(
+        Produk.objects.select_related('id_pemilik')
+                      .prefetch_related('kategori', 'tags', 'dokumen'), 
+        id=project_id
+    )
+    
+    try:
+        kurasi = project.kurasi
+    except Kurasi.DoesNotExist:
+        kurasi = None
+
+    existing_request = None
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    
+    # Ambil semua dokumen yang terhubung
+    dokumen_list = project.dokumen.all() 
+
+    context = {
+        'project': project,
+        'kurasi': kurasi,
+        'existing_request': existing_request,
+        'dokumen_list': dokumen_list, 
+    }
+    return render(request, 'project_detail.html', context)
 
 
 # --- CURATION ASSIGNMENT VIEWS ---
