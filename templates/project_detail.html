@@ -5,6 +5,8 @@
 {% block title %}{{ project.title }} - Detail Proyek{% endblock %}
 
 {% block dashboard_content %}
+
+
 <div class="p-8 max-w-6xl mx-auto">
 
     <div class="flex justify-between items-center mb-6">
@@ -14,7 +16,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">{{ project.title }}</h1>
-                <p class="text-sm text-gray-600">Detail lengkap untuk proyek yang diunggah.</p>
+                <p class="text-sm text-gray-600">Detail lengkap untuk proyek yang diunggah. </p>
             </div>
         </div>
         <a href="{{ request.META.HTTP_REFERER|default:'/repository/' }}" 
@@ -69,7 +71,7 @@
                     </div>
                     <div>
                         <span class="text-sm text-gray-500">Keputusan Final</span>
-                        <strong class="block text-gray-800">{{ project.final_decision|default:"-" }}</strong>
+                        <strong class="block text-gray-800">{{ kurasi.final_decision|default:"-" }}</strong>
                     </div>
                     <div>
                         <span class="text-sm text-gray-500">Nilai Akhir Final</span>
@@ -88,7 +90,7 @@
                 </div>
             </div>
 
-            {# === UPDATE: Komentar/Catatan Kurator (Unit Bisnis ATAU Pemilik) === #}
+            {# === Komentar/Catatan Kurator (Unit Bisnis ATAU Pemilik) === #}
             {% if request.user.peran == 'unit_bisnis' or request.user == project.id_pemilik %}
             <div class="mt-6 border-t pt-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
@@ -110,20 +112,10 @@
                 </div>
             </div>
             {% endif %}
-            {# === AKHIR UPDATE === #}
-
             {% endif %}
         </div>
-
-        <h3 class="text-md font-semibold text-gray-800 mt-4 mb-3">Teknologi</h3>
-        <div class="flex flex-wrap gap-2">
-          {% for tag in project.tags.all %}
-            <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{{ tag.nama }}</span>
-          {% empty %}
-            <span class="text-xs text-gray-400 italic">Tanpa Tags</span>
-          {% endfor %}
-        </div>
-      </div>
+        
+        <div class="lg:col-span-1 space-y-6">
 
             <div class="bg-white p-5 rounded-lg shadow-xl border border-gray-100">
                 <h3 class="text-md font-semibold text-gray-800 mb-3">Pembuat Proyek</h3>
@@ -160,15 +152,6 @@
                     {% endfor %}
                 </div>
             </div>
-        <h3 class="text-md font-semibold text-gray-800 mt-4 mb-3">Teknologi</h3>
-        <div class="flex flex-wrap gap-2">
-          {% for tag in project.tags.all %}
-            <span class="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{{ tag.nama }}</span>
-          {% empty %}
-            <span class="text-xs text-gray-400 italic">Tanpa Tags</span>
-          {% endfor %}
-        </div>
-      </div>
 
             <div class="bg-white p-5 rounded-lg shadow-xl border border-gray-100">
                 <h3 class="text-md font-semibold text-gray-800 mb-3">Tautan Proyek</h3>
@@ -186,9 +169,7 @@
 
                     {% if project.source_code_link %}
                         
-                    {# === AKSES SOURCE CODE LOGIC YANG DIPERBAIKI === #}
-                    
-                    {# KONDISI 1: Pemilik ATAU Unit Bisnis bisa akses langsung #}
+                    {# === AKSES SOURCE CODE LOGIC === #}
                     {% if project.id_pemilik == request.user or request.user.peran == 'unit_bisnis' %}
                         
                         <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
@@ -216,11 +197,11 @@
                             <button type="button"
                                     onclick="openRequestModal()"
                                     class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 
-                                    {% if existing_request %}disabled opacity-60 cursor-not-allowed{% endif %}">
+                                    {% if existing_request %}opacity-60 cursor-not-allowed{% endif %}">
                                 <span class="text-sm font-medium text-gray-700">
                                     <i class="fab fa-github mr-2"></i>
                                     {% if existing_request %}
-                                        Akses Diminta (Status: **{{ existing_request.get_status_display }}**)
+                                        Akses Diminta (Status: *{{ existing_request.get_status_display }}*)
                                     {% else %}
                                         Minta Akses Source Code
                                     {% endif %}
@@ -232,80 +213,136 @@
                     
                     {# === AKHIR AKSES SOURCE CODE LOGIC === #}
 
-          {% endif %}
+                {% endif %}
 
-        </div>
-      </div>
-
-    </div>
-  </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-xl border border-gray-100">
+                <h3 class="text-md font-semibold text-gray-800 mb-3">Dokumen Proyek</h3>
+                
+                {% if dokumen_list %}
+                <ul class="space-y-3">
+                    {% for dokumen in dokumen_list %}
+                    <li class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 p-3 rounded-lg border border-gray-100 transition hover:shadow-sm">
+                        <div class="flex items-center space-x-3 mb-2 md:mb-0">
+                            <i class="fas fa-file-alt text-xl text-purple-500"></i>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-purple-700">{{ dokumen.tipe_dokumen }}</span>
+                                <span class="text-gray-900 text-sm">
+                                    {{ dokumen.keterangan|default_if_none:dokumen.get_file_name }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if dokumen.file_dokumen %}
+                            <a href="{{ dokumen.file_dokumen.url }}" 
+                               target="_blank" 
+                               class="text-sm font-medium text-blue-600 hover:text-blue-800 transition duration-150 flex items-center">
+                                <i class="fas fa-download mr-1"></i> Unduh File
+                            </a>
+                            {% endif %}
+                            
+                        {% if dokumen.keterangan and not dokumen.file_dokumen %}
+                                
+                                {# Check if user is authenticated and is owner or admin/curator #}
+                                {% if request.user.is_authenticated %}
+                                    {# KOREKSI: Gunakan logika IF bersarang alih-alih WITH yang kompleks #}
+                                    {% if request.user == project.id_pemilik or request.user.is_superuser or request.user.peran|is_in:"dosen,mitra,unit_bisnis" %}
+                                        <a href="{{ dokumen.keterangan }}" 
+                                           target="_blank" 
+                                           class="text-sm font-medium text-blue-600 hover:text-blue-800 transition duration-150 flex items-center">
+                                            Lihat Link <i class="fas fa-external-link-alt ml-1"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-sm font-medium text-gray-500 flex items-center">
+                                            Link Akses Terbatas <i class="fas fa-lock ml-1 text-gray-400"></i>
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-sm font-medium text-gray-500 flex items-center">
+                                        Link Akses Terbatas (Login Diperlukan) <i class="fas fa-lock ml-1 text-gray-400"></i>
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                            
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-500 text-sm">Tidak ada dokumen pendukung yang diunggah untuk proyek ini.</p>
+                {% endif %}
+            </div>
+            </div>
+    </div>
 </div>
 
 <div id="requestModal" class="modal-vjs fixed inset-0 bg-black bg-opacity-60 z-[60] items-center justify-center p-4 backdrop-blur-sm overflow-y-auto hidden">
-  <div id="requestModalBox" class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
-    <form method="POST" action="{% url 'request_source_code' project.id %}" class="flex flex-col">
-      {% csrf_token %}
-      <div class="p-5 border-b flex justify-between items-center">
-        <h2 class="text-xl font-semibold">Minta Akses Source Code</h2>
-        <button type="button" onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-      </div>
+    <div id="requestModalBox" class="modal-box-vjs bg-white rounded-xl max-w-md w-full shadow-xl transform transition-all">
+        <form method="POST" action="{% url 'request_source_code' project.id %}" class="flex flex-col">
+            {% csrf_token %}
+            <div class="p-5 border-b flex justify-between items-center">
+                <h2 class="text-xl font-semibold">Minta Akses Source Code</h2>
+                <button type="button" onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
 
-      <div class="p-6 space-y-4">
-        <p class="text-sm text-gray-600">
-          Anda akan meminta akses ke source code untuk proyek: <strong>{{ project.title }}</strong>.
-        </p>
-        <div class="bg-gray-50 p-3 rounded-lg border text-sm">
-          <span class="text-gray-500">Pemilik Proyek:</span>
-          <strong class="block text-gray-800">{{ project.id_pemilik.username }}</strong>
-        </div>
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-gray-600">
+                    Anda akan meminta akses ke source code untuk proyek: <strong>{{ project.title }}</strong>.
+                </p>
+                <div class="bg-gray-50 p-3 rounded-lg border text-sm">
+                    <span class="text-gray-500">Pemilik Proyek:</span>
+                    <strong class="block text-gray-800">{{ project.id_pemilik.username }}</strong>
+                </div>
 
-        <div>
-            <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
-            <textarea 
-                name="alasan_request" 
-                id="id_alasan_request" 
-                rows="4" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
-                required></textarea>
-            <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
-        </div>
+                <div>
+                    <label for="id_alasan_request" class="block text-sm font-medium text-gray-700 mb-1">Alasan Request <span class="text-red-500">*</span></label>
+                    <textarea 
+                        name="alasan_request" 
+                        id="id_alasan_request" 
+                        rows="4" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                        placeholder="Contoh: Saya tertarik mempelajari implementasi algoritma AI yang digunakan untuk keperluan penelitian saya..." 
+                        required></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Alasan yang jelas akan mempercepat proses approval.</p>
+                </div>
 
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
-          <i class="fas fa-info-circle mt-0.5"></i>
-          <span>Pemilik proyek akan menerima notifikasi dan harus menyetujui permintaan Anda sebelum Anda mendapatkan akses.</span>
-        </div>
-      </div>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 flex items-start gap-2">
+                    <i class="fas fa-info-circle mt-0.5"></i>
+                    <span>Pemilik proyek akan menerima notifikasi dan harus menyetujui permintaan Anda sebelum Anda mendapatkan akses.</span>
+                </div>
+            </div>
 
-      <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl">
-        <button type="button" onclick="closeRequestModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
-          Batal
-        </button>
-        <button type="submit" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
-          <i class="fas fa-paper-plane"></i> Kirim Permintaan
-        </button>
-      </div>
-    </form>
-  </div>
+            <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl">
+                <button type="button" onclick="closeRequestModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
+                    <i class="fas fa-paper-plane"></i> Kirim Permintaan
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  const requestModal = document.getElementById('requestModal');
+    const requestModal = document.getElementById('requestModal');
 
-  function openRequestModal() {
-    if (requestModal) requestModal.classList.replace('hidden', 'flex');
-  }
+    function openRequestModal() {
+        if (requestModal) requestModal.classList.replace('hidden', 'flex');
+    }
 
-  function closeRequestModal() {
-    if (requestModal) requestModal.classList.replace('flex', 'hidden');
-  }
+    function closeRequestModal() {
+        if (requestModal) requestModal.classList.replace('flex', 'hidden');
+    }
 
-  if (requestModal) {
-    requestModal.addEventListener('click', function(event) {
-      if (event.target === requestModal) closeRequestModal();
-    });
-  }
+    if (requestModal) {
+        requestModal.addEventListener('click', function(event) {
+            if (event.target === requestModal) closeRequestModal();
+        });
+    }
 </script>
 {% endblock %}

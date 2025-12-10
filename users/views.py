@@ -1,11 +1,27 @@
-from django.shortcuts import render, redirect
+# users/views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db.models import Q # Digunakan untuk filtering kurasi
 from .models import CustomUser
 from django.contrib.auth import authenticate, login, logout
-# --- TAMBAHKAN IMPORT INI ---
 from django.contrib.auth.decorators import login_required
-# === TAMBAHKAN IMPORT FORM DI SINI ===
-from .forms import UserProfileForm
+
+# KOREKSI IMPORT: Sekarang form ini ADA di users/forms.py
+from .forms import UserRegistrationForm, UserUpdateForm 
+
+# ASUMSI: Import model-model repository ada di sini (Perlu di setup jika belum)
+try:
+    from repository.models import Produk, RequestSourceCode, Kurasi
+except ImportError:
+    # Fallback jika model belum di-migrate, agar server tetap running
+    class Produk: pass 
+    class RequestSourceCode: pass
+    class Kurasi: pass
+
+# ASUMSI: Fungsi is_unit_bisnis tersedia
+def is_unit_bisnis(user):
+    return user.peran == 'unit_bisnis'
 
 
 def login_view(request):
@@ -17,35 +33,29 @@ def login_view(request):
             messages.error(request, 'Email dan Password harus diisi!')
             return redirect('login')
 
-        # Cari user berdasarkan email (case-insensitive bisa lebih baik)
         try:
-            user_obj = CustomUser.objects.get(email__iexact=email) # Gunakan __iexact
+            user_obj = CustomUser.objects.get(email__iexact=email)
             username = user_obj.username
         except CustomUser.DoesNotExist:
             messages.error(request, 'Email atau Password salah!')
             return redirect('login')
 
-        # Authenticate menggunakan username
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # === CEK is_active bawaan, is_approved, dan status ===
-            if not user.is_active: # Cek field is_active bawaan (misal diban admin)
+            if not user.is_active:
                  messages.error(request, 'Akun Anda dinonaktifkan oleh administrator.')
                  return redirect('login')
-            elif not user.is_approved: # Cek approval Unit Bisnis
+            elif not user.is_approved:
                  messages.error(request, 'Akun Anda belum disetujui oleh Unit Bisnis.')
                  return redirect('login')
-            elif user.status == 'nonaktif': # Cek status internal
+            elif user.status == 'nonaktif':
                  messages.error(request, 'Akun Anda saat ini tidak aktif. Hubungi Unit Bisnis.')
                  return redirect('login')
-            # === AKHIR CEK ===
 
-            # Jika semua cek lolos, baru login
             login(request, user)
             messages.success(request, f'Selamat datang kembali, {user.username}!')
 
-            # --- LOGIKA REDIRECT ---
             if user.peran == 'mahasiswa':
                 return redirect('dashboard_mahasiswa')
             elif user.peran == 'dosen':
@@ -54,87 +64,38 @@ def login_view(request):
                 return redirect('dashboard_mitra')
             elif user.peran == 'unit_bisnis':
                 return redirect('dashboard_unit_bisnis')
-            elif user.is_superuser: # Cek superuser
-                return redirect('admin:index') # Arahkan ke admin Django
+            elif user.is_superuser:
+                return redirect('admin:index')
             else:
-                return redirect('catalog') # Fallback
+                return redirect('catalog')
 
         else:
-            # Jika authenticate gagal (username/password salah ATAU user.is_active bawaan = False)
             messages.error(request, 'Email atau Password salah!')
             return redirect('login')
 
-    # Jika method GET
     return render(request, 'login.html')
 
 
 def register_view(request):
+    # KOREKSI: Menggunakan UserRegistrationForm
     if request.method == 'POST':
-        # 1. Ambil data utama
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        peran = request.POST.get('peran')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')
+        form = UserRegistrationForm(request.POST) 
 
-        # 2. Validasi dasar
-        if not all([username, email, peran, password, password2]):
-             messages.error(request, 'Semua field wajib diisi!')
-             return redirect('register') 
-
-        if password != password2:
-            messages.error(request, 'Password tidak cocok!')
-            return redirect('register')
-
-        if CustomUser.objects.filter(username=username).exists():
-            messages.error(request, 'Username sudah digunakan!')
-            return redirect('register')
-
-        if CustomUser.objects.filter(email=email).exists():
-            messages.error(request, 'Email sudah terdaftar!')
-            return redirect('register')
-
-        # 3. Kumpulkan data tambahan berdasarkan peran
-        try:
-            user_data = {
-                'username': username,
-                'email': email,
-                'password': password,
-                'peran': peran
-            }
-            
-            if peran == 'mahasiswa':
-                user_data['nim'] = request.POST.get('nim')
-                user_data['program_studi'] = request.POST.get('program_studi')
-            elif peran == 'dosen':
-                user_data['id_dosen'] = request.POST.get('id_dosen')
-                user_data['bidang_keahlian'] = request.POST.get('bidang_keahlian') # Ambil dari field dosen
-                # === PENYESUAIAN DI SINI ===
-                user_data['jurusan'] = request.POST.get('jurusan')
-                # Gunakan 'program_studi_dosen' dari form agar tidak bentrok dengan field mahasiswa
-                user_data['program_studi'] = request.POST.get('program_studi_dosen') 
-                # === AKHIR PENYESUAIAN ===
-            elif peran == 'mitra':
-                user_data['id_mitra'] = request.POST.get('id_mitra')
-                user_data['organisasi'] = request.POST.get('organisasi')
-                user_data['bidang_keahlian'] = request.POST.get('bidang_keahlian') # Ambil dari field mitra
-
-            # 4. Buat user baru menggunakan create_user
-            user = CustomUser.objects.create_user(**user_data)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data.get('password'))
+            user.save()
             
             messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujui oleh Unit Bisnis sebelum bisa login.')
             return redirect('login')
             
-        except Exception as e:
-             # Tangkap error tak terduga (misal jika NIM/ID Dosen unique=True)
-             messages.error(request, f'Terjadi kesalahan saat membuat akun: {e}')
-             return redirect('register')
-
-    # Jika method adalah GET
+        else:
+            first_error = next(iter(form.errors.values()))[0] if form.errors else 'Terjadi kesalahan saat membuat akun.'
+            messages.error(request, f'Pendaftaran gagal: {first_error}')
+            return redirect('register')
     else:
         return render(request, 'register.html')
 
-# Fungsi Logout (Sudah benar)
 @login_required
 def logout_view(request):
     logout(request)
@@ -144,27 +105,47 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     user = request.user
-    
-    # Cek apakah kita dalam mode edit dari parameter URL
     edit_mode = request.GET.get('edit') == 'true'
-
+    
+    # --- START: Ambil data terkait berdasarkan peran ---
+    context_data = {}
+    
+    # 1. Proyek yang dimiliki (Mahasiswa & Dosen)
+    # Cek apakah model Produk sudah memiliki relasi id_pemilik (menghindari error jika model belum di-migrate/import)
+    if hasattr(Produk, 'id_pemilik') and user.peran in ['mahasiswa', 'dosen']:
+        context_data['produk_list'] = Produk.objects.filter(id_pemilik=user).order_by('-created_at')
+    
+    # 2. Penugasan Kurasi (Dosen & Mitra)
+    if hasattr(Kurasi, 'id_produk') and user.peran in ['dosen', 'mitra']:
+        if user.peran == 'dosen':
+            kurasi_filter = Q(id_kurator_dosen=user)
+        else: # mitra
+            kurasi_filter = Q(id_kurator_mitra=user)
+            
+        context_data['kurasi_list'] = Kurasi.objects.filter(kurasi_filter).select_related('id_produk').order_by('-tanggal_penugasan')
+    
+    # 3. Permintaan Akses Source Code yang diajukan (Dosen & Mitra)
+    if hasattr(RequestSourceCode, 'id_pemohon') and user.peran in ['dosen', 'mitra']:
+        context_data['request_list'] = RequestSourceCode.objects.filter(id_pemohon=user).select_related('id_produk').order_by('-tanggal_request')
+    
+    # --- END: Ambil data terkait berdasarkan peran ---
+    
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=user)
+        form = UserUpdateForm(request.POST, instance=user) 
         if form.is_valid():
             form.save()
             messages.success(request, 'Profil Anda berhasil diperbarui!')
-            # Redirect kembali ke mode 'view' (tanpa parameter edit)
             return redirect('profile') 
         else:
             messages.error(request, 'Terjadi kesalahan. Silakan periksa isian Anda.')
-            edit_mode = True # Tetap di mode edit jika form error
+            edit_mode = True
     else:
-        # Jika GET request, siapkan form dengan data yang ada
-        form = UserProfileForm(instance=user)
+        form = UserUpdateForm(instance=user)
 
     context = {
         'form': form,
         'user': user,
-        'edit_mode': edit_mode  # Kirim status edit_mode ke template
+        'edit_mode': edit_mode,
+        **context_data
     }
     return render(request, 'profile.html', context)
