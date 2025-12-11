@@ -2,145 +2,180 @@
 {% load static %}
 {% load repository_extras %}
 
-{% block title %}Permintaan Akses Source Code/Aset - Gagasan{% endblock %}
+{% block title %}Permintaan Akses Source Code - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8 max-w-6xl mx-auto">
-  <div class="flex items-center gap-4 mb-8">
-    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="text-gray-400 hover:text-gray-600">
-        <i class="fas fa-arrow-left text-xl"></i>
-    </a>
-    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-      <i class="fas fa-key text-purple-600 text-xl"></i>
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-5xl mx-auto space-y-8">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex items-center gap-5">
+        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-teal-600 transition-colors">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl flex items-center justify-center shadow-inner">
+          <i class="fas fa-key text-teal-600 text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Permintaan Akses</h1>
+          {% if is_admin_view %}
+            <p class="text-sm text-gray-500 mt-1">Kelola seluruh izin akses source code dalam sistem.</p>
+          {% else %}
+            <p class="text-sm text-gray-500 mt-1">Kelola permohonan akses ke aset proyek Anda.</p>
+          {% endif %}
+        </div>
+      </div>
     </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Permintaan Akses Source Code / Aset</h1>
-      {% if is_admin_view %}
-      <p class="text-sm text-gray-600">Kelola semua permintaan akses source code dalam sistem.</p>
-      {% else %}
-      <p class="text-sm text-gray-600">Kelola permintaan akses ke source code dari aset proyek Anda.</p>
-      {% endif %}
-    </div>
-  </div>
 
-  {% if messages %}
-    <div class="mb-6 space-y-2">
+    {% if messages %}
+      <div class="space-y-3">
         {% for message in messages %}
-        <div class="p-4 rounded-md text-sm
-            {% if message.tags == 'success' %} bg-green-50 border border-green-200 text-green-800
-            {% elif message.tags == 'warning' %} bg-yellow-50 border border-yellow-200 text-yellow-800
-            {% elif message.tags == 'error' %} bg-red-50 border border-red-200 text-red-800
-            {% else %} bg-blue-50 border border-blue-200 text-blue-800 {% endif %}">
+        <div class="flex items-center p-4 rounded-xl text-sm font-medium shadow-sm animate-fade-in-down
+            {% if message.tags == 'success' %} bg-green-50 text-green-700 border border-green-200
+            {% elif message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200
+            {% else %} bg-blue-50 text-blue-700 border border-blue-200 {% endif %}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mr-3 text-lg"></i>
             {{ message }}
         </div>
         {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="space-y-5">
+        <div class="flex items-center justify-between px-1">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <span class="w-2 h-6 bg-yellow-400 rounded-full"></span>
+                Menunggu Persetujuan
+            </h2>
+            <span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-2.5 py-1 rounded-full border border-yellow-200">
+                {{ pending_requests.count }} Permintaan
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+            {% for req in pending_requests %}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 group-hover:w-1.5 transition-all"></div>
+
+                <div class="flex flex-col md:flex-row justify-between gap-6">
+                    <div class="flex-1 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-900">{{ req.id_pemohon.username }}</p>
+                                <p class="text-xs text-gray-500">{{ req.tanggal_request|date:"d F Y, H:i" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Meminta Akses Produk:</p>
+                            <h3 class="text-lg font-bold text-teal-700">{{ req.id_produk.title }}</h3>
+                            {% if is_admin_view %}
+                                <p class="text-xs text-gray-500 mt-1">Pemilik: <span class="font-medium">{{ req.id_produk.id_pemilik.username }}</span></p>
+                            {% endif %}
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative">
+                            <i class="fas fa-quote-left absolute top-3 left-3 text-gray-200 text-xl"></i>
+                            <p class="text-sm text-gray-700 relative z-10 pl-6 italic">
+                                "{{ req.alasan_request|default:'Tidak ada alasan yang diberikan.' }}"
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row md:flex-col justify-end gap-3 min-w-[140px] border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
+                        <form action="{% url 'handle_access_request' req.id 'approve' %}" method="POST" class="flex-1 w-full" onsubmit="return confirm('Yakin ingin memberikan akses source code kepada {{ req.id_pemohon.username }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full py-2.5 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                <i class="fas fa-check"></i> Setujui
+                            </button>
+                        </form>
+                        
+                        <form action="{% url 'handle_access_request' req.id 'deny' %}" method="POST" class="flex-1 w-full" onsubmit="return confirm('Yakin ingin menolak permintaan ini?');">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full py-2.5 bg-white text-red-600 border border-red-200 text-sm font-bold rounded-xl hover:bg-red-50 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-times"></i> Tolak
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
+                <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-500">
+                    <i class="fas fa-check-double text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-gray-900">Semua Beres!</h3>
+                <p class="text-sm text-gray-500 mt-1">Tidak ada permintaan akses baru yang perlu ditinjau.</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-  {% endif %}
 
-  <div class="mb-10">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">Permintaan Menunggu ({{ pending_requests.count }})</h2>
-      <div class="space-y-4">
-          {% for req in pending_requests %}
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div class="flex items-center gap-3">
-                       <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
-                           <i class="fas fa-user"></i>
-                       </div>
-                       <div>
-                           <span class="font-semibold text-gray-900">{{ req.id_pemohon.username }}</span>
-                           <span class="text-xs font-medium text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded-full ml-2">{{ req.get_status_display }}</span>
-                       </div>
-                  </div>
-                  <div class="flex gap-2 mt-3 sm:mt-0">
-                      <form action="{% url 'handle_access_request' req.id 'deny' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menolak permintaan ini?');">
-                          {% csrf_token %}
-                          <button type="submit" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center gap-1">
-                              <i class="fas fa-times"></i> Tolak
-                          </button>
-                      </form>
-                      <form action="{% url 'handle_access_request' req.id 'approve' %}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui permintaan ini?');">
-                          {% csrf_token %}
-                          <button type="submit" class="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md flex items-center gap-1">
-                              <i class="fas fa-check"></i> Setujui
-                          </button>
-                      </form>
-                  </div>
-              </div>
-              
-              <p class="text-sm text-gray-500 mt-3">
-                Meminta akses ke: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
-                {% if is_admin_view %}
-                 (Pemilik: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
-                {% endif %}
-              </p>
-              
-              <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
-                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan permintaan:</p>
-                  <p class="text-sm text-gray-800">
-                      {{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}
-                  </p>
-              </div>
-              
-              <p class="text-xs text-gray-400 mt-3">{{ req.tanggal_request|date:"d F Y \p\u\k\u\l H:i" }}</p>
-          </div>
-          {% empty %}
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-10 text-center">
-              <i class="fas fa-check-circle text-gray-300 text-4xl mb-3"></i>
-              <p class="text-sm text-gray-500">Tidak ada permintaan akses yang sedang menunggu.</p>
-          </div>
-          {% endfor %}
-      </div>
+    <div class="space-y-5 pt-6 border-t border-gray-200">
+        <div class="flex items-center justify-between px-1">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <span class="w-2 h-6 bg-gray-400 rounded-full"></span>
+                Riwayat Permintaan
+            </h2>
+            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200">
+                {{ other_requests.count }} Riwayat
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+            {% for req in other_requests %}
+            <div class="bg-gray-50 rounded-xl border border-gray-200 p-5 opacity-90 hover:opacity-100 transition-opacity">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 border border-gray-200 shadow-sm">
+                            <i class="fas fa-user text-xs"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-gray-900 text-sm">{{ req.id_pemohon.username }}</span>
+                            <span class="text-xs text-gray-500 mx-1">•</span>
+                            <span class="text-xs text-gray-500">{{ req.tanggal_request|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        {% if req.status == 'approved' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200">
+                                <i class="fas fa-check-circle"></i> Disetujui
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full border border-red-200">
+                                <i class="fas fa-times-circle"></i> Ditolak
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="ml-11">
+                    <p class="text-xs text-gray-500">Produk:</p>
+                    <p class="text-sm font-bold text-gray-800 mb-2">{{ req.id_produk.title }}</p>
+                    
+                    <div class="text-xs bg-white p-2 rounded border border-gray-200 text-gray-600 italic">
+                         "{{ req.alasan_request|truncatechars:100 }}"
+                    </div>
+                    
+                    {% if req.id_peninjau %}
+                    <p class="text-[10px] text-gray-400 mt-2 text-right">
+                        Ditinjau oleh: <span class="font-semibold">{{ req.id_peninjau.username }}</span>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8">
+                <p class="text-gray-400 text-sm">Belum ada riwayat permintaan.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
   </div>
-
-  <div class="mb-10">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">Riwayat Permintaan ({{ other_requests.count }})</h2>
-      <div class="space-y-4">
-          {% for req in other_requests %}
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 opacity-70">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div class="flex items-center gap-3">
-                       <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
-                           <i class="fas fa-user"></i>
-                       </div>
-                       <div>
-                           <span class="font-semibold text-gray-900">{{ req.id_pemohon.username }}</span>
-                           {% if req.status == 'approved' %}
-                               <span class="text-xs font-medium text-green-800 bg-green-100 px-2 py-0.5 rounded-full ml-2">{{ req.get_status_display }}</span>
-                           {% else %}
-                               <span class="text-xs font-medium text-red-800 bg-red-100 px-2 py-0.5 rounded-full ml-2">{{ req.get_status_display }}</span>
-                           {% endif %}
-                       </div>
-                  </div>
-                   <div class="text-sm text-gray-500 mt-2 sm:mt-0">
-                       Ditanggapi oleh: <strong>{{ req.id_peninjau.username|default:"N/A" }}</strong>
-                   </div>
-              </div>
-              <p class="text-sm text-gray-500 mt-3">
-                Meminta akses ke: <strong class="text-gray-700">{{ req.id_produk.title }}</strong>
-                {% if is_admin_view %}
-                 (Pemilik: <span class="font-medium">{{ req.id_produk.id_pemilik.username|default:'N/A' }}</span>)
-                {% endif %}
-              </p>
-              <div class="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
-                  <p class="text-xs font-medium text-gray-600 mb-1">Alasan permintaan:</p>
-                  <p class="text-sm text-gray-800">
-                      {{ req.alasan_request|default:"<i class='text-gray-400'>Tidak ada alasan diberikan.</i>"|safe }}
-                  </p>
-              </div>
-              <p class="text-xs text-gray-400 mt-3">{{ req.tanggal_request|date:"d F Y \p\u\k\u\l H:i" }}</p>
-          </div>
-          {% empty %}
-           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-10 text-center">
-              <i class="fas fa-history text-gray-300 text-4xl mb-3"></i>
-              <p class="text-sm text-gray-500">Belum ada riwayat permintaan akses.</p>
-          </div>
-          {% endfor %}
-      </div>
-  </div>
-
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
 {% endblock %}

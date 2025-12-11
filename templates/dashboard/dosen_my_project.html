@@ -1,103 +1,121 @@
-{% extends "_base_dashboard.html" %} 
-{% load static %} 
+{% extends "_base_dashboard.html" %}
+{% load static %}
 
-{% block title %}Proyek Saya - Gagasan{% endblock %} 
+{% block title %}Proyek Saya - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8 space-y-6">
-  
-  <div class="flex justify-between items-center">
-    <div class="flex items-center gap-4">
-      <div
-        class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
-      >
-        <i class="fas fa-folder text-purple-600 text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">
-          Proyek Saya (Dosen)
-        </h1>
-        <p class="text-sm text-gray-600">
-          Kelola semua proyek yang telah Anda unggah ({{ my_projects.count }})
-        </p>
-      </div>
-    </div>
-     <a
-        href="{% url 'upload_project' %}"
-        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors"
-    >
-        <i class="fas fa-plus"></i>
-        Unggah Proyek
-    </a>
-  </div>
-
-  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-     <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        <input type="text" placeholder="Cari proyek Anda..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
-      </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
     
-    {% for project in my_projects %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-      <a href="{% url 'project_detail' project.id %}" class="aspect-video bg-gray-100 relative block">
-        {% if project.poster_image %}
-          <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';"/>
-        {% else %}
-          <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" alt="Placeholder" class="w-full h-full object-cover"/>
-        {% endif %}
-        
-        <span class="absolute top-2 right-2 px-2 py-0.5 text-xs font-medium rounded-full
-              {% if project.dipublikasikan %} bg-green-100 text-green-800
-              {% elif project.curation_status == 'pending' %} bg-yellow-100 text-yellow-800
-              {% elif project.curation_status == 'rejected' %} bg-red-100 text-red-800
-              {% else %} bg-blue-100 text-blue-800 {% endif %}">
-              {{ project.get_curation_status_display }}
-         </span>
-      </a>
-      
-      <div class="p-4 flex flex-col flex-grow">
-        <h3 class="font-semibold text-lg mb-1 line-clamp-2">{{ project.title }}</h3>
-        
-        <div class="mb-2">
-            {% for cat in project.kategori.all|slice:":1" %}
-              <span class="inline-block bg-gray-100 text-gray-600 text-xs font-medium mr-1 px-2 py-0.5 rounded">{{ cat.nama }}</span>
-            {% empty %}
-              <span class="text-xs text-gray-400 italic">Tanpa kategori</span>
-            {% endfor %}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl flex items-center justify-center shadow-inner">
+          <i class="fas fa-folder-open text-teal-600 text-2xl"></i>
         </div>
-        
-        <p class="text-xs text-gray-500 line-clamp-2 mb-3 flex-grow">
-            Diunggah: {{ project.created_at|date:"d M Y" }}
-        </p>
-        
-        <div class="flex gap-2 border-t pt-3 mt-auto">
-          <a href="{% url 'project_detail' project.id %}" class="flex-1 text-center px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
-            Lihat Detail
-          </a>
-          {% if project.curation_status == 'pending' %}
-          <form action="{% url 'delete_own_project' project.id %}" method="POST" class="inline" onsubmit="return confirm('Anda yakin ingin menghapus proyek \'{{ project.title|escapejs }}\' secara permanen?')">
-              {% csrf_token %}
-              <button type="submit" class="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors">
-                  <i class="fas fa-trash"></i>
-              </button>
-          </form>
-          {% endif %}
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Proyek Saya</h1>
+          <p class="text-sm text-gray-500 mt-1">
+              Kelola {{ my_projects.count }} karya inovasi yang telah Anda unggah.
+          </p>
         </div>
       </div>
+      
+      <a href="{% url 'upload_project' %}" class="group px-5 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-teal-200 transition-all flex items-center gap-2 hover:-translate-y-0.5">
+          <i class="fas fa-plus bg-teal-500 p-1 rounded text-[10px] group-hover:rotate-90 transition-transform"></i>
+          <span>Unggah Proyek</span>
+      </a>
     </div>
-    {% empty %}
-    <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-16 border border-dashed rounded-lg">
-        <i class="fas fa-folder-open text-gray-400 text-3xl mb-3"></i>
-        <h3 class="text-xl font-semibold text-gray-700">Anda belum memiliki proyek</h3>
-        <p class="text-gray-500 mt-2">
-            Klik tombol "Unggah Proyek" untuk memulai.
-        </p>
-    </div>
-    {% endfor %}
 
+    <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 max-w-md ml-auto">
+        <div class="relative group">
+           <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-teal-500 transition-colors"></i>
+           <input type="text" placeholder="Cari berdasarkan judul proyek..." 
+                  class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-transparent rounded-lg text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 transition-all outline-none placeholder-gray-400 text-gray-700"/>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      {% for project in my_projects %}
+      <div class="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-teal-100/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full overflow-hidden">
+        
+        <div class="aspect-video relative overflow-hidden bg-gray-100">
+           {% if project.poster_image %}
+             <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" 
+                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  onerror="this.onerror=null;this.src='https://placehold.co/800x450/f1f5f9/94a3b8?text=No+Image';"/>
+           {% else %}
+             <img src="https://placehold.co/800x450/f1f5f9/94a3b8?text=No+Image" alt="Placeholder" 
+                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+           {% endif %}
+           
+           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+           <div class="absolute top-3 right-3 z-10">
+               <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm backdrop-blur-md border border-white/20
+                    {% if project.dipublikasikan %} bg-green-500/90 text-white
+                    {% elif project.curation_status == 'pending' %} bg-yellow-400/90 text-white
+                    {% elif project.curation_status == 'rejected' %} bg-red-500/90 text-white
+                    {% else %} bg-blue-500/90 text-white {% endif %}">
+                  {{ project.get_curation_status_display }}
+               </span>
+           </div>
+        </div>
+        
+        <div class="p-5 flex flex-col flex-grow">
+           <div class="mb-3 flex flex-wrap gap-1">
+              {% for cat in project.kategori.all|slice:":2" %}
+                <span class="px-2 py-0.5 bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wide rounded border border-gray-100">
+                    {{ cat.nama }}
+                </span>
+              {% empty %}
+                <span class="text-[10px] text-gray-300 italic">Uncategorized</span>
+              {% endfor %}
+           </div>
+
+           <h3 class="font-bold text-gray-900 text-lg leading-tight mb-2 group-hover:text-teal-600 transition-colors line-clamp-2">
+               {{ project.title }}
+           </h3>
+           
+           <p class="text-xs text-gray-400 flex items-center gap-1 mb-4 mt-auto">
+               <i class="far fa-clock"></i> {{ project.created_at|date:"d M Y" }}
+           </p>
+           
+           <div class="pt-4 border-t border-gray-50 flex items-center gap-2">
+               <a href="{% url 'project_detail' project.id %}" 
+                  class="flex-1 text-center py-2 bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                  Lihat Detail
+               </a>
+
+               {% if project.curation_status == 'pending' %}
+               <form action="{% url 'delete_own_project' project.id %}" method="POST" class="inline" 
+                     onsubmit="return confirm('Yakin ingin menghapus proyek ini permanen?')">
+                   {% csrf_token %}
+                   <button type="submit" 
+                           class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-300"
+                           title="Hapus Proyek">
+                       <i class="fas fa-trash-alt"></i>
+                   </button>
+               </form>
+               {% endif %}
+           </div>
+        </div>
+
+      </div>
+      {% empty %}
+      <div class="col-span-full py-20 text-center">
+          <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
+              <i class="fas fa-cloud-upload-alt text-gray-300 text-3xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800">Belum Ada Proyek</h3>
+          <p class="text-gray-500 max-w-sm mx-auto mt-2 mb-6">Mulai bangun portofolio inovasimu dengan mengunggah proyek pertama sekarang.</p>
+          <a href="{% url 'upload_project' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-full font-bold shadow-lg hover:bg-teal-700 transition-all hover:-translate-y-1">
+              <i class="fas fa-plus"></i> Buat Proyek Baru
+          </a>
+      </div>
+      {% endfor %}
+
+    </div>
   </div>
 </div>
 {% endblock %}
