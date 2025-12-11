@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*meh%6-kk*t0a5*emop4zo+1$15-pp)!p3)!v_2mbf1yn+h5&p'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -80,10 +80,14 @@ WSGI_APPLICATION = 'gagasan_backend.wsgi.application'
 # Gunakan database lokal sqlite3 jika tidak ada DATABASE_URL (saat di laptop),
 # tapi gunakan PostgreSQL dari Neon saat di server Render.
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gagasan_db',         # Nama database yang Anda buat
+        'USER': 'postgres',           # User default postgres
+        'PASSWORD': '1613',  # Password yang Anda set saat instalasi
+        'HOST': 'localhost',          # Atau 127.0.0.1
+        'PORT': '5432',               # Port default postgres
+    }
 }
 
 

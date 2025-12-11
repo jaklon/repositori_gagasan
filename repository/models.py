@@ -2,6 +2,7 @@ from django.db import models
 from users.models import CustomUser
 # --- Tambahkan Q untuk limit_choices ---
 from django.db.models import Q
+import os
 
 # --- Model Baru: Kategori ---
 class Kategori(models.Model):
@@ -28,16 +29,10 @@ class Produk(models.Model):
     description = models.TextField()
     source_code_link = models.URLField(max_length=255, blank=True, null=True, help_text="Link ke source code (GitHub, Drive, dll.)")
     demo_link = models.URLField(max_length=255, blank=True, null=True)
-    poster_image = models.ImageField(upload_to='', blank=True, null=True)
-    # TODO: Pertimbangkan menambahkan field source_code_link, program_studi di sini jika ingin disimpan permanen
-    # source_code_link = models.URLField(max_length=255, blank=True, null=True)
-    # program_studi = models.CharField(max_length=50, blank=True, null=True)
+    poster_image = models.ImageField(upload_to='poster_images/', blank=True, null=True) # Diberi path untuk upload media
 
     # Relasi ManyToMany (jika satu produk bisa >1 kategori)
     kategori = models.ManyToManyField(Kategori, blank=True, related_name='produk')
-    # Atau ForeignKey (jika satu produk hanya 1 kategori)
-    # kategori_single = models.ForeignKey(Kategori, on_delete=models.SET_NULL, null=True, blank=True, related_name='produk')
-
     tags = models.ManyToManyField(Tag, blank=True, related_name='produk')
 
     # Status alur kurasi
@@ -45,17 +40,17 @@ class Produk(models.Model):
         max_length=50,
         default='pending',
         choices=[ # Menambahkan choices agar lebih jelas
-            ('pending', 'Pending (Menunggu Seleksi)'),
-            ('selected', 'Selected (Terpilih untuk Kurasi)'),
-            ('curators-assigned', 'Curators Assigned (Menunggu Penilaian)'),
-            ('assessment-dosen-done', 'Assessment Dosen Done'),
-            ('assessment-mitra-done', 'Assessment Mitra Done'),
-            ('assessment-complete', 'Assessment Complete (Menunggu Review)'),
-            ('ready-for-publication', 'Ready for Publication (Layak)'),
-            ('revision-minor', 'Revision Minor (Revisi Minor)'),
-            ('needs-coaching', 'Needs Coaching (Perlu Pembinaan)'),
-            ('rejected', 'Rejected (Tidak Layak)'),
-            ('published', 'Published (Dipublikasikan)'),
+            ('pending', 'Menunggu Seleksi'),
+            ('selected', 'Terpilih untuk Kurasi'),
+            ('curators-assigned', 'Menunggu Penilaian'),
+            ('assessment-dosen-done', 'Penilaian Dosen Selesai'),
+            ('assessment-mitra-done', 'Penilaian Mitra Selesai'),
+            ('assessment-complete', 'Menunggu Review'),
+            ('ready-for-publication', 'Layak'),
+            ('revision-minor', 'Revisi Minor'),
+            ('needs-coaching', 'Perlu Pembinaan'),
+            ('rejected', 'Tidak Layak'),
+            ('published', 'Dipublikasikan'),
         ]
     )
     final_decision = models.CharField(max_length=50, blank=True, null=True) # Keputusan dari Unit Bisnis
@@ -67,7 +62,7 @@ class Produk(models.Model):
     def __str__(self):
         return self.title
 
-# --- Tabel Kurasi (DIMODIFIKASI) ---
+# --- Tabel Kurasi (DIMODIFIKASI & Duplikasi Dihilangkan) ---
 class Kurasi(models.Model):
     id_produk = models.OneToOneField(Produk, on_delete=models.CASCADE, related_name='kurasi')
     # Pisahkan kurator dosen dan mitra
@@ -78,11 +73,11 @@ class Kurasi(models.Model):
     id_kurator_mitra = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='kurasi_mitra', limit_choices_to={'peran': 'mitra'}
-    ) # Field baru untuk Mitra
+    ) 
     tanggal_penugasan = models.DateTimeField(null=True, blank=True)
     # Pisahkan tanggal selesai
-    tanggal_selesai_dosen = models.DateTimeField(null=True, blank=True) # Field baru
-    tanggal_selesai_mitra = models.DateTimeField(null=True, blank=True) # Field baru
+    tanggal_selesai_dosen = models.DateTimeField(null=True, blank=True) 
+    tanggal_selesai_mitra = models.DateTimeField(null=True, blank=True) 
 
     # Status penilaian
     STATUS_PENILAIAN = [
@@ -99,11 +94,7 @@ class Kurasi(models.Model):
     nilai_akhir_mitra = models.FloatField(null=True, blank=True) 
     nilai_akhir_final = models.FloatField(null=True, blank=True) 
 
-    # Pisahkan catatan
-    catatan_dosen = models.TextField(blank=True, null=True) 
-    catatan_mitra = models.TextField(blank=True, null=True) 
-    
-    # Pisahkan catatan
+    # Catatan (hanya satu instance dari masing-masing)
     catatan_dosen = models.TextField(blank=True, null=True) 
     catatan_mitra = models.TextField(blank=True, null=True) 
     catatan_unit_bisnis = models.TextField(blank=True, null=True, help_text="Catatan final dari Unit Bisnis saat review")
@@ -130,7 +121,7 @@ class AspekPenilaian(models.Model):
         # Tampilkan 'Belum dinilai' jika skor masih null
         return f"{self.aspek} ({self.tipe_kurator}) - {self.get_skor_display() or 'Belum dinilai'}"
 
-# --- Tabel Request_Source_Code (Tidak ada perubahan signifikan) ---
+# --- Tabel Request_Source_Code ---
 class RequestSourceCode(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -145,10 +136,65 @@ class RequestSourceCode(models.Model):
         related_name='request_ditinjau'
        
     )
-    alasan_request = models.TextField(blank=True, null=True)
+    alasan_request = models.TextField(blank=True, null=True, help_text="Alasan mengapa user meminta akses")
     tanggal_request = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
-    alasan_request = models.TextField(blank=True, null=True, help_text="Alasan mengapa user meminta akses")
 
     def __str__(self):
         return f"Request untuk {self.id_produk.title} oleh {self.id_pemohon.username}"
+    
+
+# ---------------------------------------------------------------------
+# --- Model DokumenProyek (Sudah dikoreksi indentasi) ---
+# ---------------------------------------------------------------------
+class DokumenProyek(models.Model):
+    """
+    Model untuk menyimpan dokumen pendukung yang diunggah untuk sebuah proyek.
+    """
+    # Relasi ke model Produk
+    produk = models.ForeignKey(
+        Produk, 
+        on_delete=models.CASCADE, 
+        related_name='dokumen', 
+        verbose_name='Proyek'
+    )
+    
+    # Field untuk menyimpan file (blank=True agar bisa diisi link di keterangan)
+    file_dokumen = models.FileField(
+        upload_to='project_documents/', 
+        verbose_name='File Dokumen',
+        blank=True, 
+        null=True
+    )
+    
+    # Keterangan dokumen (bisa berupa link jika file_dokumen kosong)
+    keterangan = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name='Keterangan File (Atau Link)'
+    )
+    
+    # Pilihan Tipe Dokumen
+    TIPE_CHOICES = [
+        ('Laporan Akhir', 'Laporan Akhir'),
+        ('Manual Book', 'Manual Book'),
+        ('Diagram Desain', 'Diagram Desain'),
+        ('Lainnya', 'Lainnya'),
+    ]
+    tipe_dokumen = models.CharField(
+        max_length=50, 
+        choices=TIPE_CHOICES,
+        default='Lainnya', 
+        verbose_name='Jenis Dokumen'
+    )
+
+    class Meta:
+        verbose_name_plural = "Dokumen Proyek"
+
+    def __str__(self):
+        return f"{self.produk.title} - {self.tipe_dokumen}"
+
+    def get_file_name(self):
+        """Mendapatkan nama file tanpa path"""
+        return os.path.basename(self.file_dokumen.name) if self.file_dokumen else 'Tidak Ada File'

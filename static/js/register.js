@@ -10,36 +10,63 @@ document.addEventListener("DOMContentLoaded", function () {
   // Masukkan semua field dinamis ke dalam array agar mudah dikelola
   const allRoleFields = [studentFields, dosenFields, mitraFields];
 
+  /**
+   * Mengatur properti 'required' pada semua input dan select di dalam container.
+   * @param {HTMLElement} fieldContainer - Container field peran (studentFields, dll.).
+   * @param {boolean} isRequired - True untuk required, false untuk tidak.
+   */
+  function setFieldsRequired(fieldContainer, isRequired) {
+    if (!fieldContainer) return;
+    
+    // Nonaktifkan required pada semua input/select saat container disembunyikan
+    fieldContainer.querySelectorAll('input:not([type="hidden"]), select').forEach(el => {
+        el.required = false;
+    });
+
+    if (!isRequired) return;
+
+    // Aktifkan required hanya untuk field yang wajib diisi berdasarkan peran
+    const roleId = fieldContainer.id;
+
+    if (roleId === 'studentFields') {
+        fieldContainer.querySelectorAll('#nim, #program_studi').forEach(el => el.required = true);
+    } else if (roleId === 'dosenFields') {
+        // Field wajib untuk Dosen: ID Dosen & Bidang Keahlian
+        fieldContainer.querySelectorAll('#id_dosen, #bidang_keahlian_dosen').forEach(el => el.required = true);
+        // Field Jurusan & Program Studi Dosen tetap opsional (required=false)
+    } else if (roleId === 'mitraFields') {
+        // Field wajib untuk Mitra: ID Mitra, Organisasi & Bidang Keahlian
+        fieldContainer.querySelectorAll('#id_mitra, #organisasi, #bidang_keahlian_mitra').forEach(el => el.required = true);
+    }
+  }
+
+
   function toggleRoleFields() {
-    // Ambil nilai peran yang dipilih
     const selectedRole = roleSelect.value;
 
-    // Sembunyikan semua field dinamis terlebih dahulu
+    // 1. Sembunyikan dan nonaktifkan required untuk semua field dinamis
     allRoleFields.forEach(field => {
-      if (field) { // Pastikan elemennya ada
+      if (field) {
         field.classList.add("hidden");
-        // Nonaktifkan 'required' pada input di dalamnya saat tersembunyi
-        field.querySelectorAll('input').forEach(input => input.required = false);
+        setFieldsRequired(field, false); 
       }
     });
 
-    // Tampilkan field yang sesuai
+    // 2. Tampilkan dan aktifkan required untuk field yang sesuai
     if (selectedRole === "mahasiswa") {
       if (studentFields) {
         studentFields.classList.remove("hidden");
-        // Aktifkan 'required' jika perlu
-        // studentFields.querySelectorAll('input').forEach(input => input.required = true); 
-        // NOTE: Anda bisa aktifkan 'required' jika field ini wajib diisi
+        setFieldsRequired(studentFields, true);
       }
     } else if (selectedRole === "dosen") {
       if (dosenFields) {
         dosenFields.classList.remove("hidden");
-        // dosenFields.querySelectorAll('input').forEach(input => input.required = true);
+        setFieldsRequired(dosenFields, true); 
       }
     } else if (selectedRole === "mitra") {
       if (mitraFields) {
         mitraFields.classList.remove("hidden");
-        // mitraFields.querySelectorAll('input').forEach(input => input.required = true);
+        setFieldsRequired(mitraFields, true);
       }
     }
   }
@@ -52,7 +79,4 @@ document.addEventListener("DOMContentLoaded", function () {
   // Jalankan fungsi saat halaman pertama kali dimuat
   toggleRoleFields();
   
-  // Hapus logika validasi password dan spinner dari sini
-  // Biarkan Django (backend) yang menangani validasi password
-  // Spinner bisa ditambahkan nanti jika diperlukan
 });

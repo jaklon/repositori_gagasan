@@ -1,171 +1,258 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
+{% load repository_extras %} 
 
 {% block title %}Profil Saya - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8 max-w-4xl mx-auto">
-  
-  <div class="flex justify-between items-center mb-6">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-        <i class="fas fa-user-circle text-purple-600 text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Profil Saya</h1>
-        <p class="text-sm text-gray-600">Kelola informasi personal dan detail akun Anda.</p>
-      </div>
-    </div>
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
     
-    {% if not edit_mode %}
-    <a href="{% url 'profile' %}?edit=true" 
-       class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors hover:bg-purple-700">
-        <i class="fas fa-pencil-alt"></i>
-        Edit Profile
-    </a>
-    {% endif %}
-  </div>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-teal-100 to-teal-200 rounded-lg flex items-center justify-center text-teal-600 shadow-sm">
+            <i class="fas fa-user-circle text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Profil Saya</h1>
+          <p class="text-sm text-gray-500">Kelola informasi personal dan aktivitas Anda.</p>
+        </div>
+      </div>
+      
+      {% if not edit_mode %}
+      <a href="{% url 'profile' %}?edit=true" 
+         class="px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:border-teal-400 hover:text-teal-700 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2">
+         <i class="fas fa-pencil-alt text-xs"></i> Edit Profil
+      </a>
+      {% endif %}
+    </div>
 
-  {% if messages %}
-    <div class="mb-6 space-y-2">
+    {% if messages %}
+      <div class="space-y-2">
         {% for message in messages %}
-        <div class="p-4 rounded-md text-sm
-            {% if message.tags == 'success' %} bg-green-50 border border-green-200 text-green-800
-            {% elif message.tags == 'error' %} bg-red-50 border border-red-200 text-red-800
-            {% else %} bg-blue-50 border border-blue-200 text-blue-800 {% endif %}">
-            {{ message }}
+        <div class="p-4 rounded-lg text-sm font-medium shadow-sm flex items-center gap-3
+            {% if message.tags == 'success' %} bg-green-50 text-green-700 border border-green-200
+            {% elif message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200
+            {% else %} bg-blue-50 text-blue-700 border border-blue-200 {% endif %}">
+            <i class="fas fa-info-circle"></i> {{ message }}
         </div>
         {% endfor %}
-    </div>
-  {% endif %}
+      </div>
+    {% endif %}
 
-  <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-    
-    <form method="POST" action="{% url 'profile' %}" class="space-y-6">
-        {% csrf_token %}
-
-        <h2 class="text-lg font-semibold border-b pb-2 mb-4 text-gray-800">Informasi Akun (Read-Only)</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input type="text" value="{{ user.username }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" value="{{ user.email }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Peran Akun</label>
-                <input type="text" value="{{ user.get_peran_display }}" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Status Akun</label>
-                <input type="text" value="{% if user.is_approved %}{{ user.get_status_display }}{% else %}Menunggu Persetujuan{% endif %}" disabled 
-                       class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 {% if user.is_approved %}text-gray-500{% else %}text-orange-600{% endif %} cursor-not-allowed">
-            </div>
-        </div>
-
-        <h2 class="text-lg font-semibold border-b pb-2 mb-4 pt-4 text-gray-800">
-          Informasi Personal
-          {% if edit_mode %}(Dapat Diubah){% endif %}
-        </h2>
-
-        {% if edit_mode %}
-          <p class="text-sm text-gray-500 -mt-4">Saat ini Anda hanya dapat mengubah nama. Hubungi admin untuk mengubah data lainnya.</p>
-          <div>
-              <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
-              {{ form.first_name }}
-              {% if form.first_name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.first_name.errors|striptags }}</p>{% endif %}
-          </div>
-          <div>
-              <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
-              {{ form.last_name }}
-              {% if form.last_name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.last_name.errors|striptags }}</p>{% endif %}
-          </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
           
-          <div class="pt-6 flex justify-end gap-3 border-t">
-               <a href="{% url 'profile' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  Batal
-               </a>
-               <button type="submit" class="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
-                  <i class="fas fa-save mr-1"></i> Simpan Perubahan
-               </button>
+          <div class="h-20 bg-gradient-to-r from-teal-600 to-emerald-600 relative">
+             <div class="absolute -bottom-8 left-6">
+                <div class="w-16 h-16 bg-white p-1 rounded-xl shadow-md">
+                    <div class="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                        <i class="fas fa-id-card text-2xl"></i>
+                    </div>
+                </div>
+             </div>
           </div>
 
-        {% else %}
-          <div class="space-y-4">
+          <form method="POST" action="{% url 'profile' %}" class="px-5 pt-10 pb-6 space-y-5">
+            {% csrf_token %}
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                  {{ user.first_name|default:'' }} {{ user.last_name|default:''|default_if_none:'' }}
-                  {% if not user.first_name and not user.last_name %}
-                    <span class="italic text-gray-500">Belum diisi</span>
+              <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Informasi Akun</h2>
+              <div class="space-y-3">
+                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Username</label>
+                    <div class="text-sm font-medium text-gray-800">@{{ user.username }}</div>
+                 </div>
+                 
+                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Email</label>
+                    <div class="text-sm font-medium text-gray-800 break-all">{{ user.email }}</div>
+                 </div>
+
+                 <div class="flex gap-3">
+                    <div class="flex-1 bg-teal-50 p-2 rounded-lg border border-teal-100 text-center">
+                        <label class="block text-[10px] text-teal-400 font-bold uppercase">Peran</label>
+                        <span class="text-sm font-bold text-teal-700 capitalize">{{ user.get_peran_display }}</span>
+                    </div>
+                    <div class="flex-1 bg-green-50 p-2 rounded-lg border border-green-100 text-center">
+                        <label class="block text-[10px] text-green-600 font-bold uppercase">Status</label>
+                        <span class="text-sm font-bold text-green-700">
+                            {% if user.is_approved %}Aktif{% else %}Pending{% endif %}
+                        </span>
+                    </div>
+                 </div>
+              </div>
+            </div>
+
+            <hr class="border-gray-100">
+
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                  <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Data Personal</h2>
+                  {% if edit_mode %}<span class="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold">Editing</span>{% endif %}
+              </div>
+
+              {% if edit_mode %}
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Depan</label>
+                    {{ form.first_name }}
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Belakang</label>
+                    {{ form.last_name }}
+                  </div>
+                </div>
+                
+                <div class="pt-4 flex gap-2">
+                  <a href="{% url 'profile' %}" class="flex-1 py-2 bg-gray-100 text-gray-600 text-xs font-bold uppercase rounded-lg text-center hover:bg-gray-200">Batal</a>
+                  <button type="submit" class="flex-1 py-2 bg-teal-600 text-white text-xs font-bold uppercase rounded-lg shadow-lg shadow-teal-200 hover:bg-teal-700">Simpan</button>
+                </div>
+
+              {% else %}
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Nama Lengkap</label>
+                    <div class="text-gray-900 font-bold text-lg">
+                      {{ user.first_name|default:'' }} {{ user.last_name|default:'' }}
+                      {% if not user.first_name and not user.last_name %}
+                        <span class="text-gray-400 italic font-normal text-sm">Belum diisi</span>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if user.peran == 'mahasiswa' %}
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">NIM</label>
+                        <div class="text-sm font-medium">{{ user.nim|default:"-" }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Prodi</label>
+                        <div class="text-sm font-medium">{{ user.get_program_studi_display|default:"-" }}</div>
+                    </div>
+                  </div>
+                  {% endif %}
+
+                  {% if user.peran == 'dosen' or user.peran == 'mitra' %}
+                  <div class="bg-gray-50 rounded-lg p-3">
+                    <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Keahlian / Industri</label>
+                    <div class="text-sm font-medium text-gray-800">{{ user.bidang_keahlian|default:"-" }}</div>
+                    {% if user.organisasi %}
+                    <div class="mt-2 text-xs text-gray-500"><i class="far fa-building"></i> {{ user.organisasi }}</div>
+                    {% endif %}
+                  </div>
                   {% endif %}
                 </div>
+              {% endif %}
             </div>
-            
-            {% if user.peran == 'mahasiswa' %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.nim|default:"-" }}
-                    </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 space-y-6">
+          
+        {% if not edit_mode %}
+        
+            {% if user.peran|is_in:"mahasiswa,dosen" %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-cubes text-teal-500"></i> Proyek Saya
+                    </h3>
+                    {% if produk_list %}
+                    <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-md">{{ produk_list|length }}</span>
+                    {% endif %}
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Program Studi</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.get_program_studi_display|default:"-" }}
+
+                {% if produk_list %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for produk in produk_list %}
+                        <a href="{% url 'project_detail' produk.id %}" class="block group bg-white border border-gray-200 rounded-lg p-4 hover:border-teal-300 hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-bold px-2 py-1 rounded 
+                                    {% if produk.curation_status == 'published' %}bg-green-100 text-green-700
+                                    {% elif produk.curation_status == 'rejected' %}bg-red-100 text-red-700
+                                    {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                    {{ produk.get_curation_status_display }}
+                                </span>
+                                <i class="fas fa-arrow-right text-gray-300 group-hover:text-teal-500"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-900 group-hover:text-teal-700 line-clamp-2">{{ produk.title }}</h4>
+                            <p class="text-xs text-gray-500 mt-2">{{ produk.created_at|date:"d M Y" }}</p>
+                        </a>
+                        {% endfor %}
                     </div>
+                {% else %}
+                    <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                        <p class="text-gray-500 text-sm">Belum ada proyek yang diunggah.</p>
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if user.peran|is_in:"dosen,mitra" and kurasi_list %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                    <i class="fas fa-tasks text-orange-500"></i> Penugasan Kurasi
+                </h3>
+                <div class="space-y-3">
+                    {% for kurasi in kurasi_list %}
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-800">{{ kurasi.id_produk.title|truncatechars:40 }}</h4>
+                            <p class="text-xs text-gray-500">{{ kurasi.tanggal_penugasan|date:"d M Y" }}</p>
+                        </div>
+                        <a href="{% url 'assess_project' kurasi.id_produk.id %}" class="text-xs font-bold bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors">
+                            Nilai
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
             {% endif %}
 
-            {% if user.peran == 'dosen' %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Dosen</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.id_dosen|default:"-" }}
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.bidang_keahlian|default:"-" }}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
+             {% if user.peran|is_in:"dosen,mitra" and request_list %}
+             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                 <h3 class="font-bold text-gray-800 flex items-center gap-2 mb-4 pb-2 border-b border-gray-100">
+                     <i class="fas fa-key text-blue-500"></i> Request Akses
+                 </h3>
+                 <div class="space-y-3">
+                     {% for req in request_list %}
+                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                         <div>
+                             <h4 class="text-sm font-bold text-gray-800">{{ req.id_produk.title|truncatechars:30 }}</h4>
+                             <span class="text-[10px] px-2 py-0.5 rounded bg-white border
+                                {% if req.status == 'approved' %}text-green-600 border-green-200
+                                {% elif req.status == 'rejected' %}text-red-600 border-red-200
+                                {% else %}text-yellow-600 border-yellow-200{% endif %}">
+                                {{ req.get_status_display }}
+                             </span>
+                         </div>
+                         <a href="{% url 'request_source_code_detail' req.id %}" class="text-xs text-blue-600 hover:underline">Lihat</a>
+                     </div>
+                     {% endfor %}
+                 </div>
+             </div>
+             {% endif %}
 
-            {% if user.peran == 'mitra' %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Mitra</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.id_mitra|default:"-" }}
-                    </div>
+        {% else %}
+            <div class="h-full bg-teal-50 rounded-xl border border-dashed border-teal-200 flex flex-col items-center justify-center p-10 text-center min-h-[400px]">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+                    <i class="fas fa-user-edit text-2xl text-teal-500"></i>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Organisasi</label>
-                    <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                      {{ user.organisasi|default:"-" }}
-                    </div>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
-                <div class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 min-h-[46px]">
-                  {{ user.bidang_keahlian|default:"-" }}
-                </div>
-            </div>
-            {% endif %}
-            
+                <h3 class="text-lg font-bold text-teal-900">Sedang Mengedit Profil</h3>
+                <p class="text-teal-600 text-sm mt-2 max-w-sm">
+                    Fokus pada kolom sebelah kiri untuk mengubah data nama Anda. Tekan tombol "Simpan" jika sudah selesai.
+                </p>
             </div>
         {% endif %}
-    </form>
-  </div>
 
+      </div> 
+      
+    </div>
+  </div>
 </div>
 {% endblock %}

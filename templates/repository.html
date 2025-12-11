@@ -5,283 +5,223 @@
 {% block title %}Repository Proyek - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8">
-  <div class="flex items-center gap-4 mb-6">
-    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-      <i class="fas fa-book-open text-purple-600 text-xl"></i>
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Repository Proyek</h1>
-      <p class="text-sm text-gray-600">Kelola dan pilih proyek untuk proses kurasi digital.</p>
-    </div>
-  </div>
-  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3 mb-8 shadow-sm">
-    <i class="fas fa-info-circle text-blue-600 mt-1"></i>
-    <div>
-      <h3 class="font-semibold text-blue-800">Alur Seleksi Kurasi</h3>
-      <p class="text-sm text-blue-700">Pilih proyek yang layak dari repository untuk masuk ke proses kurasi. Proyek yang dipilih akan masuk ke tahap Assignment → Monitoring → Review → Publication.</p>
-    </div>
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
-      <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-        <i class="fas fa-hourglass-half text-yellow-600"></i>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500">Proyek Menunggu Seleksi</p>
-        <p class="text-3xl font-bold text-gray-900">{{ total_proyek_repo_count }}</p>
-         <p class="text-xs text-gray-400">Proyek berstatus 'Pending'</p>
-      </div>
-    </div>
-     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
-      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-        <i class="fas fa-tasks text-blue-600"></i>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500">Terpilih untuk Kurasi</p>
-        <p class="text-3xl font-bold text-blue-600">{{ total_proyek_selected_count }}</p>
-        <p class="text-xs text-gray-400">Proyek menunggu penugasan kurator</p>
-      </div>
-    </div>
-     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-center gap-4">
-       <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-         <i class="fas fa-folder-open text-gray-500"></i>
-       </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500">Total Semua Proyek</Lp>
-        <p class="text-3xl font-bold text-gray-900">{{ total_proyek }}</p>
-         <p class="text-xs text-gray-400">Semua proyek dalam sistem</p>
-      </div>
-    </div>
-  </div>
-<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
-  <form method="GET" action="{% url 'repository' %}" class="grid grid-cols-1 md:grid-cols-6 gap-6">
-
-    <div class="md:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">
-        Cari
-      </label>
-      <div class="relative group">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-500 transition-all"></i>
-        <input
-          type="text"
-          name="q"
-          placeholder="Cari proyek, mahasiswa, atau tags..."
-          class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                  transition-all duration-200"
-          value="{{ current_query|default:'' }}"
-        />
-      </div>
-    </div>
-
-    <div class="md:col-span-1">
-      <label class="block text-xs font-medium text-gray-500 mb-1">Kategori</label>
-      <div class="relative">
-        <i class="fas fa-tags absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-all duration-200"></i>
-        <select
-          name="category"
-          class="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white appearance-none
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                  hover:border-indigo-400 cursor-pointer transition-all duration-200 text-gray-700 font-medium"
-        >
-          <option value="" class="text-gray-500">Semua Kategori</option>
-          {% for cat in categories_list %}
-            <option value="{{ cat.slug }}" {% if current_category_slug == cat.slug %}selected{% endif %}>
-              {{ cat.nama }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-
-    <div class="md:col-span-1">
-      <label class="block text-xs font-medium text-gray-500 mb-1">Urutkan</label>
-      <div class="relative">
-        <i class="fas fa-sort-amount-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-all duration-200"></i>
-        <select
-          id="sort_select"
-          name="sort"
-          class="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg bg-white appearance-none
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                  hover:border-indigo-400 cursor-pointer transition-all duration-200 text-gray-700 font-medium"
-        >
-          <option value="terbaru" {% if current_sort == 'terbaru' %}selected{% endif %}>Terbaru</option>
-          <option value="terlama" {% if current_sort == 'terlama' %}selected{% endif %}>Terlama</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="md:col-span-1">
-      <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Mulai</label>
-      <input
-        type="date"
-        name="start_date"
-        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                hover:border-purple-300 cursor-pointer transition-all duration-200"
-        value="{{ current_start_date|default:'' }}"
-      >
-    </div>
-
-    <div class="md:col-span-1">
-      <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Selesai</label>
-      <input
-        type="date"
-        name="end_date"
-        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                hover:border-purple-300 cursor-pointer transition-all duration-200"
-        value="{{ current_end_date|default:'' }}"
-      >
-    </div>
-
-    <div class="md:col-span-6">
-      <button
-        type="submit"
-        class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg
-                hover:bg-purple-700 active:scale-[0.97]
-                transition-all duration-200 shadow-sm hover:shadow-md"
-      >
-        <i class="fas fa-filter mr-1"></i> Terapkan Filter
-      </button>
-    </div>
-
-  </form>
-</div>
-
-  
-  {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="p-4 rounded-md
-            {% if message.tags == 'success' %} bg-green-50 border border-green-200 text-green-800
-            {% elif message.tags == 'warning' %} bg-yellow-50 border border-yellow-200 text-yellow-800
-            {% elif message.tags == 'error' %} bg-red-50 border border-red-200 text-red-800
-            {% else %} bg-blue-50 border border-blue-200 text-blue-800 {% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-  {% endif %}
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
     
-    {% for project in projects_list %}
-      <div 
-        {# GANTI: tambahkan class 'card-hover', 'cursor-pointer', dan 'transition-all'. #}
-        {# Tambahkan onclick agar seluruh kartu mengarah ke detail proyek #}
-        class="card-hover cursor-pointer overflow-hidden rounded-lg border-0 shadow-md bg-white flex flex-col transition-all"
-        onclick="window.location.href='{% url 'project_detail' project.id %}'"
-      >
-        <div class="aspect-video bg-gray-100 relative">
-          {% if project.poster_image %}
-            <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';"/>
-          {% else %}
-            <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia" alt="Placeholder" class="w-full h-full object-cover"/>
-          {% endif %}
-          
-          <span class="absolute top-2 right-2 px-2 py-0.5 text-xs font-medium rounded-full
-                {% if project.curation_status == 'pending' %} bg-yellow-100 text-yellow-800
-                {% elif project.curation_status == 'selected' %} bg-blue-100 text-blue-800
-                {% elif project.curation_status == 'curators-assigned' %} bg-blue-400 text-white
-                {% elif project.curation_status == 'assessment-complete' %} bg-indigo-100 text-indigo-800
-                {% elif project.curation_status == 'rejected' %} bg-red-100 text-red-800
-                {% elif project.curation_status == 'published' %} bg-green-100 text-green-800
-                {% elif project.curation_status == 'ready-for-publication' %} bg-green-100 text-green-800
-                {% elif project.curation_status == 'revision-minor' %} bg-blue-100 text-blue-800
-                {% else %} bg-gray-100 text-gray-800 {% endif %}">
-                {# Tampilkan nama status yang lebih ramah jika ada #}
-                {{ project.get_curation_status_display|default:project.curation_status|capfirst }}
-           </span>
-          </div>
-        <div class="p-4 flex flex-col flex-grow">
-          <h3 class="font-semibold text-lg mb-1 line-clamp-2">{{ project.title }}</h3>
-          <div class="mb-2">
-            {% for cat in project.kategori.all %}
-              <span class="inline-block bg-gray-100 text-gray-600 text-xs font-medium mr-1 px-2 py-0.5 rounded">{{ cat.nama }}</span>
-            {% empty %}
-              <span class="text-xs text-gray-400 italic">Tanpa Kategori</span>
-            {% endfor %}
-          </div>
-          <p class="text-sm text-gray-600 line-clamp-3 mb-3 flex-grow">{{ project.description|default:"Tidak ada deskripsi." }}</p>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-3 border-t pt-3 mt-auto">
-             <div class="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-gray-500"> <i class="fas fa-user text-xs"></i></div>
-            <span>{{ project.id_pemilik.username }}</span> | <span>{{ project.created_at|date:"d M Y" }}</span>
-          </div>
-          <div class="flex gap-2">
-            
-            
-            
-            {% if request.user.peran == 'unit_bisnis' and project.curation_status == 'pending' %}
-              <form action="{% url 'select_for_curation' project.id %}" method="POST" class="flex-1 stop-propagation">
-                  {% csrf_token %}
-                  <button type="submit" class="w-full px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors">
-                    Pilih Kurasi
-                  </button>
-              </form>
-            {% endif %}
-
-            {% if request.user.peran == 'unit_bisnis' and project.curation_status == 'selected' %}
-               <a href="{% url 'assign_curator_list' %}" class="flex-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors text-center stop-propagation">
-                 Tugaskan
-               </a>
-            {% endif %}
-
-            {% if project.dipublikasikan %}
-               <a href="{% url 'catalog' %}" class="flex-1 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors text-center stop-propagation">
-                 <i class="fas fa-eye"></i> Di Katalog
-               </a>
-            {% endif %}
-            
-            {# TAMBAHKAN ULANG LINK DETAIL JIKA TIDAK ADA TOMBOL AKSI #}
-            {% if request.user.peran != 'unit_bisnis' or project.curation_status != 'pending' and project.curation_status != 'selected' and not project.dipublikasikan %}
-                <a href="{% url 'project_detail' project.id %}" class="flex-1 px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors text-center">
-                    Lihat Detail
-                </a>
-            {% endif %}
-
-          </div>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex items-center gap-5">
+        <div class="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl flex items-center justify-center shadow-inner">
+          <i class="fas fa-book-open text-teal-600 text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Repositori Proyek</h1>
+          <p class="text-sm text-gray-500 mt-1">
+             Pusat data proyek untuk seleksi dan manajemen kurasi digital.
+          </p>
         </div>
       </div>
-    {% empty %}
-// ... (Bagian empty)
-    {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:border-yellow-200 transition-colors">
+          <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center text-xl">
+             <i class="fas fa-hourglass-half"></i>
+          </div>
+          <div>
+             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Menunggu Seleksi</p>
+             <p class="text-3xl font-extrabold text-gray-900 mt-1">{{ total_proyek_repo_count }}</p>
+          </div>
+       </div>
+
+       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:border-blue-200 transition-colors">
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+             <i class="fas fa-clipboard-check"></i>
+          </div>
+          <div>
+             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Terpilih Kurasi</p>
+             <p class="text-3xl font-extrabold text-blue-600 mt-1">{{ total_proyek_selected_count }}</p>
+          </div>
+       </div>
+
+       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5 hover:border-teal-200 transition-colors">
+          <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl">
+             <i class="fas fa-layer-group"></i>
+          </div>
+          <div>
+             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Proyek</p>
+             <p class="text-3xl font-extrabold text-gray-900 mt-1">{{ total_proyek }}</p>
+          </div>
+       </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+        <i class="fas fa-info-circle text-blue-500 mt-0.5 text-lg"></i>
+        <div>
+            <h3 class="font-bold text-blue-800 text-sm">Alur Seleksi Kurasi</h3>
+            <p class="text-xs text-blue-600 mt-1 leading-relaxed">
+                Pilih proyek yang layak dari repositori untuk masuk ke proses kurasi. Proyek yang dipilih akan masuk ke tahap: 
+                <span class="font-semibold">Penilaian <i class="fas fa-arrow-right text-[10px] mx-1"></i> Pemantauan <i class="fas fa-arrow-right text-[10px] mx-1"></i> Tinjau <i class="fas fa-arrow-right text-[10px] mx-1"></i> Publikasi</span>.
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <form method="GET" action="{% url 'repository' %}" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            
+            <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Pencarian</label>
+                <div class="relative group">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-teal-500 transition-colors"></i>
+                    <input type="text" name="q" placeholder="Cari judul, tags, mahasiswa..." value="{{ current_query|default:'' }}"
+                        class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 transition-all outline-none placeholder-gray-400 font-medium text-gray-700"/>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Kategori</label>
+                <div class="relative">
+                    <select name="category" class="w-full pl-4 pr-8 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 outline-none appearance-none cursor-pointer font-medium text-gray-700">
+                        <option value="">Semua</option>
+                        {% for cat in categories_list %}
+                        <option value="{{ cat.slug }}" {% if current_category_slug == cat.slug %}selected{% endif %}>{{ cat.nama }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Urutan</label>
+                <div class="relative">
+                    <select name="sort" class="w-full pl-4 pr-8 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 outline-none appearance-none cursor-pointer font-medium text-gray-700">
+                        <option value="terbaru" {% if current_sort == 'terbaru' %}selected{% endif %}>Terbaru</option>
+                        <option value="terlama" {% if current_sort == 'terlama' %}selected{% endif %}>Terlama</option>
+                    </select>
+                    <i class="fas fa-sort absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Dari Tanggal</label>
+                <input type="date" name="start_date" value="{{ current_start_date|default:'' }}"
+                    class="w-full px-3 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 outline-none text-gray-600 font-medium">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1">Sampai Tanggal</label>
+                <input type="date" name="end_date" value="{{ current_end_date|default:'' }}"
+                    class="w-full px-3 py-2.5 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 outline-none text-gray-600 font-medium">
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+       {% for project in projects_list %}
+       
+       <div class="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-teal-100/50 hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full overflow-hidden">
+            
+            <a href="{% url 'project_detail' project.id %}" class="aspect-video relative overflow-hidden bg-gray-100 block">
+                {% if project.poster_image %}
+                    <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" 
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=No+Image';"/>
+                {% else %}
+                    <img src="https://placehold.co/800x450/e2e8f0/cbd5e1?text=No+Image" alt="Placeholder" 
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+                {% endif %}
+
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                <div class="absolute top-3 right-3 z-10">
+                     <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm backdrop-blur-md border border-white/20
+                        {% if project.curation_status == 'pending' %} bg-yellow-400/90 text-white
+                        {% elif project.curation_status == 'selected' %} bg-blue-500/90 text-white
+                        {% elif project.curation_status == 'curators-assigned' %} bg-indigo-500/90 text-white
+                        {% elif project.curation_status == 'published' %} bg-green-500/90 text-white
+                        {% elif project.curation_status == 'rejected' %} bg-red-500/90 text-white
+                        {% else %} bg-gray-500/90 text-white {% endif %}">
+                        {{ project.get_curation_status_display|default:project.curation_status }}
+                     </span>
+                </div>
+            </a>
+
+            <div class="p-5 flex flex-col flex-grow">
+                <div class="mb-3 flex flex-wrap gap-1">
+                    {% for cat in project.kategori.all|slice:":2" %}
+                        <span class="px-2 py-0.5 bg-gray-50 text-gray-500 text-[10px] font-bold uppercase tracking-wide rounded border border-gray-100">
+                            {{ cat.nama }}
+                        </span>
+                    {% empty %}
+                        <span class="text-[10px] text-gray-300 italic">Uncategorized</span>
+                    {% endfor %}
+                </div>
+
+                <a href="{% url 'project_detail' project.id %}" class="block mb-2">
+                    <h3 class="font-bold text-gray-900 text-lg leading-tight group-hover:text-teal-600 transition-colors line-clamp-2">
+                        {{ project.title }}
+                    </h3>
+                </a>
+                
+                <div class="flex items-center gap-2 text-xs text-gray-400 mb-4 mt-auto">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                        <i class="fas fa-user text-[10px]"></i>
+                    </div>
+                    <span class="font-medium truncate max-w-[100px]">{{ project.id_pemilik.username }}</span>
+                    <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    <span>{{ project.created_at|date:"d M Y" }}</span>
+                </div>
+
+                <div class="pt-4 border-t border-gray-50 flex gap-2">
+                    
+                    {% if request.user.peran == 'unit_bisnis' and project.curation_status == 'pending' %}
+                        <form action="{% url 'select_for_curation' project.id %}" method="POST" class="w-full">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full py-2 bg-teal-600 text-white text-sm font-bold rounded-lg hover:bg-teal-700 shadow-md shadow-teal-200 transition-all hover:-translate-y-0.5">
+                                <i class="fas fa-check-circle mr-1"></i> Pilih Kurasi
+                            </button>
+                        </form>
+                    {% elif request.user.peran == 'unit_bisnis' and project.curation_status == 'selected' %}
+                        <a href="{% url 'assign_curator_list' %}" class="w-full py-2 bg-blue-600 text-white text-sm font-bold rounded-lg text-center hover:bg-blue-700 shadow-md shadow-blue-200 transition-all hover:-translate-y-0.5">
+                            <i class="fas fa-user-plus mr-1"></i> Tugaskan
+                        </a>
+                    {% elif project.dipublikasikan %}
+                         <a href="{% url 'catalog' %}" class="w-full py-2 bg-green-600 text-white text-sm font-bold rounded-lg text-center hover:bg-green-700 shadow-md shadow-green-200 transition-all hover:-translate-y-0.5">
+                            <i class="fas fa-eye mr-1"></i> Lihat Katalog
+                        </a>
+                    {% else %}
+                        <a href="{% url 'project_detail' project.id %}" class="w-full py-2 bg-gray-50 text-gray-600 text-sm font-bold rounded-lg text-center hover:bg-teal-50 hover:text-teal-600 border border-gray-100 transition-all">
+                            Lihat Detail
+                        </a>
+                    {% endif %}
+
+                </div>
+            </div>
+       </div>
+       
+       {% empty %}
+       <div class="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100">
+            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-search text-gray-300 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">Tidak ada proyek ditemukan</h3>
+            <p class="text-gray-500 mt-2">Coba ubah filter atau kata kunci pencarian Anda.</p>
+       </div>
+       {% endfor %}
+    </div>
+
   </div>
-
 </div>
-{% endblock dashboard_content %}
 
-{% block extra_scripts %}
-{{ block.super }}
-<style>
-      /* Card Hover Effect (Dipindahkan dari catalog.html) */
-      .card-hover {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
-          0 8px 10px -6px rgb(0 0 0 / 0.1);
-      }
-</style>
 <script>
-    // Mencegah klik tombol aksi di dalam card agar tidak memicu navigasi card keseluruhan
     document.addEventListener('DOMContentLoaded', function() {
-        const cardContainers = document.querySelectorAll('.card-hover');
-        cardContainers.forEach(container => {
-            // Tangkap semua tombol dan link di dalam div aksi (paling bawah)
-            const actionElements = container.querySelectorAll('.p-4 > .flex.gap-2 a, .p-4 > .flex.gap-2 form');
-            actionElements.forEach(element => {
-                element.addEventListener('click', function(e) {
-                    // Hanya hentikan propagasi jika elemen adalah tombol aksi BUKAN tombol 'Lihat Detail' cadangan
-                    const isDefaultDetailLink = element.tagName === 'A' && element.textContent.trim() === 'Lihat Detail';
-                    if (!isDefaultDetailLink) {
-                        e.stopPropagation();
-                    }
-                });
+        const form = document.querySelector('form[action="{% url 'repository' %}"]');
+        const inputs = form.querySelectorAll('select, input[type="date"]');
+        
+        inputs.forEach(input => {
+            input.addEventListener('change', () => {
+                // Uncomment line below to auto-submit
+                // form.submit(); 
             });
         });
     });
 </script>
-{% endblock extra_scripts %}
+{% endblock dashboard_content %}

@@ -5,112 +5,259 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Dashboard - Gagasan{% endblock %}</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      body { font-family: "Inter", sans-serif; }
-      ::-webkit-scrollbar { width: 6px; height: 6px; }
-      ::-webkit-scrollbar-track { background: #f1f1f1; }
-      ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-      .assessment-radio + label { display: inline-block; cursor: pointer; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-right: 0.5rem; transition: all 0.2s ease-in-out; font-size: 0.875rem; background-color: #f9fafb; }
-      .assessment-radio:hover + label { background-color: #f3f4f6; border-color: #9ca3af; }
-      .assessment-radio:checked + label { background-color: #EDE9FE; border-color: #A78BFA; color: #5B21B6; font-weight: 600; box-shadow: 0 0 0 1px #A78BFA; }
-      .assessment-radio { display: none; }
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-      .modal-vjs { display: none; opacity: 0; transition: opacity 0.3s ease-out; }
-      .modal-vjs.flex { display: flex; opacity: 1; }
-      .modal-box-vjs { transform: scale(0.95); opacity: 0; transition: transform 0.3s ease-out, opacity 0.3s ease-out; }
-      .modal-vjs.flex .modal-box-vjs { transform: scale(1); opacity: 1; }
+    <style>
+      body { 
+          font-family: 'Plus Jakarta Sans', sans-serif; 
+          background-color: #f0fdfa; /* Teal-50 background luar agar senada */
+      }
+      
+      /* Custom Scrollbar for Sidebar */
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+      /* Smooth Transitions */
+      .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      
+      /* Active Nav Item Style (Nuansa PNJ) */
+      .nav-active {
+        /* PNJ Tosca lebih gelap sedikit untuk active state, atau aksen kuning */
+        background: rgba(255, 255, 255, 0.2); 
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #FDB913; /* Aksen Kuning PNJ pada border kiri */
+      }
+      
+      /* Hover Nav Item Style */
+      .nav-hover:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        transform: translateX(4px);
+      }
+
+      /* Animation Fade In */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
     {% block extra_head %}{% endblock %}
   </head>
-  <body class="bg-gray-50 flex">
-    <aside
-      class="w-72 bg-gradient-to-b from-purple-700 to-blue-700 text-white flex flex-col fixed h-screen shadow-lg z-20"
-    >
-        <div class="p-6 flex items-center gap-3 border-b border-white/20">
-        <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo Gagasan" class="h-10 w-10 rounded-lg bg-white/30 p-1"/>
-        <div>
-          <h1 class="font-bold text-lg">GAGASAN</h1>
-          <p class="text-xs font-light text-white/80">Dari Gagasan Jadi Inovasi</p>
-        </div>
+  <body class="flex h-screen overflow-hidden text-gray-800">
+
+    <div id="overlay" onclick="toggleSidebar()" 
+         class="fixed inset-0 bg-teal-900/60 backdrop-blur-sm z-30 hidden lg:hidden opacity-0 transition-opacity duration-300">
+    </div>
+
+    <aside id="sidebar" 
+           class="w-72 bg-[#00897B] text-white flex flex-col fixed h-full z-40 sidebar-transition -translate-x-full lg:translate-x-0 border-r border-white/10 shadow-2xl">
+      
+      <div class="h-20 flex items-center gap-3 px-6 border-b border-white/10 shrink-0">
+         <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-lg">
+            <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="G" class="w-6 h-6 object-contain"/>
+         </div>
+         <div>
+            <h1 class="font-extrabold text-xl tracking-tight leading-none">GAGASAN</h1>
+            <p class="text-[10px] text-teal-100 font-medium tracking-wide uppercase mt-1">Inovasi Digital</p>
+         </div>
       </div>
-      <div class="p-6 flex items-center gap-3">
-        <div class="w-10 h-10 bg-purple-400 rounded-full flex items-center justify-center ring-2 ring-white/50"><i class="fas fa-user"></i></div>
-        <div>
-          <h2 class="font-semibold">{{ request.user.username }}</h2>
-          <span class="px-2 py-0.5 bg-white/30 text-xs rounded-full font-medium">{{ request.user.get_peran_display }}</span>
-        </div>
+
+      <div class="px-4 py-6 shrink-0">
+         <div class="p-3 rounded-xl bg-white/10 border border-white/10 flex items-center gap-3 backdrop-blur-sm">
+            <div class="w-10 h-10 rounded-full bg-white p-[2px] shrink-0 shadow-sm">
+               <div class="w-full h-full rounded-full bg-teal-50 flex items-center justify-center overflow-hidden">
+                   <i class="fas fa-user text-teal-600"></i>
+               </div>
+            </div>
+            <div class="overflow-hidden">
+               <h2 class="font-bold text-sm truncate">{{ request.user.username }}</h2>
+               <span class="inline-block px-2 py-0.5 bg-[#FDB913] text-teal-900 text-[10px] rounded font-bold uppercase tracking-wider mt-0.5 shadow-sm">
+                   {{ request.user.get_peran_display }}
+               </span>
+            </div>
+         </div>
       </div>
-     <nav class="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto">
-        
-        {% if request.user.peran == 'unit_bisnis' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repository</span></a>
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
-        <a href="{% url 'dashboard_unit_bisnis' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_unit_bisnis' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-tachometer-alt w-5 text-center"></i><span>Dashboard</span></a>
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
 
-        <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Administrasi</p>
-        <a href="{% url 'manage_users' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_users' or request.resolver_match.url_name == 'approve_user' or request.resolver_match.url_name == 'toggle_active_user' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-users-cog w-5 text-center"></i><span>Manajemen User</span></a>
-        <a href="{% url 'manage_products' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'manage_products' or request.resolver_match.url_name == 'delete_product' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-archive w-5 text-center"></i><span>Manajemen Produk</span></a>
-        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-file-code w-5 text-center"></i><span>Source Code Requests</span></a>
-
-        <p class="px-4 pt-4 pb-2 text-xs font-medium text-white/50 uppercase">Alur Kerja Kurasi</p>
-        <a href="{% url 'panduan_kerjasama' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-clipboard-list w-5 text-center"></i><span>Panduan Alur Kerja</span></a>
-        <a href="{% url 'assign_curator_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'assign_curator_list' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-check w-5 text-center"></i><span>1. Penugasan Kurator</span></a>
-        <a href="{% url 'monitoring_penilaian_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'monitoring_penilaian_list' or request.resolver_match.url_name == 'get_monitoring_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-chart-line w-5 text-center"></i><span>2. Monitoring Penilaian</span></a>
-        <a href="{% url 'review_decision_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'review_decision_list' or request.resolver_match.url_name == 'get_review_details_json' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-gavel w-5 text-center"></i><span>3. Review & Keputusan</span></a>
-        <a href="{% url 'publish_catalog_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'publish_catalog_list' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-upload w-5 text-center"></i><span>4. Publikasi Katalog</span></a>
-        <a href="{% url 'sistem_kurasi' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors"><i class="fas fa-info-circle w-5 text-center"></i><span>Info Sistem Kurasi</span></a>
-
-        {% elif request.user.peran == 'mahasiswa' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-book-open w-5 text-center"></i><span>Repository</span></a>
-         <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
-         <a href="{% url 'dashboard_mahasiswa' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_mahasiswa' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-home w-5 text-center"></i><span>Dashboard</span></a>
-         <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
-         <a href="{% url 'my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>My Projects</span></a>
-         <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Access Requests</span></a>
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar pb-6">
          
-        {% elif request.user.peran == 'dosen' %}
-        <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'repository' %}bg-white/20 font-semibold shadow-inner{% endif %}" > <i class="fas fa-book-open w-5 text-center"></i> <span>Repository</span> </a>
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
-        
-        <a href="{% url 'dashboard_dosen' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_dosen' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-home w-5 text-center"></i> <span>Dashboard</span></a>
-        
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
-        
-        <a href="{% url 'dosen_my_projects' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dosen_my_projects' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-folder w-5 text-center"></i><span>My Projects</span></a>
-        
-        <a href="{% url 'kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'kurasi_produk_list' or request.resolver_match.url_name == 'assess_project' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-tasks w-5 text-center"></i> <span>Kurasi Produk</span></a>
-        
-        <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'access_requests' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-key w-5 text-center"></i><span>Access Requests</span></a>
+         {% if request.user.peran == 'unit_bisnis' %}
+            <div class="px-2 mt-2 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Utama</div>
+            <a href="{% url 'dashboard_unit_bisnis' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_unit_bisnis' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-tachometer-alt w-5 text-center"></i> Dashboard
+            </a>
+            <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'repository' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-book-open w-5 text-center"></i> Repositori
+            </a>
+            <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'catalog' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-store w-5 text-center"></i> Katalog
+            </a>
 
-        {% elif request.user.peran == 'mitra' %}
-        <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'catalog' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-store w-5 text-center"></i><span>Catalog</span></a>
-        <a href="{% url 'dashboard_mitra' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'dashboard_mitra' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-home w-5 text-center"></i> <span>Dashboard</span></a>
-        <a href="{% url 'mitra_kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'mitra_kurasi_produk_list' or request.resolver_match.url_name == 'assess_project' %}bg-white/20 font-semibold shadow-inner{% endif %}"> <i class="fas fa-tasks w-5 text-center"></i> <span>Kurasi Produk</span></a>
-        
-        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-white/10 transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-white/20 font-semibold shadow-inner{% endif %}"><i class="fas fa-user-circle w-5 text-center"></i><span>Profile</span></a>
-        {% endif %}
+            <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Manajemen</div>
+            <a href="{% url 'manage_users' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'manage_users' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-users-cog w-5 text-center"></i> Pengguna
+            </a>
+            <a href="{% url 'manage_products' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'manage_products' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-archive w-5 text-center"></i> Produk
+            </a>
+            <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'access_requests' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-key w-5 text-center"></i> Akses Source Code
+            </a>
+
+            <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Kurasi</div>
+            <a href="{% url 'assign_curator_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'assign_curator_list' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-user-plus w-5 text-center"></i> Penugasan
+            </a>
+            <a href="{% url 'monitoring_penilaian_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'monitoring_penilaian_list' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-chart-line w-5 text-center"></i> Monitoring
+            </a>
+            <a href="{% url 'review_decision_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'review_decision_list' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-gavel w-5 text-center"></i> Keputusan
+            </a>
+            <a href="{% url 'publish_catalog_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'publish_catalog_list' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-upload w-5 text-center"></i> Publikasi
+            </a>
+            
+            <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Bantuan</div>
+            <a href="{% url 'panduan_kerjasama' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'panduan_kerjasama' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-handshake w-5 text-center"></i> Panduan Kerjasama
+            </a>
+            <a href="{% url 'sistem_kurasi' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'sistem_kurasi' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-info-circle w-5 text-center"></i> Info Sistem Kurasi
+            </a>
+
+         {% elif request.user.peran == 'mahasiswa' %}
+            <div class="px-2 mt-2 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Menu</div>
+            <a href="{% url 'dashboard_mahasiswa' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_mahasiswa' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-home w-5 text-center"></i> Dashboard
+            </a>
+            <a href="{% url 'my_projects' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'my_projects' or request.resolver_match.url_name == 'upload_project' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-folder w-5 text-center"></i> Proyek Saya
+            </a>
+            <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'repository' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-book-open w-5 text-center"></i> Repositori
+            </a>
+            <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'catalog' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-store w-5 text-center"></i> Katalog
+            </a>
+            <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'access_requests' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-key w-5 text-center"></i> Permintaan Akses
+            </a>
+
+         {% elif request.user.peran == 'dosen' %}
+            <div class="px-2 mt-2 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Menu</div>
+            <a href="{% url 'dashboard_dosen' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_dosen' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-home w-5 text-center"></i> Dashboard
+            </a>
+            <a href="{% url 'dosen_my_projects' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dosen_my_projects' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-folder w-5 text-center"></i> Proyek Saya
+            </a>
+            <a href="{% url 'kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'kurasi_produk_list' or request.resolver_match.url_name == 'assess_project' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-clipboard-check w-5 text-center"></i> Tugas Kurasi
+            </a>
+            <a href="{% url 'repository' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'repository' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-book-open w-5 text-center"></i> Repositori
+            </a>
+            <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'catalog' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-store w-5 text-center"></i> Katalog
+            </a>
+            <a href="{% url 'access_requests' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'access_requests' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-key w-5 text-center"></i> Akses Source Code
+            </a>
+
+         {% elif request.user.peran == 'mitra' %}
+            <div class="px-2 mt-2 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Menu</div>
+            <a href="{% url 'dashboard_mitra' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard_mitra' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-home w-5 text-center"></i> Dashboard
+            </a>
+            <a href="{% url 'mitra_kurasi_produk_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'mitra_kurasi_produk_list' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-clipboard-check w-5 text-center"></i> Tugas Kurasi
+            </a>
+            <a href="{% url 'catalog' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'catalog' %}nav-active{% else %}nav-hover{% endif %}">
+                <i class="fas fa-store w-5 text-center"></i> Katalog
+            </a>
+         {% endif %}
+
+         <div class="px-2 mt-6 mb-2 text-[10px] font-bold text-teal-100/70 uppercase tracking-widest">Akun</div>
+         <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {% if request.resolver_match.url_name == 'profile' %}nav-active{% else %}nav-hover{% endif %}">
+             <i class="fas fa-user-circle w-5 text-center"></i> Profil Saya
+         </a>
+
+         <div class="pt-4 mt-2">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-teal-100 hover:bg-white/10 hover:text-white transition-all duration-200 group">
+                    <i class="fas fa-sign-out-alt w-5 text-center group-hover:rotate-180 transition-transform duration-300"></i>
+                    <span class="text-sm font-medium">Keluar</span>
+                </button>
+            </form>
+         </div>
+
       </nav>
-      <div class="p-4 border-t border-white/20">
-        <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/90 hover:bg-red-500 hover:text-white transition-colors"><i class="fas fa-sign-out-alt w-5 text-center"></i><span>Logout</span></a>
+      
+      <div class="p-4 border-t border-white/10 text-center bg-[#00796B] shrink-0">
+         <p class="text-[10px] text-teal-100/80 font-medium">© 2025 Gagasan System v1.0</p>
       </div>
     </aside>
 
-    <main class="ml-72 flex-1 overflow-y-auto">
-      {% block dashboard_content %}
-      <div class="p-8">
-        <h1 class="text-2xl font-bold">Selamat Datang</h1>
-        <p>Pilih menu dari sidebar untuk memulai.</p>
-      </div>
-      {% endblock %}
+    <main class="flex-1 ml-0 lg:ml-72 h-screen overflow-y-auto bg-slate-50 relative">
+       
+       <header class="lg:hidden sticky top-0 z-20 px-6 py-4 flex items-center justify-between border-b border-gray-200/60 bg-white/80 backdrop-blur-md shadow-sm">
+          <div class="flex items-center gap-3">
+             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md">
+                <img src="{% static 'images/LOGO GAGASAN.png' %}" class="w-4 h-4 object-contain brightness-0 invert" alt="">
+             </div>
+             <span class="font-bold text-gray-800 tracking-tight text-lg">Gagasan</span>
+          </div>
+          <button onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-teal-600 transition-colors border border-gray-100">
+             <i class="fas fa-bars text-lg"></i>
+          </button>
+       </header>
+
+       <div class="animate-fade-in min-h-full">
+          {% block dashboard_content %}{% endblock %}
+       </div>
     </main>
 
-     {% block extra_scripts %}{% endblock %}
+    <script>
+       function toggleSidebar() {
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('overlay');
+          const isClosed = sidebar.classList.contains('-translate-x-full');
+          
+          if (isClosed) {
+             // Open Sidebar
+             sidebar.classList.remove('-translate-x-full');
+             overlay.classList.remove('hidden');
+             setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+          } else {
+             // Close Sidebar
+             sidebar.classList.add('-translate-x-full');
+             overlay.classList.add('opacity-0');
+             setTimeout(() => overlay.classList.add('hidden'), 300);
+          }
+       }
+
+       // Auto close sidebar on large screens
+       window.addEventListener('resize', () => {
+          if (window.innerWidth >= 1024) {
+             const sidebar = document.getElementById('sidebar');
+             const overlay = document.getElementById('overlay');
+             sidebar.classList.add('lg:translate-x-0'); 
+             overlay.classList.add('hidden');
+             overlay.classList.add('opacity-0');
+          }
+       });
+    </script>
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

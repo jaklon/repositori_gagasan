@@ -1,210 +1,271 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
-{% load repository_extras %} {# TAMBAHAN: Muat custom template tags #}
+{% load repository_extras %}
 
 {% block title %}Tahap 2: Penugasan Kurator - Gagasan{% endblock %}
 
 {% block dashboard_content %}
-<div class="p-8">
-  <div class="flex items-center gap-4 mb-6">
-    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-      <i class="fas fa-user-check text-purple-600 text-xl"></i>
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-50 to-emerald-100 rounded-full blur-3xl opacity-50 -mr-16 -mt-16 pointer-events-none"></div>
+
+      <div class="flex items-center gap-5 relative z-10">
+        <div class="w-16 h-16 bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl flex items-center justify-center shadow-inner">
+          <span class="text-3xl">👥</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">
+            Tahap 2: Penugasan Kurator
+          </h1>
+          <p class="text-sm text-gray-500 mt-1 max-w-xl">
+            Tugaskan kurator dosen dan industri untuk menilai produk yang telah lolos seleksi. Batas waktu penugasan: 3 hari kerja.
+          </p>
+        </div>
+      </div>
     </div>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Tahap 2: Penugasan Kurator</h1>
-      <p class="text-sm text-gray-600">Tugaskan kurator dosen dan industri untuk setiap produk (Batas: 3 hari kerja).</p>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="relative px-4">
+            <div class="flex items-center justify-between text-center relative z-10">
+                <div class="flex flex-col items-center group cursor-default opacity-60">
+                    <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-500">1. Seleksi</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-green-200 mx-2"></div>
+
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center mb-2 shadow-lg shadow-teal-200 ring-4 ring-teal-50">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <span class="text-xs font-bold text-teal-700">2. Penugasan</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+
+                <div class="flex flex-col items-center opacity-40">
+                    <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-2 border border-gray-200">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400">3. Monitoring</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+
+                <div class="flex flex-col items-center opacity-40">
+                    <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-2 border border-gray-200">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400">4. Keputusan</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-200 mx-2"></div>
+
+                <div class="flex flex-col items-center opacity-40">
+                    <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-2 border border-gray-200">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400">5. Publikasi</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 text-xs text-center">
-      <div class="text-green-600 font-semibold">
-          <div class="w-6 h-6 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-1"><i class="fas fa-check"></i></div>
-          Seleksi Proyek
-      </div>
-      <div class="flex-1 h-px bg-gray-200 mx-2 relative"><div class="absolute left-0 top-0 h-px bg-green-500 w-full"></div></div>
-      <div class="text-purple-600 font-semibold">
-          <div class="w-6 h-6 mx-auto rounded-full bg-purple-100 ring-2 ring-purple-300 flex items-center justify-center mb-1"><i class="fas fa-user-check"></i></div>
-          Penugasan Kurator
-      </div>
-      <div class="flex-1 h-px bg-gray-200 mx-2"></div>
-      <div class="text-gray-400">
-          <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-tasks"></i></div>
-          Monitoring Penilaian
-      </div>
-      <div class="flex-1 h-px bg-gray-200 mx-2"></div>
-      <div class="text-gray-400">
-          <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-gavel"></i></div>
-          Review & Keputusan
-      </div>
-       <div class="flex-1 h-px bg-gray-200 mx-2"></div>
-      <div class="text-gray-400">
-          <div class="w-6 h-6 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-upload"></i></div>
-          Publikasi Katalog
-      </div>
-  </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                <div class="p-2 bg-orange-100 rounded-lg text-orange-600 shrink-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-orange-800 text-sm">Perhatian Diperlukan</h3>
+                    <p class="text-xs text-orange-700 mt-1 leading-relaxed">
+                        Pastikan penugasan dilakukan segera. Keterlambatan penugasan akan mempengaruhi durasi keseluruhan proses kurasi.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-
-  <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3 mb-6 shadow-sm">
-    <i class="fas fa-exclamation-triangle text-orange-500 mt-1"></i>
-    <div>
-      <h3 class="font-semibold text-orange-800">Peringatan Deadline</h3>
-      <p class="text-sm text-orange-700">Terdapat produk yang mendekati atau melewati batas waktu penugasan kurator. Harap segera menugaskan kurator untuk menghindari keterlambatan proses.</p>
+        <div class="lg:col-span-1">
+            <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+                <div class="relative group">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-teal-500 transition-colors"></i>
+                    <input type="text" placeholder="Cari produk..." 
+                           class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-transparent rounded-lg text-sm focus:bg-white focus:border-teal-200 focus:ring-4 focus:ring-teal-100 transition-all outline-none placeholder-gray-400 text-gray-700"/>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 mb-8 shadow-sm">
-    <i class="fas fa-arrow-right text-green-600 mt-1"></i>
-    <div>
-      <h3 class="font-semibold text-green-800">Langkah Selanjutnya</h3>
-      <p class="text-sm text-green-700">Setelah menugaskan kurator, pantau progres di <strong>Tahap 3: Monitoring Penilaian</strong>.</p>
-    </div>
-  </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h2 class="font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-list-ul text-teal-500"></i>
+                Antrean Penugasan
+            </h2>
+            <span class="bg-teal-100 text-teal-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                {{ projects_selected.count }} Produk
+            </span>
+        </div>
 
-   <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-     <div class="relative">
-        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        <input type="text" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"/>
-      </div>
-  </div>
-
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <div class="px-6 py-4 border-b">
-      <h2 class="text-lg font-semibold">Produk Menunggu Penugasan ({{ projects_selected.count }})</h2>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Produk</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahasiswa</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Seleksi</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Waktu</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          {% for project in projects_selected %}
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ project.title }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ project.id_pemilik.username }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-               {% for cat in project.kategori.all %}{{ cat.nama }}{% if not forloop.last %}, {% endif %}{% empty %}N/A{% endfor %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ project.updated_at|date:"d M Y" }} </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                {% with deadline_dt=project.updated_at|add_days:3 %}
-                   {% now "Y-m-d H:i:s" as current_time_str %}
-                   {% parse_datetime current_time_str as current_dt %}
-                   
-                   {% if deadline_dt and current_dt %}
-                       {% timeuntil_days deadline_dt current_dt as days_left %}
-                       
-                       {% if days_left < 0 %}
-                           <span class="text-red-600 font-semibold">
-                               Terlambat {{ days_left|cut:"-"|default:"0" }} hari
-                           </span>
-                       {% elif days_left == 0 %}
-                            <span class="text-orange-600 font-semibold">
-                                Hari Ini
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Produk & Pemilik</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Tgl Seleksi</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Sisa Waktu</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for project in projects_selected %}
+                    <tr class="hover:bg-teal-50/30 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-gray-900 line-clamp-1">{{ project.title }}</span>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <i class="fas fa-user text-[10px] text-gray-400"></i>
+                                    <span class="text-xs text-gray-500">{{ project.id_pemilik.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                {{ project.kategori.first.nama|default:"N/A" }}
                             </span>
-                       {% else %}
-                             <span class="text-gray-700">
-                                {{ days_left }} hari lagi
-                             </span>
-                       {% endif %}
-                   {% else %}
-                        <span class="text-gray-400">N/A</span>
-                   {% endif %}
-                {% endwith %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <button
-                type="button"
-                onclick="openAssignModal('{{ project.id }}', '{{ project.title|escapejs }}', '{{ project.id_pemilik.username|escapejs }}', '{{ project.kategori.first.nama|default:"N/A"|escapejs }}')"
-                class="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 transition-colors"
-              >
-                <i class="fas fa-user-plus mr-1"></i> Tugaskan Kurator
-              </button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
-              Tidak ada produk yang menunggu penugasan kurator.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-medium">
+                            {{ project.updated_at|date:"d M Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% with deadline_dt=project.updated_at|add_days:3 %}
+                                {% now "Y-m-d H:i:s" as current_time_str %}
+                                {% parse_datetime current_time_str as current_dt %}
+                                
+                                {% if deadline_dt and current_dt %}
+                                    {% timeuntil_days deadline_dt current_dt as days_left %}
+                                    
+                                    {% if days_left < 0 %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                                            <i class="fas fa-exclamation-circle"></i> Telat {{ days_left|cut:"-" }} hari
+                                        </span>
+                                    {% elif days_left == 0 %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                                            <i class="fas fa-clock"></i> Hari Ini
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                            <i class="fas fa-hourglass-half"></i> {{ days_left }} hari
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-400 text-xs">-</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button type="button" 
+                                onclick="openAssignModal('{{ project.id }}', '{{ project.title|escapejs }}', '{{ project.id_pemilik.username|escapejs }}', '{{ project.kategori.first.nama|default:"N/A"|escapejs }}')"
+                                class="px-4 py-2 bg-teal-600 text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-all shadow-sm shadow-teal-200 hover:-translate-y-0.5 flex items-center gap-2 ml-auto">
+                                <i class="fas fa-user-plus"></i> Tugaskan
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-16 text-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300">
+                                <i class="fas fa-clipboard-check text-3xl"></i>
+                            </div>
+                            <p class="text-gray-500 font-medium">Tidak ada produk yang menunggu penugasan.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-  </div>
 
+  </div>
 </div>
 
-<div id="assignModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-xl max-w-lg w-full shadow-xl transform transition-all" onclick="event.stopPropagation();">
-      <div class="p-5 border-b flex justify-between items-center">
-          <h2 class="text-xl font-semibold">Tugaskan Kurator</h2>
-          <button onclick="closeAssignModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-      </div>
-      <form id="assignForm" method="POST" action=""> {% csrf_token %}
-           <input type="hidden" name="project_id" id="modalProjectId"> <div class="p-6 space-y-4">
-              <p class="text-sm text-gray-600">Pilih kurator dosen dan mitra industri untuk produk "<strong id="modalProjectTitle">Nama Proyek</strong>"</p>
-              <div class="bg-gray-50 p-4 rounded-lg flex justify-between text-sm border">
-                  <div>
-                      <span class="text-gray-500">Mahasiswa:</span>
-                      <strong class="block text-gray-800" id="modalStudentName">Nama Mahasiswa</strong>
-                  </div>
-                   <div>
-                      <span class="text-gray-500">Kategori:</span>
-                      <strong class="block text-gray-800" id="modalCategoryName">Nama Kategori</strong>
-                  </div>
-              </div>
+<div id="assignModal" class="fixed inset-0 bg-teal-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full transform scale-95 transition-transform duration-300" id="assignModalContent" onclick="event.stopPropagation();">
+        
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-user-tag text-teal-500"></i> Tugaskan Kurator
+            </h2>
+            <button onclick="closeAssignModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
 
-             <div>
-                  <label for="id_kurator_dosen" class="block text-sm font-medium text-gray-700 mb-1">Kurator Dosen <span class="text-red-500">*</span></label>
-                  
-                  {# GANTI DENGAN INI #}
-                  {{ assign_form.kurator_dosen }} 
-                  
-                  {% if assign_form.kurator_dosen.errors %}
-                      <p class="text-xs text-red-600 mt-1">{{ assign_form.kurator_dosen.errors|striptags }}</p>
-                  {% endif %}
-              </div>
-              <div>
-                  <label for="id_kurator_mitra" class="block text-sm font-medium text-gray-700 mb-1">Kurator Mitra Industri <span class="text-red-500">*</span></label>
-                  
-                  {# GANTI DENGAN INI #}
-                  {{ assign_form.kurator_mitra }}
-                  
-                  {% if assign_form.kurator_mitra.errors %}
-                      <p class="text-xs text-red-600 mt-1">{{ assign_form.kurator_mitra.errors|striptags }}</p>
-                  {% endif %}
-              </div>
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700 flex items-start gap-2">
-                   <i class="fas fa-info-circle mt-0.5"></i>
-                   <span><strong>Catatan:</strong> Setelah kurator ditugaskan, mereka memiliki waktu 10 hari kalender untuk menyelesaikan penilaian produk ini.</span>
-               </div>
+        <form id="assignForm" method="POST" action=""> 
+            {% csrf_token %}
+            <input type="hidden" name="project_id" id="modalProjectId"> 
+            
+            <div class="p-6 space-y-5">
+                <div class="bg-teal-50 rounded-xl p-4 border border-teal-100">
+                    <p class="text-xs text-teal-600 font-bold uppercase mb-1">Target Proyek</p>
+                    <h3 class="font-bold text-gray-900 line-clamp-1 mb-2" id="modalProjectTitle">Nama Proyek</h3>
+                    <div class="flex gap-4 text-xs text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-user text-teal-500"></i> <span id="modalStudentName">Student</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-tag text-teal-500"></i> <span id="modalCategoryName">Category</span>
+                        </div>
+                    </div>
+                </div>
 
-           </div>
-           <div class="p-4 border-t bg-gray-50 flex gap-3 justify-end rounded-b-xl">
-               <button type="button" onclick="closeAssignModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
-                   Batal
-               </button>
-                <button type="submit" class="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1.5">
-                   <i class="fas fa-user-check"></i> Tugaskan Kurator
-               </button>
-           </div>
-       </form>
-  </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="id_kurator_dosen" class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Kurator Dosen <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            {{ assign_form.kurator_dosen }}
+                            </div>
+                        {% if assign_form.kurator_dosen.errors %}
+                            <p class="text-xs text-red-600 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ assign_form.kurator_dosen.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="id_kurator_mitra" class="block text-sm font-bold text-gray-700 mb-1.5">Pilih Mitra Industri <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            {{ assign_form.kurator_mitra }}
+                        </div>
+                        {% if assign_form.kurator_mitra.errors %}
+                            <p class="text-xs text-red-600 mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ assign_form.kurator_mitra.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                    <span>Kurator terpilih akan mendapatkan notifikasi dan memiliki waktu <strong>10 hari</strong> untuk menyelesaikan penilaian.</span>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-100 flex gap-3 justify-end bg-gray-50/50 rounded-b-2xl">
+                <button type="button" onclick="closeAssignModal()" class="px-5 py-2.5 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-sm font-bold text-gray-600">
+                    Batal
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 shadow-lg shadow-teal-200 transition-all text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-check"></i> Konfirmasi
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
     const modalElement = document.getElementById('assignModal');
+    const modalContent = document.getElementById('assignModalContent');
     const assignForm = document.getElementById('assignForm');
     const modalProjectIdInput = document.getElementById('modalProjectId');
     const modalProjectTitle = document.getElementById('modalProjectTitle');
@@ -212,31 +273,44 @@
     const modalCategoryName = document.getElementById('modalCategoryName');
 
     function openAssignModal(projectId, projectTitle, studentName, categoryName) {
-        // Isi data ke modal
         modalProjectIdInput.value = projectId;
         modalProjectTitle.textContent = projectTitle;
         modalStudentName.textContent = studentName;
         modalCategoryName.textContent = categoryName;
+        
+        // Sesuaikan URL action form
+        assignForm.action = `/assign-curator/${projectId}/`;
 
-        // Set action URL form (menuju view yang akan menangani POST)
-        assignForm.action = `/assign-curator/${projectId}/`; // Sesuaikan URL ini
+        // Reset form selections
+        const selects = assignForm.querySelectorAll('select');
+        selects.forEach(select => select.selectedIndex = 0);
 
-        // Reset pilihan dropdown (jika perlu)
-        assignForm.reset();
-
-        // Tampilkan modal
+        // Show Modal with Animation
         modalElement.classList.remove('hidden');
+        modalElement.classList.add('flex'); // Use flex to center
+        setTimeout(() => {
+            modalElement.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }, 10);
     }
 
     function closeAssignModal() {
-        modalElement.classList.add('hidden');
+        modalElement.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modalElement.classList.add('hidden');
+            modalElement.classList.remove('flex');
+        }, 300);
     }
 
-    // Tutup modal jika klik di luar area modal
-    modalElement.addEventListener('click', function(event) {
-        if (event.target === modalElement) {
-            closeAssignModal();
-        }
+    // Styling Select Input dari Django Form secara manual jika perlu
+    document.addEventListener("DOMContentLoaded", function() {
+        const formSelects = document.querySelectorAll('#assignForm select');
+        formSelects.forEach(select => {
+            select.classList.add('w-full', 'px-4', 'py-3', 'bg-white', 'border', 'border-gray-200', 'rounded-xl', 'focus:ring-2', 'focus:ring-teal-500', 'focus:border-teal-500', 'transition-all', 'text-sm', 'outline-none');
+        });
     });
 </script>
 {% endblock %}

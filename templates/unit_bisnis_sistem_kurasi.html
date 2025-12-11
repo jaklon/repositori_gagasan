@@ -1,172 +1,214 @@
 {% extends "_base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Info Sistem Kurasi{% endblock %}
+{% block title %}Info Sistem Kurasi - Gagasan{% endblock %}
 
 {% block dashboard_content %}
+<div class="min-h-screen bg-gray-50/50 p-6 md:p-8">
+  <div class="max-w-5xl mx-auto space-y-10">
 
-<div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-50 to-emerald-100 rounded-full blur-3xl opacity-50 -mr-16 -mt-16 pointer-events-none"></div>
 
-    <!-- Judul -->
-    <h1 class="text-4xl font-bold text-gray-900 mb-2">Sistem Kurasi Produk</h1>
-    <p class="text-gray-600 mb-8">
-        Panduan lengkap sistem kurasi untuk meningkatkan kualitas produk di repository gagasan
-    </p>
+      <div class="flex items-center gap-5 relative z-10">
+        <div class="w-16 h-16 bg-gradient-to-br from-teal-100 to-emerald-200 rounded-2xl flex items-center justify-center shadow-inner">
+          <span class="text-3xl">🧩</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">
+            Sistem Kurasi Produk
+          </h1>
+          <p class="text-sm text-gray-500 mt-1 max-w-xl">
+            Panduan lengkap mengenai standar penilaian dan proses validasi produk di Repositori Gagasan.
+          </p>
+        </div>
+      </div>
+    </div>
 
-    <!-- Gambaran Umum -->
-    <div class="bg-white rounded-xl p-6 shadow border border-gray-100 mb-10">
-        <h2 class="text-xl font-semibold mb-3">Gambaran Umum</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 bg-teal-50 rounded-lg text-teal-600">
+                <i class="fas fa-info-circle text-xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800">Gambaran Umum</h2>
+        </div>
         <p class="text-gray-600 leading-relaxed">
-            Sistem kurasi produk adalah proses penilaian dan validasi kualitas proyek mahasiswa oleh kurator
-            akademik (dosen) dan kurator industri (mitra). Sistem ini memastikan bahwa hanya produk berkualitas
-            tinggi yang dipublikasikan dengan badge kurasi resmi.
+            Sistem kurasi produk adalah mekanisme penjaminan mutu di mana setiap karya inovasi mahasiswa dinilai secara objektif oleh dua pihak: <strong>Akademisi (Dosen)</strong> dan <strong>Praktisi Industri (Mitra)</strong>. Hanya produk yang memenuhi standar kelayakan yang akan mendapatkan lencana "Terkurasi" dan dipublikasikan ke katalog umum.
         </p>
     </div>
 
-    <!-- Screens -->
-    <div class="grid md:grid-cols-2 gap-6 mb-12">
-
-        <!-- Screen A -->
-        <div class="bg-white p-6 rounded-xl shadow border border-purple-100">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-chart-line text-purple-600"></i>
+    <div class="grid md:grid-cols-2 gap-6">
+        
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-                <h3 class="text-lg font-bold">Screen A: Monitoring Dashboard</h3>
+                <div>
+                    <h3 class="font-bold text-gray-800">Dashboard Pemantauan</h3>
+                    <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-bold uppercase tracking-wider">Admin Unit Bisnis</span>
+                </div>
             </div>
-            <ul class="text-gray-700 space-y-1 mb-4">
-                <li>• Filter periode kurasi</li>
-                <li>• Statistik produk dikurasi</li>
-                <li>• Grafik distribusi kategori</li>
-                <li>• Tabel produk dalam penilaian</li>
+            <ul class="space-y-2 text-sm text-gray-600 ml-1">
+                <li class="flex gap-2"><i class="fas fa-check text-teal-500 mt-0.5"></i> Statistik real-time produk</li>
+                <li class="flex gap-2"><i class="fas fa-check text-teal-500 mt-0.5"></i> Pelacakan status penilaian</li>
+                <li class="flex gap-2"><i class="fas fa-check text-teal-500 mt-0.5"></i> Manajemen penugasan kurator</li>
             </ul>
-            <span class="text-xs px-3 py-1 bg-gray-100 rounded-md">Role: Admin</span>
         </div>
 
-        <!-- Screen B -->
-        <div class="bg-white p-6 rounded-xl shadow border border-purple-100">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-clipboard-check text-purple-600"></i>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-clipboard-check"></i>
                 </div>
-                <h3 class="text-lg font-bold">Screen B: Assessment Form</h3>
+                <div>
+                    <h3 class="font-bold text-gray-800">Formulir Penilaian</h3>
+                    <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-bold uppercase tracking-wider">Dosen & Mitra</span>
+                </div>
             </div>
-            <ul class="text-gray-700 space-y-1 mb-4">
-                <li>• 6 aspek penilaian dengan rubrik</li>
-                <li>• Skor 1-4 untuk setiap aspek</li>
-                <li>• Komentar kurator</li>
-                <li>• Deadline otomatis +10 hari</li>
+            <ul class="space-y-2 text-sm text-gray-600 ml-1">
+                <li class="flex gap-2"><i class="fas fa-check text-purple-500 mt-0.5"></i> Penilaian 6 aspek utama</li>
+                <li class="flex gap-2"><i class="fas fa-check text-purple-500 mt-0.5"></i> Skala skor 1-4 per aspek</li>
+                <li class="flex gap-2"><i class="fas fa-check text-purple-500 mt-0.5"></i> Input masukan kualitatif</li>
             </ul>
-            <span class="text-xs px-3 py-1 bg-gray-100 rounded-md">Role: Dosen</span>
-            <span class="text-xs px-3 py-1 bg-gray-100 rounded-md">Role: Mitra</span>
         </div>
 
-        <!-- Screen C -->
-        <div class="bg-white p-6 rounded-xl shadow border border-purple-100">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-eye text-purple-600"></i>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-gavel"></i>
                 </div>
-                <h3 class="text-lg font-bold">Screen C: Result & Decision</h3>
+                <div>
+                    <h3 class="font-bold text-gray-800">Keputusan Akhir</h3>
+                    <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-bold uppercase tracking-wider">Admin Unit Bisnis</span>
+                </div>
             </div>
-            <ul class="text-gray-700 space-y-1 mb-4">
-                <li>• Perbandingan skor dosen vs industri</li>
-                <li>• Nilai akhir dan kategori</li>
-                <li>• Komentar dari kedua kurator</li>
-                <li>• Form keputusan akhir admin</li>
+            <ul class="space-y-2 text-sm text-gray-600 ml-1">
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5"></i> Kalkulasi nilai rata-rata</li>
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5"></i> Rekomendasi sistem otomatis</li>
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5"></i> Penetapan status final</li>
             </ul>
-            <span class="text-xs px-3 py-1 bg-gray-100 rounded-md">Role: Admin</span>
         </div>
 
-        <!-- Screen D -->
-        <div class="bg-white p-6 rounded-xl shadow border border-purple-100">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-award text-purple-600"></i>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-award"></i>
                 </div>
-                <h3 class="text-lg font-bold">Screen D: Public Product Page</h3>
+                <div>
+                    <h3 class="font-bold text-gray-800">Katalog Publik</h3>
+                    <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-bold uppercase tracking-wider">Publik & Industri</span>
+                </div>
             </div>
-            <ul class="text-gray-700 space-y-1 mb-4">
-                <li>• Badge kurasi yang prominent</li>
-                <li>• Nama kurator akademik & industri</li>
-                <li>• Skor dan kategori penilaian</li>
-                <li>• Detail lengkap produk</li>
+            <ul class="space-y-2 text-sm text-gray-600 ml-1">
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i> Showcase produk terkurasi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i> Lencana verifikasi resmi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i> Akses detail & kontak</li>
             </ul>
-            <span class="text-xs px-3 py-1 bg-gray-100 rounded-md">Role: Public</span>
         </div>
-
+        
     </div>
 
-    <!-- 6 Aspek Penilaian -->
-    <div class="bg-white p-6 shadow rounded-xl border border-gray-100 mb-10">
-        <h2 class="text-xl font-bold mb-4">6 Aspek Penilaian</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-list-ol text-teal-500"></i> 6 Aspek Penilaian Utama
+        </h2>
 
-        <div class="grid md:grid-cols-2 gap-6">
-            <div>
-                <p class="font-semibold">Orisinalitas & Inovasi <span class="text-purple-600">15%</span></p>
-                <p class="text-sm text-gray-600 mb-4">Penilaian terhadap kebaruan dan inovasi dalam proyek.</p>
-
-                <p class="font-semibold">Desain UI/UX & Aksesibilitas <span class="text-purple-600">15%</span></p>
-                <p class="text-sm text-gray-600 mb-4">Kualitas antarmuka dan kemudahan penggunaan.</p>
-
-                <p class="font-semibold">Kelayakan Bisnis & Pasar <span class="text-purple-600">20%</span></p>
-                <p class="text-sm text-gray-600">Potensi komersial dan target pasar.</p>
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">15%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">Orisinalitas & Inovasi</h4>
+                        <p class="text-sm text-gray-600 mt-1">Tingkat kebaruan ide dan solusi kreatif yang ditawarkan dalam memecahkan masalah.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">15%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">UI/UX & Aksesibilitas</h4>
+                        <p class="text-sm text-gray-600 mt-1">Estetika desain antarmuka dan kemudahan penggunaan oleh pengguna akhir.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">20%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">Potensi Bisnis</h4>
+                        <p class="text-sm text-gray-600 mt-1">Nilai komersial, target pasar yang jelas, dan keberlanjutan produk.</p>
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <p class="font-semibold">Fungsionalitas Produk <span class="text-purple-600">20%</span></p>
-                <p class="text-sm text-gray-600 mb-4">Seberapa baik fitur produk berfungsi.</p>
-
-                <p class="font-semibold">Teknologi & Tren <span class="text-purple-600">15%</span></p>
-                <p class="text-sm text-gray-600 mb-4">Penggunaan teknologi modern dan relevansi.</p>
-
-                <p class="font-semibold">Dokumentasi <span class="text-purple-600">15%</span></p>
-                <p class="text-sm text-gray-600">Kualitas dokumentasi teknis dan panduan.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kategori Hasil Kurasi -->
-    <div class="bg-white p-6 shadow rounded-xl border border-gray-100 mb-12">
-
-        <h2 class="text-xl font-bold mb-4">Kategori Hasil Kurasi</h2>
-
-        <div class="space-y-3">
-            <div class="rounded-lg p-4 bg-green-50 border border-green-200">
-                <p class="font-semibold text-green-700">Sangat Layak <span class="ml-2">Skor: 3.5 – 4.0</span></p>
-                <p class="text-gray-600 text-sm">Produk berkualitas tinggi, siap dipublikasikan tanpa revisi.</p>
-            </div>
-
-            <div class="rounded-lg p-4 bg-blue-50 border border-blue-200">
-                <p class="font-semibold text-blue-700">Layak (Revisi Minor) <span class="ml-2">Skor: 2.5 – 3.49</span></p>
-                <p class="text-gray-600 text-sm">Produk baik, memerlukan perbaikan kecil sebelum publikasi.</p>
-            </div>
-
-            <div class="rounded-lg p-4 bg-orange-50 border border-orange-200">
-                <p class="font-semibold text-orange-700">Perlu Pembinaan <span class="ml-2">Skor: 1.5 – 2.49</span></p>
-                <p class="text-gray-600 text-sm">Produk memerlukan perbaikan signifikan dan pembinaan lebih lanjut.</p>
-            </div>
-
-            <div class="rounded-lg p-4 bg-red-50 border border-red-200">
-                <p class="font-semibold text-red-700">Tidak Layak <span class="ml-2">Skor: 1.0 – 1.49</span></p>
-                <p class="text-gray-600 text-sm">Produk belum memenuhi standar minimum untuk publikasi.</p>
+            <div class="space-y-6">
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">20%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">Fungsionalitas</h4>
+                        <p class="text-sm text-gray-600 mt-1">Kestabilan sistem, fitur yang berjalan sesuai tujuan, dan minim error.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">15%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">Teknologi</h4>
+                        <p class="text-sm text-gray-600 mt-1">Ketepatan pemilihan teknologi, skalabilitas, dan implementasi teknis.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="font-bold text-teal-600 text-lg w-12 text-right">15%</div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm uppercase">Dokumentasi</h4>
+                        <p class="text-sm text-gray-600 mt-1">Kelengkapan panduan pengguna, dokumentasi teknis, dan kejelasan presentasi.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Alur Kerja -->
-    <div class="bg-white p-6 shadow rounded-xl border border-gray-100">
-        <h2 class="text-xl font-bold mb-4">Alur Kerja Sistem Kurasi</h2>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <i class="fas fa-sort-amount-up text-teal-500"></i> Kategori Kelayakan
+        </h2>
 
-        <ol class="list-decimal pl-6 space-y-2 text-gray-700">
-            <li><b>Produk Disetujui Admin</b> — Produk masuk ke daftar kurasi.</li>
-            <li><b>Penilaian Kurator</b> — Dosen & mitra melakukan penilaian.</li>
-            <li><b>Kalkulasi Nilai Akhir</b> — Sistem menghitung nilai rata-rata berbobot.</li>
-            <li><b>Keputusan Admin</b> — Admin menentukan hasil akhir.</li>
-            <li><b>Publikasi dengan Badge</b> — Produk dipublikasikan dengan badge kurasi.</li>
-        </ol>
+        <div class="space-y-4">
+            <div class="flex flex-col md:flex-row gap-4 p-4 bg-green-50 rounded-xl border border-green-100 items-start md:items-center">
+                <div class="w-16 h-16 rounded-full bg-green-200 text-green-700 flex items-center justify-center font-bold text-xl shrink-0">A</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-green-800">Sangat Layak (Skor 3.50 - 4.00)</h4>
+                    <p class="text-sm text-green-700 mt-1">Produk excellence yang siap dipublikasi dan dipromosikan ke industri tanpa revisi.</p>
+                </div>
+                <span class="px-3 py-1 bg-white text-green-700 text-xs font-bold rounded-full shadow-sm border border-green-200">Lulus Murni</span>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100 items-start md:items-center">
+                <div class="w-16 h-16 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-xl shrink-0">B</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-blue-800">Layak dengan Revisi (Skor 2.75 - 3.49)</h4>
+                    <p class="text-sm text-blue-700 mt-1">Produk potensial yang memerlukan perbaikan minor sebelum dipublikasikan.</p>
+                </div>
+                <span class="px-3 py-1 bg-white text-blue-700 text-xs font-bold rounded-full shadow-sm border border-blue-200">Lulus Bersyarat</span>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100 items-start md:items-center">
+                <div class="w-16 h-16 rounded-full bg-orange-200 text-orange-700 flex items-center justify-center font-bold text-xl shrink-0">C</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-orange-800">Perlu Pembinaan (Skor 2.00 - 2.74)</h4>
+                    <p class="text-sm text-orange-700 mt-1">Produk belum matang, memerlukan bimbingan intensif dan perbaikan signifikan.</p>
+                </div>
+                <span class="px-3 py-1 bg-white text-orange-700 text-xs font-bold rounded-full shadow-sm border border-orange-200">Ditunda</span>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 p-4 bg-red-50 rounded-xl border border-red-100 items-start md:items-center">
+                <div class="w-16 h-16 rounded-full bg-red-200 text-red-700 flex items-center justify-center font-bold text-xl shrink-0">D</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-red-800">Tidak Layak (Skor < 2.00)</h4>
+                    <p class="text-sm text-red-700 mt-1">Produk tidak memenuhi standar minimum kualitas inovasi PNJ.</p>
+                </div>
+                <span class="px-3 py-1 bg-white text-red-700 text-xs font-bold rounded-full shadow-sm border border-red-200">Ditolak</span>
+            </div>
+        </div>
     </div>
 
+  </div>
 </div>
-
 {% endblock %}

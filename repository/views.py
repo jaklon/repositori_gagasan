@@ -3,7 +3,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-
+from django.db import transaction
 
 # --- Models ---
 from .models import Produk, Kategori, Kurasi, Tag, AspekPenilaian, RequestSourceCode
@@ -18,6 +18,7 @@ from django.core.validators import URLValidator
 from django.utils import timezone 
 from django.http import JsonResponse
 from django.urls import reverse 
+from .forms import ProdukForm, DokumenProyekFormSet
 
 # --- PINDAHKAN FUNGSI HELPER INI KE ATAS ---
 # Helper function untuk mengecek apakah user adalah Unit Bisnis
@@ -60,7 +61,7 @@ class ProjectForm(forms.ModelForm):
     )
 
     tags_input = forms.CharField(
-        label="Technologies & Tags (Pisahkan dengan koma)",
+        label="Teknologi (Pisahkan dengan koma)",
         required=False,
         help_text="Contoh: React, Python, UI/UX",
         widget=forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'})
@@ -599,24 +600,27 @@ def sistem_kurasi(request):
 def project_detail_view(request, project_id):
     project = get_object_or_404(Produk.objects.select_related('id_pemilik').prefetch_related('kategori', 'tags'), id=project_id)
     
-    # Coba ambil data kurasi terkait (jika ada)
+    kurasi = None
+    existing_request = None
+    
+    # Cek status kurasi (bisa diakses publik)
     try:
         kurasi = Kurasi.objects.get(id_produk=project)
     except Kurasi.DoesNotExist:
-        kurasi = None
+        pass
 
-    # Cek apakah user yang login sudah pernah request
-    existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    # Cek request hanya jika user sudah login
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
 
-    # Langsung kirim data ke template
     context = {
         'project': project,
         'kurasi': kurasi,
         'existing_request': existing_request, 
+        # Tambahkan flag untuk cek di template
+        'is_authenticated': request.user.is_authenticated 
     }
     return render(request, 'project_detail.html', context)
-# --- AKHIR VIEW DETAIL PROYEK ---
-
 
 # --- VIEW BARU UNTUK HANDLE REQUEST SOURCE CODE ---
 @login_required
@@ -801,7 +805,153 @@ def repository_view(request):
     }
     return render(request, 'repository.html', context)
 # --- AKHIR REPOSITORY VIEW ---
+# ==========================================
+# 1. MODIFIKASI VIEW MANAJEMEN USER
+# ==========================================
+@login_required
+@user_passes_test(is_unit_bisnis, login_url='catalog') 
+def manage_users_view(request):
+    # --- 1. Ambil Parameter Filter ---
+    q = request.GET.get('q', '')
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+    current_tab = request.GET.get('tab', 'all') # Default tab
 
+    # --- 2. Basis Query ---
+    # Exclude superuser dan sesama unit bisnis
+    base_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+
+    # --- 3. Terapkan Filter Global (Berlaku untuk semua list) ---
+    if q:
+        base_query = base_query.filter(
+            Q(username__icontains=q) | 
+            Q(email__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q)
+        )
+    
+    if role_filter:
+        base_query = base_query.filter(peran=role_filter)
+
+    if status_filter:
+        if status_filter == 'approved':
+            base_query = base_query.filter(is_approved=True)
+        elif status_filter == 'pending':
+            base_query = base_query.filter(is_approved=False)
+        elif status_filter == 'aktif':
+            base_query = base_query.filter(status='aktif')
+        elif status_filter == 'nonaktif':
+            base_query = base_query.filter(status='nonaktif')
+
+    # --- 4. Siapkan List untuk Tab ---
+    # Tab 'All Users': Urutkan username
+    all_users_list = base_query.order_by('username')
+
+    # Tab 'Pending': Khusus yang belum diapprove
+    # Catatan: Kita ambil dari base_query agar filter pencarian tetap jalan di tab pending
+    users_pending_list = base_query.filter(is_approved=False).order_by('date_joined')
+
+    # --- 5. Hitung Statistik (Tanpa Filter agar angka tetap real) ---
+    # Kita butuh query baru yang bersih untuk statistik murni
+    stat_query = CustomUser.objects.exclude(is_superuser=True).exclude(peran='unit_bisnis')
+    
+    total_users_count = stat_query.count()
+    active_users_count = stat_query.filter(is_active=True, status='aktif', is_approved=True).count()
+    pending_approval_count = stat_query.filter(is_approved=False).count()
+    
+    mahasiswa_count = stat_query.filter(peran='mahasiswa').count()
+    dosen_count = stat_query.filter(peran='dosen').count()
+    mitra_count = stat_query.filter(peran='mitra').count()
+
+    # Tentukan list mana yang ditampilkan berdasarkan tab
+    if current_tab == 'pending':
+        users_list_to_display = users_pending_list
+    else:
+        users_list_to_display = all_users_list
+
+    context = {
+        'users_list': users_list_to_display,
+        'all_users_list': all_users_list,
+        
+        # Stats
+        'total_users_count': total_users_count,
+        'active_users_count': active_users_count,
+        'pending_approval_count': pending_approval_count,
+        'mahasiswa_count': mahasiswa_count,
+        'dosen_count': dosen_count,
+        'mitra_count': mitra_count,
+
+        # State Filter & Tab
+        'current_tab': current_tab,
+        'current_q': q,
+        'current_role': role_filter,
+        'current_status': status_filter,
+    }
+    return render(request, 'dashboard/manage_users.html', context)
+
+
+# ==========================================
+# 2. MODIFIKASI VIEW MANAJEMEN PRODUK
+# ==========================================
+@login_required
+@user_passes_test(is_unit_bisnis, login_url='catalog')
+def manage_products_view(request):
+    # --- 1. Ambil Parameter Filter ---
+    q = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    status_filter = request.GET.get('status', '')
+
+    # --- 2. Query Dasar ---
+    products_query = Produk.objects.all().select_related('id_pemilik').prefetch_related('kategori').order_by('-created_at')
+
+    # --- 3. Terapkan Filter ---
+    if q:
+        products_query = products_query.filter(
+            Q(title__icontains=q) |
+            Q(id_pemilik__username__icontains=q)
+        )
+    
+    if category_id:
+        products_query = products_query.filter(kategori__id=category_id)
+
+    if status_filter:
+        if status_filter == 'published':
+            products_query = products_query.filter(dipublikasikan=True)
+        elif status_filter == 'draft':
+            products_query = products_query.filter(dipublikasikan=False)
+        else:
+            # Filter berdasarkan field curation_status
+            products_query = products_query.filter(curation_status=status_filter)
+
+    # --- 4. Statistik Global (Tanpa Filter) ---
+    all_products_stats = Produk.objects.all()
+    total_produk_count = all_products_stats.count()
+    published_count = all_products_stats.filter(dipublikasikan=True).count()
+    pending_count = all_products_stats.filter(curation_status='pending').count()
+    in_curation_count = all_products_stats.filter(curation_status__in=[
+        'selected', 'curators-assigned', 'assessment-complete', 
+        'ready-for-publication', 'revision-minor'
+    ]).count()
+
+    # Ambil list kategori untuk dropdown
+    categories = Kategori.objects.all()
+
+    context = {
+        'all_products_list': products_query,
+        'categories': categories,
+
+        # Stats
+        'total_produk_count': total_produk_count,
+        'published_count': published_count,
+        'pending_count': pending_count,
+        'in_curation_count': in_curation_count,
+        
+        # State Filter
+        'current_q': q,
+        'current_category': int(category_id) if category_id else '',
+        'current_status': status_filter,
+    }
+    return render(request, 'dashboard/manage_products.html', context)
 
 @login_required
 @require_POST
@@ -818,31 +968,134 @@ def select_for_curation(request, project_id):
         referer = request.META.get('HTTP_REFERER', reverse('repository'))
         return redirect(referer)
 # --- AKHIR REPOSITORY VIEWS ---
-
-
-# --- UPLOAD PROJECT VIEW ---
 @login_required
+@transaction.atomic 
 def upload_project_view(request):
     if request.user.peran not in ['mahasiswa', 'dosen']:
-         messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
-         if request.user.peran == 'mitra': return redirect('dashboard_mitra')
-         if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
-         return redirect('catalog')
+        messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
+        if request.user.peran == 'mitra': return redirect('dashboard_mitra')
+        if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
+        return redirect('catalog')
+        
     if request.method == 'POST':
-        form = ProjectForm(request.POST, request.FILES)
-        if form.is_valid():
+        # Pastikan Anda sudah mengimpor DokumenProyekFormSet di awal file
+        produk_form = ProdukForm(request.POST, request.FILES)
+        dokumen_formset = DokumenProyekFormSet(request.POST, request.FILES, prefix='dokumen') 
+        
+        if produk_form.is_valid() and dokumen_formset.is_valid():
             try:
-                project = form.save(commit=True, owner=request.user)
-                messages.success(request, f"Proyek '{project.title}' berhasil diunggah dan menunggu seleksi.")
-                if request.user.peran == 'mahasiswa': return redirect('dashboard_mahasiswa')
-                elif request.user.peran == 'dosen': return redirect('dashboard_dosen')
+                # 1. Simpan Produk utama
+                produk = produk_form.save(commit=True, owner=request.user) 
+                
+                # 2. Simpan Dokumen Proyek dari formset
+                dokumen_instances = dokumen_formset.save(commit=False)
+                
+                for dokumen in dokumen_instances:
+                    dokumen.produk = produk 
+                    dokumen.save()
+                    
+                # Simpan instans yang ditandai untuk dihapus dan M2M
+                dokumen_formset.save() 
+                produk_form.save_m2m() 
+                
+                messages.success(request, f"Proyek '{produk.title}' berhasil diunggah dan menunggu seleksi. 🎉")
+                
+                # KOREKSI PENTING: Menggunakan nama URL yang ada di repository/urls.py
+                if request.user.peran == 'mahasiswa': 
+                    # Nama URL yang benar adalah 'my_projects'
+                    return redirect('my_projects')
+                elif request.user.peran == 'dosen': 
+                    # Nama URL yang benar adalah 'dosen_my_projects'
+                    return redirect('dosen_my_projects')
+                # Fallback jika peran tidak jelas
+                return redirect('profile') 
+                
             except Exception as e:
+                # Tangani error yang terjadi selama proses penyimpanan
                 messages.error(request, f"Terjadi kesalahan saat menyimpan proyek: {e}")
+                context = {
+                    'form': produk_form, 
+                    'dokumen_formset': dokumen_formset,
+                }
+                return render(request, 'upload_project.html', context)
+        else:
+            messages.error(request, 'Terjadi kesalahan pada formulir. Silakan cek ulang isian Anda. ❌')
+            context = {
+                'form': produk_form,
+                'dokumen_formset': dokumen_formset,
+            }
+            return render(request, 'upload_project.html', context)
+    
+    # Jika method adalah GET
     else:
-        form = ProjectForm()
-    context = {'form': form}
+        initial_data = {}
+        if request.user.peran == 'mahasiswa' and request.user.program_studi:
+            initial_data['program_studi'] = request.user.program_studi
+            
+        produk_form = ProdukForm(initial=initial_data)
+        dokumen_formset = DokumenProyekFormSet(queryset=Produk.objects.none(), prefix='dokumen')
+
+    context = {
+        'form': produk_form, 
+        'dokumen_formset': dokumen_formset, 
+    }
     return render(request, 'upload_project.html', context)
-# --- AKHIR UPLOAD PROJECT VIEW ---
+
+def project_detail_view(request, project_id):
+    # Mengambil Produk dan prefetch relasi kurasi, tags, dan dokumen
+    project = get_object_or_404(
+        Produk.objects.select_related('id_pemilik')
+                      .prefetch_related('kategori', 'tags', 'dokumen'), 
+        id=project_id
+    )
+    
+    try:
+        kurasi = project.kurasi
+    except Kurasi.DoesNotExist:
+        kurasi = None
+
+    existing_request = None
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    
+    dokumen_list = project.dokumen.all() 
+
+    context = {
+        'project': project,
+        'kurasi': kurasi,
+        'existing_request': existing_request,
+        'dokumen_list': dokumen_list, 
+    }
+    return render(request, 'project_detail.html', context)
+
+
+def project_detail_view(request, project_id):
+    # Menggunakan related_name 'dokumen' dari Produk untuk prefetch
+    project = get_object_or_404(
+        Produk.objects.select_related('id_pemilik')
+                      .prefetch_related('kategori', 'tags', 'dokumen'), 
+        id=project_id
+    )
+    
+    try:
+        kurasi = project.kurasi
+    except Kurasi.DoesNotExist:
+        kurasi = None
+
+    existing_request = None
+    if request.user.is_authenticated:
+        existing_request = RequestSourceCode.objects.filter(id_produk=project, id_pemohon=request.user).first()
+    
+    # Ambil semua dokumen yang terhubung
+    dokumen_list = project.dokumen.all() 
+
+    context = {
+        'project': project,
+        'kurasi': kurasi,
+        'existing_request': existing_request,
+        'dokumen_list': dokumen_list, 
+    }
+    return render(request, 'project_detail.html', context)
 
 
 # --- CURATION ASSIGNMENT VIEWS ---
