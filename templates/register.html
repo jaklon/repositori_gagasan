@@ -4,172 +4,275 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buat Akun Baru - gagasan</title>
+    <title>Daftar Akun - Gagasan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/register.css' %}" />
+
     <style>
-        /* Fokus Input */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgb(0 0 0 / 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgb(0 0 0 / 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Input Focus Ring Teal */
         input:focus, select:focus {
             outline: none;
-            border-color: rgb(147, 51, 234);
-            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+            border-color: #0d9488; /* teal-600 */
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
         }
+
+        /* Animasi Slide Down untuk Field Dinamis */
+        .slide-down {
+            animation: slideDown 0.3s ease-out forwards;
+            transform-origin: top;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); height: 0; }
+            to { opacity: 1; transform: translateY(0); height: auto; }
+        }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50 min-h-screen relative overflow-x-hidden text-gray-800">
 
-    <div class="relative w-full max-w-lg">
-        <div class="flex justify-center items-center gap-2 mb-4">
-            <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo Gagasan" class="h-10"/>
-            <h1 class="text-3xl font-bold text-gray-800">gagasan</h1>
-        </div>
+    <div class="absolute inset-0 bg-grid-pattern opacity-5 fixed"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob fixed"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 fixed"></div>
 
-        <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200 p-8 fade-in">
-            <h2 class="text-2xl font-semibold text-center text-gray-900">Buat Akun Baru</h2>
-            <p class="text-sm text-gray-600 text-center mt-2 mb-6">
-                Daftar untuk mengakses dan submit proyek. Akun Anda memerlukan persetujuan admin sebelum dapat login.
-            </p>
+    <div class="absolute top-6 left-6 z-50">
+        <a href="{% url 'catalog' %}" class="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-md border border-white/50 rounded-xl shadow-sm hover:bg-white hover:text-teal-700 hover:shadow-md transition-all text-sm font-bold text-gray-600 group">
+            <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+            Kembali
+        </a>
+    </div>
 
-            {% if messages %}
-                {% for message in messages %}
-                <div class="p-3 mb-4 rounded-md text-sm
-                    {% if message.tags == 'error' %} bg-red-50 border border-red-200 text-red-700
-                    {% elif message.tags == 'success' %} bg-green-50 border border-green-200 text-green-700
-                    {% else %} bg-blue-50 border border-blue-200 text-blue-700 {% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
+    <div class="min-h-screen flex items-center justify-center p-4 lg:p-8 relative z-10">
+        <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
 
-            <form method="POST" action="{% url 'register' %}" class="space-y-4">
-                {% csrf_token %}
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                        <input type="text" id="username" name="username" placeholder="Nama lengkap Anda" required
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+            <div class="hidden lg:block sticky top-24 space-y-8 pt-10">
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+                        <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-10 w-10 object-contain brightness-0 invert" />
                     </div>
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="email" name="email" placeholder="nama@pnj.ac.id" required
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">GAGASAN</h1>
+                        <p class="text-teal-600 font-medium">Bergabunglah Bersama Kami</p>
                     </div>
                 </div>
 
-                <div>
-                    <label for="peran" class="block text-sm font-medium text-gray-700 mb-1">Peran</label>
-                    <select id="peran" name="peran" required
-                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition appearance-none">
-                        <option value="mahasiswa">Mahasiswa</option>
-                        <option value="dosen">Dosen Pembimbing</option>
-                        <option value="mitra">Mitra Industri</option>
-                        </select>
-                </div>
+                <h2 class="text-4xl font-bold text-gray-900 leading-tight">
+                    Mulai Perjalanan <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">Inovasi Digital Anda</span>
+                </h2>
 
-                <div id="studentFields" class="space-y-4 slide-down hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="nim" class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
-                            <input type="text" id="nim" name="nim" placeholder="Nomor Induk Mahasiswa"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
-                        </div>
-                        
-                        <div>
-                            <label for="program_studi" class="block text-sm font-medium text-gray-700 mb-1">Program Studi</label>
-                            <select id="program_studi" name="program_studi"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition appearance-none">
-                                <option value="" disabled selected>Pilih Program Studi</option>
-                                <option value="D4 TI">D4 Teknik Informatika</option>
-                                <option value="D4 TMDJ">D4 Teknik Multimedia dan Jaringan</option>
-                                <option value="D4 TMD">D4 Teknik Multimedia Digital</option>
-                            </select>
-                        </div>
-                        </div>
-                </div>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    Daftarkan diri Anda untuk mengakses repositori, berkolaborasi dalam proyek, dan mempublikasikan karya terbaik Anda ke komunitas akademik PNJ.
+                </p>
 
-                <div id="dosenFields" class="space-y-4 slide-down hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="id_dosen" class="block text-sm font-medium text-gray-700 mb-1">ID Dosen</label>
-                            <input type="text" id="id_dosen" name="id_dosen" placeholder="e.g., DSN001"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-center gap-4 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50">
+                        <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 shrink-0">
+                            <i class="fas fa-folder-open"></i>
                         </div>
                         <div>
-                            <label for="bidang_keahlian_dosen" class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
-                            <input type="text" id="bidang_keahlian_dosen" name="bidang_keahlian" placeholder="e.g., Web Dev, AI, Data Science"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+                            <h4 class="font-bold text-gray-900">Akses Penuh</h4>
+                            <p class="text-xs text-gray-500">Jelajahi ribuan aset digital terkurasi.</p>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="jurusan" class="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-                            <input type="text" id="jurusan" name="jurusan" placeholder="e.g., Teknik Informatika dan Komputer"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+                    <div class="flex items-center gap-4 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
+                            <i class="fas fa-handshake"></i>
                         </div>
                         <div>
-                            <label for="program_studi_dosen" class="block text-sm font-medium text-gray-700 mb-1">Program Studi</label>
-                            <select id="program_studi_dosen" name="program_studi_dosen"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition appearance-none">
-                                <option value="" disabled selected>Pilih Program Studi</option>
-                                <option value="D4 TI">D4 Teknik Informatika</option>
-                                <option value="D4 TMDJ">D4 Teknik Multimedia dan Jaringan</option>
-                                <option value="D4 TMD">D4 Teknik Multimedia Digital</option>
-                            </select>
+                            <h4 class="font-bold text-gray-900">Kolaborasi</h4>
+                            <p class="text-xs text-gray-500">Terhubung dengan dosen dan mitra industri.</p>
                         </div>
-                    </div>
-                    </div>
-                <div id="mitraFields" class="space-y-4 slide-down hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="id_mitra" class="block text-sm font-medium text-gray-700 mb-1">ID Mitra</label>
-                            <input type="text" id="id_mitra" name="id_mitra" placeholder="e.g., MTR001"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
-                        </div>
-                        <div>
-                            <label for="organisasi" class="block text-sm font-medium text-gray-700 mb-1">Organisasi</label>
-                            <input type="text" id="organisasi" name="organisasi" placeholder="Nama Perusahaan/Organisasi"
-                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="bidang_keahlian_mitra" class="block text-sm font-medium text-gray-700 mb-1">Bidang Keahlian</label>
-                        <input type="text" id="bidang_keahlian_mitra" name="bidang_keahlian" placeholder="e.g., Quality Assurance, Project Management"
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Buat password" required
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
-                    </div>
-                    <div>
-                        <label for="password2" class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
-                        <input type="password" id="password2" name="password2" placeholder="Konfirmasi password" required
-                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition">
+            <div class="w-full">
+                <div class="bg-white/90 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden relative">
+                    <div class="h-2 bg-gradient-to-r from-teal-500 to-emerald-500 w-full"></div>
+
+                    <div class="p-8">
+                        <div class="mb-8">
+                            <h2 class="text-2xl font-bold text-gray-900">Buat Akun Baru</h2>
+                            <p class="text-sm text-gray-500 mt-1">Lengkapi data di bawah ini untuk mendaftar.</p>
+                        </div>
+
+                        {% if messages %}
+                            <div class="mb-6 space-y-2">
+                                {% for message in messages %}
+                                <div class="p-4 rounded-xl flex items-start gap-3 text-sm font-medium
+                                    {% if message.tags == 'error' %} bg-red-50 text-red-600 border border-red-100
+                                    {% elif message.tags == 'success' %} bg-green-50 text-green-600 border border-green-100
+                                    {% else %} bg-blue-50 text-blue-600 border border-blue-100 {% endif %}">
+                                    <i class="fas fa-info-circle mt-0.5 text-lg"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'register' %}" class="space-y-5">
+                            {% csrf_token %}
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label for="username" class="block text-xs font-bold text-gray-700 uppercase tracking-wide">Nama Lengkap</label>
+                                    <input type="text" id="username" name="username" placeholder="Nama Anda" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 text-gray-900 text-sm focus:bg-white transition-all">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label for="email" class="block text-xs font-bold text-gray-700 uppercase tracking-wide">Email</label>
+                                    <input type="email" id="email" name="email" placeholder="nama@pnj.ac.id" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 text-gray-900 text-sm focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label for="peran" class="block text-xs font-bold text-gray-700 uppercase tracking-wide">Peran Akun</label>
+                                <div class="relative">
+                                    <select id="peran" name="peran" required
+                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 text-gray-900 text-sm focus:bg-white transition-all appearance-none cursor-pointer">
+                                        <option value="mahasiswa">Mahasiswa</option>
+                                        <option value="dosen">Dosen Pembimbing</option>
+                                        <option value="mitra">Mitra Industri</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-teal-50/50 rounded-xl border border-teal-100/50 p-5 space-y-4">
+                                
+                                <div id="studentFields" class="space-y-4 slide-down">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label for="nim" class="block text-xs font-bold text-gray-700 uppercase">NIM</label>
+                                            <input type="text" id="nim" name="nim" placeholder="Nomor Induk Mahasiswa"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label for="program_studi" class="block text-xs font-bold text-gray-700 uppercase">Program Studi</label>
+                                            <div class="relative">
+                                                <select id="program_studi" name="program_studi"
+                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all appearance-none cursor-pointer">
+                                                    <option value="" disabled selected>Pilih Program Studi</option>
+                                                    <option value="D4 TI">D4 Teknik Informatika</option>
+                                                    <option value="D4 TMDJ">D4 Teknik Multimedia & Jaringan</option>
+                                                    <option value="D4 TMD">D4 Teknik Multimedia Digital</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                                    <i class="fas fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="dosenFields" class="space-y-4 slide-down hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label for="id_dosen" class="block text-xs font-bold text-gray-700 uppercase">ID Dosen</label>
+                                            <input type="text" id="id_dosen" name="id_dosen" placeholder="NIP / NIDN"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label for="bidang_keahlian_dosen" class="block text-xs font-bold text-gray-700 uppercase">Keahlian</label>
+                                            <input type="text" id="bidang_keahlian_dosen" name="bidang_keahlian" placeholder="Contoh: AI, Web Dev"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label for="jurusan" class="block text-xs font-bold text-gray-700 uppercase">Jurusan</label>
+                                            <input type="text" id="jurusan" name="jurusan" placeholder="Jurusan Anda"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label for="program_studi_dosen" class="block text-xs font-bold text-gray-700 uppercase">Program Studi</label>
+                                            <div class="relative">
+                                                <select id="program_studi_dosen" name="program_studi_dosen"
+                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all appearance-none cursor-pointer">
+                                                    <option value="" disabled selected>Pilih Program Studi</option>
+                                                    <option value="D4 TI">D4 Teknik Informatika</option>
+                                                    <option value="D4 TMDJ">D4 Teknik Multimedia & Jaringan</option>
+                                                    <option value="D4 TMD">D4 Teknik Multimedia Digital</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                                    <i class="fas fa-chevron-down text-xs"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="mitraFields" class="space-y-4 slide-down hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label for="id_mitra" class="block text-xs font-bold text-gray-700 uppercase">ID Mitra</label>
+                                            <input type="text" id="id_mitra" name="id_mitra" placeholder="ID Mitra Anda"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label for="organisasi" class="block text-xs font-bold text-gray-700 uppercase">Organisasi</label>
+                                            <input type="text" id="organisasi" name="organisasi" placeholder="Nama Perusahaan"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="bidang_keahlian_mitra" class="block text-xs font-bold text-gray-700 uppercase">Bidang Industri</label>
+                                        <input type="text" id="bidang_keahlian_mitra" name="bidang_keahlian" placeholder="Contoh: Software House, Startup"
+                                               class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm focus:border-teal-500 transition-all">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-1.5">
+                                    <label for="password" class="block text-xs font-bold text-gray-700 uppercase">Password</label>
+                                    <input type="password" id="password" name="password" placeholder="Buat password" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 text-gray-900 text-sm focus:bg-white transition-all">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label for="password2" class="block text-xs font-bold text-gray-700 uppercase">Konfirmasi</label>
+                                    <input type="password" id="password2" name="password2" placeholder="Ulangi password" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50/50 text-gray-900 text-sm focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <button type="submit"
+                                        class="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                                    <i class="fas fa-user-plus"></i>
+                                    Daftar Sekarang
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-6 text-center border-t border-gray-100 pt-6">
+                            <p class="text-sm text-gray-600 font-medium">
+                                Sudah memiliki akun?
+                                <a href="{% url 'login' %}" class="text-teal-700 font-bold hover:text-teal-800 hover:underline ml-1">Masuk di sini</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
                 
-                <button type="submit"
-                        class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-user-plus"></i>
-                    Daftar Sekarang
-                </button>
-            </form>
-            
-            <p class="text-center text-sm text-gray-600 mt-6">
-                Sudah punya akun?
-                <a href="{% url 'login' %}" class="font-medium text-purple-600 hover:text-purple-700">
-                    Masuk di sini
-                </a>
-            </p>
+                <div class="text-center mt-8 lg:hidden">
+                    <p class="text-xs text-gray-400 font-medium">© 2025 Gagasan - Politeknik Negeri Jakarta</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
