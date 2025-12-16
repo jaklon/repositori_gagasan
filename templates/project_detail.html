@@ -8,200 +8,260 @@
 
 {% block dashboard_content %}
 <div class="min-h-screen bg-gray-50/50 p-6 md:p-8 {% if not request.user.is_authenticated %}pt-24{% endif %}">
-  <div class="max-w-7xl mx-auto space-y-8">
+    <div class="max-w-7xl mx-auto space-y-8">
 
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      <div class="flex items-center gap-5">
-        <a href="{% url 'catalog' %}" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-teal-600 transition-colors">
-            <i class="fas fa-arrow-left"></i>
-        </a>
-        <div class="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl flex items-center justify-center shadow-inner">
-          <i class="fas fa-file-alt text-teal-600 text-2xl"></i>
-        </div>
-        <div>
-          <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ project.title }}</h1>
-          <p class="text-sm text-gray-500 mt-1">Detail lengkap informasi proyek inovasi.</p>
-        </div>
-      </div>
-    </div>
-
-    {% if messages %}
-      <div class="space-y-2">
-        {% for message in messages %}
-        <div class="flex items-center p-4 rounded-xl text-sm font-medium shadow-sm animate-fade-in-down
-            {% if message.tags == 'success' %} bg-green-50 text-green-700 border border-green-200
-            {% elif message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200
-            {% else %} bg-blue-50 text-blue-700 border border-blue-200 {% endif %}">
-            <i class="fas fa-info-circle mr-2 text-lg"></i>
-            {{ message }}
-        </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        <div class="lg:col-span-2 space-y-8">
-            
-            <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-                <div class="aspect-video relative rounded-xl overflow-hidden bg-gray-100">
-                    {% if project.poster_image %}
-                        <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" 
-                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                             onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';" />
-                    {% else %}
-                        <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                            <i class="fas fa-image text-4xl mb-2"></i>
-                            <span class="text-sm">Tidak ada poster</span>
-                        </div>
-                    {% endif %}
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-5">
+                <a href="{% url 'catalog' %}" class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-teal-600 transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-100 to-teal-200 rounded-2xl flex items-center justify-center shadow-inner">
+                    <i class="fas fa-file-alt text-teal-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ project.title }}</h1>
+                    <p class="text-sm text-gray-500 mt-1">Detail lengkap informasi proyek inovasi.</p>
                 </div>
             </div>
+        </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-align-left text-teal-500"></i> Deskripsi Proyek
-                </h3>
-                <div class="prose prose-sm max-w-none text-gray-600 leading-relaxed">
-                    {{ project.description|linebreaksbr|default:"<p class='italic text-gray-400'>Tidak ada deskripsi yang tersedia.</p>" }}
-                </div>
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div class="flex items-center p-4 rounded-xl text-sm font-medium shadow-sm animate-fade-in-down
+                {% if message.tags == 'success' %} bg-green-50 text-green-700 border border-green-200
+                {% elif message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200
+                {% else %} bg-blue-50 text-blue-700 border border-blue-200 {% endif %}">
+                <i class="fas fa-info-circle mr-2 text-lg"></i>
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            {% if request.user.is_authenticated and kurasi %}
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <i class="fas fa-clipboard-check text-teal-500"></i> Hasil Kurasi
-                </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2 space-y-8">
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
-                        <p class="text-xs font-bold text-gray-400 uppercase mb-1">Status</p>
-                        <span class="text-sm font-bold text-gray-800">{{ project.get_curation_status_display }}</span>
-                    </div>
-                    <div class="p-4 bg-teal-50 rounded-xl border border-teal-100 text-center">
-                        <p class="text-xs font-bold text-teal-600 uppercase mb-1">Nilai Akhir</p>
-                        <span class="text-xl font-extrabold text-teal-700">{{ kurasi.nilai_akhir_final|floatformat:2|default:"-" }}</span>
-                        <span class="text-[10px] text-teal-600 font-bold">/ 4.00</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-        </div>
-
-        <div class="lg:col-span-1 space-y-6">
-            
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Pemilik Proyek</h3>
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-teal-100 to-emerald-200 p-[2px]">
-                        <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-teal-600">
-                            <i class="fas fa-user text-lg"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-900">{{ project.id_pemilik.username }}</p>
-                        {% if request.user.is_authenticated %}
-                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium">
-                                {{ project.id_pemilik.get_peran_display }}
-                            </span>
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="aspect-video relative rounded-xl overflow-hidden bg-gray-100">
+                        {% if project.poster_image %}
+                            <img src="{{ project.poster_image.url }}" alt="{{ project.title }}" 
+                                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/800x450/e2e8f0/cbd5e1?text=Gambar+tidak+tersedia';" />
                         {% else %}
-                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium">Mahasiswa</span>
+                            <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-image text-4xl mb-2"></i>
+                                <span class="text-sm">Tidak ada poster</span>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between text-xs text-gray-500">
-                    <span>Diunggah:</span>
-                    <span class="font-medium text-gray-700">{{ project.created_at|date:"d M Y" }}</span>
-                </div>
-            </div>
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="mb-5">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Kategori</h3>
-                    <div class="flex flex-wrap gap-2">
-                        {% for cat in project.kategori.all %}
-                            <span class="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-xs font-bold border border-teal-100">
-                                {{ cat.nama }}
-                            </span>
-                        {% empty %}
-                            <span class="text-xs text-gray-400 italic">Tanpa Kategori</span>
-                        {% endfor %}
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-align-left text-teal-500"></i> Deskripsi Proyek
+                    </h3>
+                    <div class="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+                        {{ project.description|linebreaksbr|default:"<p class='italic text-gray-400'>Tidak ada deskripsi yang tersedia.</p>" }}
                     </div>
                 </div>
-                <div>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Teknologi / Tags</h3>
-                    <div class="flex flex-wrap gap-2">
-                        {% for tag in project.tags.all %}
-                            <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium border border-gray-200">
-                                #{{ tag.nama }}
-                            </span>
-                        {% empty %}
-                            <span class="text-xs text-gray-400 italic">Tidak ada tags</span>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-paperclip text-teal-500"></i> Dokumen Pendukung
+                    </h3>
+
+                    {# Menggunakan project.dokumen.all untuk mengambil semua DokumenProyek terkait #}
+                    {% with documents=project.dokumen.all %}
+                    {% if documents %}
+                    <div class="space-y-3">
+                        {% for doc in documents %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group">
+                            <div class="flex items-center gap-4">
+                                {# Tentukan ikon berdasarkan tipe dokumen #}
+                                <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 shadow-inner">
+                                    {% if "Laporan" in doc.tipe_dokumen %}
+                                        <i class="fas fa-file-pdf"></i>
+                                    {% elif "Manual" in doc.tipe_dokumen %}
+                                        <i class="fas fa-book-open"></i>
+                                    {% elif "Diagram" in doc.tipe_dokumen %}
+                                        <i class="fas fa-project-diagram"></i>
+                                    {% else %}
+                                        <i class="fas fa-file-alt"></i>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    {# Tampilkan Tipe Dokumen #}
+                                    <p class="text-sm font-bold text-gray-800">{{ doc.tipe_dokumen }}</p>
+                                    {# Tampilkan Keterangan atau Nama File #}
+                                    <p class="text-xs text-gray-500">
+                                        {{ doc.keterangan|default:doc.get_file_name }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {# Tautan Download/Akses #}
+                            {% if doc.file_dokumen %}
+                            <a href="{{ doc.file_dokumen.url }}" target="_blank" download
+                                class="px-3 py-1.5 bg-white text-teal-600 border border-teal-200 text-xs font-bold rounded-lg hover:bg-teal-50 transition-colors">
+                                <i class="fas fa-download mr-1"></i> Unduh File
+                            </a>
+                            {% elif doc.keterangan and doc.keterangan|is_url %}
+                            {# Jika tidak ada file, tapi keterangan berupa URL #}
+                            <a href="{{ doc.keterangan }}" target="_blank" rel="noopener noreferrer"
+                                class="px-3 py-1.5 bg-white text-blue-600 border border-blue-200 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-external-link-alt mr-1"></i> Kunjungi Tautan
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-gray-400 italic">Tidak ada tautan/file</span>
+                            {% endif %}
+
+                        </div>
                         {% endfor %}
                     </div>
-                </div>
-            </div>
+                    {% else %}
+                    <p class="text-gray-500 italic text-sm p-4 bg-gray-50 rounded-xl">Tidak ada dokumen pendukung diunggah untuk proyek ini.</p>
+                    {% endif %}
+                    {% endwith %}
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tautan & Akses</h3>
-                
-                {% if project.demo_link %}
-                <a href="{{ project.demo_link }}" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-between w-full p-3 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100 group">
-                    <span class="text-sm font-bold flex items-center gap-2">
-                        <i class="fas fa-desktop"></i> Live Demo
-                    </span>
-                    <i class="fas fa-external-link-alt text-xs opacity-50 group-hover:opacity-100"></i>
-                </a>
+                </div>
+                {% if request.user.is_authenticated and kurasi %}
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-teal-500"></i> Hasil Kurasi
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                            <p class="text-xs font-bold text-gray-400 uppercase mb-1">Status</p>
+                            <span class="text-sm font-bold text-gray-800">{{ project.get_curation_status_display }}</span>
+                        </div>
+                        <div class="p-4 bg-teal-50 rounded-xl border border-teal-100 text-center">
+                            <p class="text-xs font-bold text-teal-600 uppercase mb-1">Nilai Akhir</p>
+                            <span class="text-xl font-extrabold text-teal-700">{{ kurasi.nilai_akhir_final|floatformat:2|default:"-" }}</span>
+                            <span class="text-[10px] text-teal-600 font-bold">/ 4.00</span>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
 
-                {% if project.source_code_link %}
+            </div>
+
+            <div class="lg:col-span-1 space-y-6">
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Pemilik Proyek</h3>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-teal-100 to-emerald-200 p-[2px]">
+                            <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-teal-600">
+                                <i class="fas fa-user text-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-900">{{ project.id_pemilik.username }}</p>
+                            {% if request.user.is_authenticated %}
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium">
+                                    {{ project.id_pemilik.get_peran_display }}
+                                </span>
+                            {% else %}
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium">Mahasiswa</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between text-xs text-gray-500">
+                        <span>Diunggah:</span>
+                        <span class="font-medium text-gray-700">{{ project.created_at|date:"d M Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="mb-5">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Kategori</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for cat in project.kategori.all %}
+                                <span class="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-xs font-bold border border-teal-100">
+                                    {{ cat.nama }}
+                                </span>
+                            {% empty %}
+                                <span class="text-xs text-gray-400 italic">Tanpa Kategori</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Teknologi / Tags</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in project.tags.all %}
+                                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium border border-gray-200">
+                                    #{{ tag.nama }}
+                                </span>
+                            {% empty %}
+                                <span class="text-xs text-gray-400 italic">Tidak ada tags</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tautan & Akses</h3>
                     
-                    {# KONDISI 1: GUEST / BELUM LOGIN -> MUNCUL MODAL LOGIN #}
-                    {% if not request.user.is_authenticated %}
-                         <button type="button" onclick="openLoginModal()"
-                           class="flex items-center justify-between w-full p-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all border border-gray-200 group">
-                            <span class="text-sm font-bold flex items-center gap-2">
-                                <i class="fab fa-github"></i> Source Code
-                            </span>
-                            <i class="fas fa-lock text-xs text-gray-400 group-hover:text-teal-600"></i>
-                        </button>
-
-                    {# KONDISI 2: USER LOGIN (Pemilik/Admin/Kurator/Disetujui) #}
-                    {% elif project.id_pemilik == request.user or request.user.peran == 'unit_bisnis' or kurasi and request.user == kurasi.id_kurator_dosen or request.user == kurasi.id_kurator_mitra or existing_request.status == 'approved' %}
-                        
-                        <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
-                           class="flex items-center justify-between w-full p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200">
-                            <span class="text-sm font-bold flex items-center gap-2">
-                                <i class="fab fa-github"></i> Lihat Source Code
-                            </span>
-                            <i class="fas fa-chevron-right text-white text-xs"></i>
-                        </a>
-
-                    {# KONDISI 3: USER LOGIN (Belum Punya Akses) -> MUNCUL MODAL REQUEST #}
-                    {% else %}
-                        <button type="button" onclick="openRequestModal()"
-                           class="flex items-center justify-between w-full p-3 bg-gray-50 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200 group
-                           {% if existing_request %}cursor-not-allowed opacity-75{% endif %}">
-                            <span class="text-sm font-bold flex items-center gap-2">
-                                <i class="fab fa-github"></i> 
-                                {% if existing_request %}
-                                  Akses Diminta ({{ existing_request.get_status_display }})
-                                {% else %}
-                                  Minta Akses Source Code
-                                {% endif %}
-                            </span>
-                            <i class="fas fa-lock text-gray-400 text-xs group-hover:text-teal-600"></i>
-                        </button>
+                    {% if project.demo_link %}
+                    <a href="{{ project.demo_link }}" target="_blank" rel="noopener noreferrer"
+                        class="flex items-center justify-between w-full p-3 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100 group">
+                        <span class="text-sm font-bold flex items-center gap-2">
+                            <i class="fas fa-desktop"></i> Live Demo
+                        </span>
+                        <i class="fas fa-external-link-alt text-xs opacity-50 group-hover:opacity-100"></i>
+                    </a>
                     {% endif %}
 
-                {% endif %}
-            </div>
+                    {% if project.source_code_link %}
+                        
+                        {# KONDISI 1: GUEST / BELUM LOGIN -> MUNCUL MODAL LOGIN #}
+                        {% if not request.user.is_authenticated %}
+                             <button type="button" onclick="openLoginModal()"
+                                class="flex items-center justify-between w-full p-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all border border-gray-200 group">
+                                <span class="text-sm font-bold flex items-center gap-2">
+                                    <i class="fab fa-github"></i> Source Code
+                                </span>
+                                <i class="fas fa-lock text-xs text-gray-400 group-hover:text-teal-600"></i>
+                            </button>
 
+                        {# KONDISI 2: USER LOGIN (Pemilik/Admin/Kurator/Disetujui) #}
+                        {% elif project.id_pemilik == request.user or request.user.peran == 'unit_bisnis' or kurasi and request.user == kurasi.id_kurator_dosen or request.user == kurasi.id_kurator_mitra or existing_request.status == 'approved' %}
+                            
+                            <a href="{{ project.source_code_link }}" target="_blank" rel="noopener noreferrer"
+                                class="flex items-center justify-between w-full p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200">
+                                <span class="text-sm font-bold flex items-center gap-2">
+                                    <i class="fab fa-github"></i> Lihat Source Code
+                                </span>
+                                <i class="fas fa-chevron-right text-white text-xs"></i>
+                            </a>
+
+                        {# KONDISI 3: USER LOGIN (Belum Punya Akses) -> MUNCUL MODAL REQUEST #}
+                        {% else %}
+                            <button type="button" onclick="openRequestModal()"
+                                class="flex items-center justify-between w-full p-3 bg-gray-50 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200 group
+                                {% if existing_request %}cursor-not-allowed opacity-75{% endif %}">
+                                <span class="text-sm font-bold flex items-center gap-2">
+                                    <i class="fab fa-github"></i> 
+                                    {% if existing_request %}
+                                        Akses Diminta ({{ existing_request.get_status_display }})
+                                    {% else %}
+                                        Minta Akses Source Code
+                                    {% endif %}
+                                </span>
+                                <i class="fas fa-lock text-gray-400 text-xs group-hover:text-teal-600"></i>
+                            </button>
+                        {% endif %}
+
+                    {% endif %}
+                </div>
+
+            </div>
         </div>
     </div>
-  </div>
 </div>
 
 <div id="loginModal" class="fixed inset-0 bg-teal-900/40 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0">
@@ -221,11 +281,11 @@
             </p>
             <div class="space-y-3 pt-2">
                 <a href="{% url 'login' %}?next={{ request.path }}" 
-                   class="flex items-center justify-center w-full py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 shadow-lg shadow-teal-200 transition-all hover:-translate-y-0.5">
+                    class="flex items-center justify-center w-full py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 shadow-lg shadow-teal-200 transition-all hover:-translate-y-0.5">
                     Masuk Sekarang
                 </a>
                 <button onclick="closeLoginModal()" 
-                   class="flex items-center justify-center w-full py-3 bg-gray-50 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition-colors">
+                    class="flex items-center justify-center w-full py-3 bg-gray-50 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition-colors">
                     Nanti Saja
                 </button>
             </div>

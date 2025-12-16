@@ -2,12 +2,38 @@
 
 from django import template
 from datetime import datetime, timedelta, timezone
+import re # <-- BARIS INI HARUS DITAMBAHKAN
 
 # 1. HANYA SATU baris 'register' ini yang diperlukan.
 register = template.Library()
 
 # ------------------------------------------------------------------
-# Filter BARU: is_in (Dibutuhkan untuk halaman project_detail.html)
+# Filter BARU: is_url (WAJIB DITAMBAHKAN)
+# ------------------------------------------------------------------
+@register.filter
+def is_url(value):
+    """
+    Cek apakah string menyerupai URL.
+    """
+    if not isinstance(value, str):
+        return False
+    
+    # Regex yang lebih sederhana dan aman: cek apakah diawali http/https.
+    # Jika perlu validasi yang lebih ketat, gunakan regex yang lebih kompleks.
+    return value.lower().startswith('http://') or value.lower().startswith('https://')
+    
+    # Atau gunakan Regex yang lebih kompleks seperti:
+    # url_regex = re.compile(r'^(?:http|ftp)s?://' 
+    #                        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' 
+    #                        r'localhost|' 
+    #                        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' 
+    #                        r'(?::\d+)?' 
+    #                        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    # return re.match(url_regex, value) is not None
+
+
+# ------------------------------------------------------------------
+# Filter BARU: is_in
 # ------------------------------------------------------------------
 @register.filter(name='is_in')
 def is_in(value, arg):
@@ -70,6 +96,7 @@ def timeuntil_days(dt1, dt2):
         return None
 
     try:
+        # Menangani timezone awareness
         if dt1.tzinfo is not None and dt2.tzinfo is None:
             dt2 = dt2.replace(tzinfo=dt1.tzinfo)
         elif dt1.tzinfo is None and dt2.tzinfo is not None:
@@ -77,6 +104,7 @@ def timeuntil_days(dt1, dt2):
         
         time_diff = dt1 - dt2
         
+        # Mengembalikan selisih dalam hari (integer)
         return int(time_diff.total_seconds() / (60 * 60 * 24))
     
     except (AttributeError, TypeError, ValueError):
