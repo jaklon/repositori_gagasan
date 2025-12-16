@@ -119,7 +119,6 @@
                 <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Dokumen Pendukung</h3>
-                        <span class="text-xs text-gray-500 font-medium bg-white px-2 py-1 rounded border border-gray-200">Max. 5 File</span>
                     </div>
                     
                     {{ dokumen_formset.management_form }}
@@ -129,16 +128,7 @@
                         <div class="p-5 bg-white border border-gray-200 rounded-xl relative file-form-wrapper hover:border-teal-300 transition-colors" id="dokumen-form-{{ forloop.counter0 }}">
                             {% for hidden in form_dokumen.hidden_fields %} {{ hidden }} {% endfor %}
                             
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded">Dokumen #{{ forloop.counter }}</span>
-                                {% if dokumen_formset.can_delete %}
-                                    <div class="flex items-center gap-2">
-                                        {{ form_dokumen.DELETE }}
-                                        <label for="{{ form_dokumen.DELETE.id_for_label }}" class="text-xs font-bold text-red-500 hover:text-red-700 cursor-pointer uppercase">Hapus</label>
-                                    </div>
-                                {% endif %}
-                            </div>
-
+                        
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-4">
                                     <label class="block text-xs font-bold text-gray-600 mb-1">Jenis</label>
@@ -163,9 +153,6 @@
                         {% endfor %}
                     </div>
 
-                    <button type="button" id="add-document-form" class="mt-4 w-full py-2 border-2 border-dashed border-teal-200 text-teal-600 rounded-xl text-sm font-bold hover:bg-teal-50 hover:border-teal-300 transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-plus"></i> Tambah Dokumen Lain
-                    </button>
                 </div>
             </div>
 
