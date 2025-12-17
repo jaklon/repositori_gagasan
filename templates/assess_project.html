@@ -116,6 +116,69 @@
                     </div>
                 </div>
             </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+    <h4 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+        <i class="fas fa-folder-open text-teal-600"></i> Dokumen Pendukung Proyek
+    </h4>
+    
+    {# Menggunakan project.dokumen.all untuk mengambil semua DokumenProyek terkait #}
+    {% with documents=project.dokumen.all %}
+    {% if documents %}
+    <div class="space-y-3">
+        {% for doc in documents %}
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group">
+            <div class="flex items-center gap-4">
+                {# Tentukan ikon berdasarkan tipe dokumen #}
+                <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 shadow-inner flex-shrink-0">
+                    {% if "Laporan" in doc.tipe_dokumen %}
+                        <i class="fas fa-file-pdf"></i>
+                    {% elif "Manual" in doc.tipe_dokumen %}
+                        <i class="fas fa-book-open"></i>
+                    {% elif "Diagram" in doc.tipe_dokumen %}
+                        <i class="fas fa-project-diagram"></i>
+                    {% else %}
+                        <i class="fas fa-file-alt"></i>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <p class="text-sm font-semibold text-gray-800 line-clamp-1">{{ doc.tipe_dokumen }}</p>
+                    {# Menggunakan doc.file_dokumen.name sesuai kode detail #}
+                    <p class="text-xs text-gray-500 line-clamp-1">
+                        {% if doc.file_dokumen %}
+                            File: {{ doc.file_dokumen.name|default:"File Diunggah" }}
+                        {% elif doc.keterangan %}
+                            Tautan Eksternal
+                        {% else %}
+                            (Tidak ada file)
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {# Tautan Download/Akses (Menggunakan doc.file_dokumen) #}
+            {% if doc.file_dokumen %}
+            <a href="{{ doc.file_dokumen.url }}" target="_blank" download
+                class="flex-shrink-0 px-3 py-1.5 text-xs font-bold bg-white border border-gray-300 rounded-lg text-teal-600 hover:bg-teal-50 hover:border-teal-500 transition-colors shadow-sm">
+                <i class="fas fa-download mr-1"></i> Unduh File
+            </a>
+            {% elif doc.keterangan and doc.keterangan|is_url %}
+            <a href="{{ doc.keterangan }}" target="_blank" rel="noopener noreferrer"
+                class="flex-shrink-0 px-3 py-1.5 text-xs font-bold bg-white border border-gray-300 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-500 transition-colors shadow-sm">
+                <i class="fas fa-external-link-alt mr-1"></i> Kunjungi Tautan
+            </a>
+            {% else %}
+            <span class="text-xs text-gray-400 italic">Tidak ada tautan/file</span>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500 p-2 bg-gray-50 rounded-lg italic text-center">Tidak ada dokumen pendukung yang diunggah.</p>
+    {% endif %}
+    {% endwith %}
+</div>
         </div>
 
         <div class="lg:col-span-2">
@@ -156,16 +219,21 @@
                                 <label class="block text-sm font-bold text-gray-700 mb-3">
                                     {{ field.label }} <span class="text-red-500">*</span>
                                 </label>
-                                <div class="flex flex-wrap gap-2">
+                                <div class="flex flex-wrap gap-3 items-center">
+                                    <span class="text-xs font-bold tracking-wide text-gray-400">
+                                        Pilih skor :
+                                    </span>
                                     {% for radio in field %}
                                         <div class="relative">
                                             {{ radio.tag }}
-                                            <label for="{{ radio.id_for_label }}" class="assessment-label {% if is_completed %}cursor-default opacity-100{% endif %}">
+                                            <label for="{{ radio.id_for_label }}"
+                                                class="assessment-label {% if is_completed %}cursor-default opacity-100{% endif %}">
                                                 {{ radio.choice_label }}
                                             </label>
                                         </div>
                                     {% endfor %}
                                 </div>
+
                                 {% if field.errors %}
                                     <p class="text-xs text-red-500 mt-2 font-medium flex items-center gap-1">
                                         <i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}

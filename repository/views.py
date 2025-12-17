@@ -217,7 +217,7 @@ class AssessmentForm(forms.Form):
         'Dokumentasi Teknis & Panduan Pengguna': 15,
     }
     skor_choices_from_model = list(AspekPenilaian._meta.get_field('skor').choices or [])
-    SCORE_CHOICES = [('', 'Pilih Skor')] + skor_choices_from_model
+    SCORE_CHOICES = skor_choices_from_model
 
     def __init__(self, *args, **kwargs):
         initial_scores = kwargs.pop('initial_scores', {}) 
