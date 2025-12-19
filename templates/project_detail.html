@@ -258,7 +258,34 @@
 
                     {% endif %}
                 </div>
+{# --- MULAI TAMBAHAN: KARTU HUBUNGI UNIT BISNIS --- #}
+                <div class="bg-gradient-to-br from-teal-600 to-emerald-700 p-6 rounded-2xl shadow-lg shadow-teal-200/50 text-white relative overflow-hidden group">
+                    
+                    {# Dekorasi Background #}
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all duration-700"></div>
+                    <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-teal-900/20 rounded-full blur-2xl"></div>
 
+                    <div class="relative z-10">
+                        <h3 class="text-xs font-bold text-teal-100 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <i class="fas fa-briefcase"></i> Pengembangan Bisnis
+                        </h3>
+                        
+                        <p class="text-sm font-medium text-white mb-1">
+                            Tertarik dengan proyek ini?
+                        </p>
+                        <p class="text-xs text-teal-100 mb-4 leading-relaxed opacity-90">
+                            Hubungi Unit Bisnis untuk diskusi mengenai potensi hilirisasi, inkubasi, atau kerjasama komersial.
+                        </p>
+
+                        {# Tombol Email dengan Subject & Body Otomatis #}
+                      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=unitbisnis.pnj@gmail.com&su=Ketertarikan%20Kerjasama%20Proyek%3A%20{{ project.title|urlencode }}&body=Yth.%20Tim%20Unit%20Bisnis%20PNJ%2C%0A%0ASaya%20tertarik%20untuk%20berdiskusi%20lebih%20lanjut%20mengenai%20potensi%20pengembangan%20bisnis%20atau%20kerjasama%20untuk%20proyek%20inovasi%3A%0A%0AJudul%20Proyek%3A%20{{ project.title|urlencode }}%0APemilik%3A%20{{ project.id_pemilik.username|urlencode }}%0A%0AMohon%20informasi%20mengenai%20langkah%20selanjutnya.%0A%0ATerima%20kasih." 
+   target="_blank"
+   class="flex items-center justify-center w-full py-3 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 hover:text-teal-800 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+    <i class="fab fa-google text-lg mr-2"></i> Buka di Gmail
+</a>
+                    </div>
+                </div>
+                {# --- AKHIR TAMBAHAN --- #}
             </div>
         </div>
     </div>
