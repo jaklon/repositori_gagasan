@@ -217,7 +217,7 @@ class AssessmentForm(forms.Form):
         'Dokumentasi Teknis & Panduan Pengguna': 15,
     }
     skor_choices_from_model = list(AspekPenilaian._meta.get_field('skor').choices or [])
-    SCORE_CHOICES = [('', 'Pilih Skor')] + skor_choices_from_model
+    SCORE_CHOICES = skor_choices_from_model
 
     def __init__(self, *args, **kwargs):
         initial_scores = kwargs.pop('initial_scores', {}) 
@@ -663,7 +663,25 @@ def request_source_code_view(request, project_id):
     )
     return redirect('project_detail', project_id=project.id)
 # --- AKHIR VIEW REQUEST SOURCE CODE ---
+@login_required
+def request_source_code_detail_view(request, request_id):
+    # Mengambil detail request atau return 404 jika tidak ada
+    req_object = get_object_or_404(RequestSourceCode, id=request_id)
+    
+    # Pastikan hanya pemilik proyek, pemohon, atau unit bisnis yang bisa melihat
+    user = request.user
+    is_owner = req_object.id_produk.id_pemilik == user
+    is_pemohon = req_object.id_pemohon == user
+    is_unit_bisnis = user.peran == 'unit_bisnis'
 
+    if not (is_owner or is_pemohon or is_unit_bisnis):
+        messages.error(request, "Anda tidak memiliki izin melihat detail permintaan ini.")
+        return redirect('access_requests')
+
+    context = {
+        'req_object': req_object,
+    }
+    return render(request, 'dashboard/access_request_detail.html', context)
 # --- VIEW BARU: ACCESS REQUESTS (DAFTAR) ---
 @login_required
 def access_requests_view(request):
