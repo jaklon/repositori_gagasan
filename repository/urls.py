@@ -66,5 +66,5 @@ urlpatterns = [
     path('access-requests/', views.access_requests_view, name='access_requests'),
     path('access-requests/handle/<int:request_id>/<str:action>/', views.handle_access_request_view, name='handle_access_request'),
     path('access-requests/', views.access_requests_view, name='access_requests'),
-
+    path('access-requests/detail/<int:request_id>/', views.request_source_code_detail_view, name='request_source_code_detail'),
 ]
