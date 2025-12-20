@@ -1,13 +1,14 @@
-# repository/forms.py
-
 from django import forms
 from django.forms import modelformset_factory
+from django.forms.models import BaseModelFormSet # Diperlukan untuk Formset kustom model
 from .models import Produk, Kategori, DokumenProyek
 from users.models import CustomUser 
+from .models import Tag 
 
-# --- ProdukForm ---
+# --- ProdukForm (SEMUA FIELD WAJIB DIISI) ---
 class ProdukForm(forms.ModelForm):
-    # Asumsi field program_studi dan tags_input adalah non-model fields yang diperlukan di form
+    
+    # Field Non-Model: Program Studi (Wajib)
     program_studi = forms.ChoiceField(
         choices=[('', 'Pilih Program Studi')] + list(CustomUser.PROGRAM_STUDI_CHOICES),
         label='Program Studi',
@@ -15,9 +16,10 @@ class ProdukForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition appearance-none'})
     )
     
+    # Field Non-Model: Tags (Wajib)
     tags_input = forms.CharField(
         label='Tags',
-        required=False,
+        required=True, 
         help_text='Pisahkan dengan koma (,) cth: AI, Web Dev, UI/UX',
         widget=forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition', 'placeholder': 'Tags (cth: Web Dev, Mobile App)'})
     )
@@ -26,7 +28,6 @@ class ProdukForm(forms.ModelForm):
         model = Produk
         fields = ['title', 'description', 'poster_image', 'source_code_link', 'demo_link', 'kategori']
         
-        # Atribut CSS diterapkan ke widget, BUKAN field model
         widgets = {
             'title': forms.TextInput(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition', 'placeholder': 'Judul Proyek Anda'}),
             'description': forms.Textarea(attrs={'class': 'w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white transition', 'placeholder': 'Deskripsi lengkap proyek'}),
@@ -46,10 +47,19 @@ class ProdukForm(forms.ModelForm):
             'source_code_link': 'Link ke repository (GitHub, GitLab, dll.)',
             'demo_link': 'Link ke aplikasi yang sudah di-deploy.',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
+        # Penegasan semua field model wajib diisi
+        self.fields['title'].required = True
+        self.fields['description'].required = True
+        self.fields['poster_image'].required = True
+        self.fields['kategori'].required = True
+        self.fields['source_code_link'].required = True 
+        self.fields['demo_link'].required = True        
+
     def save(self, commit=True, owner=None):
-        from .models import Tag
-        
         tags_input = self.cleaned_data.pop('tags_input', '')
         program_studi_value = self.cleaned_data.pop('program_studi', None)
         
@@ -61,12 +71,10 @@ class ProdukForm(forms.ModelForm):
             instance.save()
             self.save_m2m() 
             
-            # Update CustomUser dengan Program Studi (jika Mahasiswa)
             if program_studi_value and instance.id_pemilik.peran == 'mahasiswa':
                 instance.id_pemilik.program_studi = program_studi_value
                 instance.id_pemilik.save()
             
-            # Simpan Tags 
             if tags_input:
                 tag_names = [name.strip() for name in tags_input.split(',') if name.strip()]
                 instance.tags.clear()
@@ -77,8 +85,9 @@ class ProdukForm(forms.ModelForm):
         return instance
 
 
-# --- DokumenProyek Form dan Formset ---
+# --- DokumenProyek Form (Validasi AND Logic) ---
 class DokumenProyekForm(forms.ModelForm):
+    
     class Meta:
         model = DokumenProyek
         fields = ['tipe_dokumen', 'file_dokumen', 'keterangan'] 
@@ -90,29 +99,82 @@ class DokumenProyekForm(forms.ModelForm):
         }
         labels = {
             'tipe_dokumen': 'Jenis Dokumen',
-            'file_dokumen': 'Pilih File (Opsional)',
+            'file_dokumen': 'Pilih File',
             'keterangan': 'Keterangan File / Link',
         }
         
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Menetapkan semua field dokumen sebagai wajib (AND Logic)
+        self.fields['file_dokumen'].required = True
+        self.fields['keterangan'].required = True
+        self.fields['tipe_dokumen'].required = True
+
+
     def clean(self):
         cleaned_data = super().clean()
         file_dokumen = cleaned_data.get('file_dokumen')
         keterangan = cleaned_data.get('keterangan')
+        tipe_dokumen = cleaned_data.get('tipe_dokumen')
         
-        is_empty = not file_dokumen and not keterangan
-        if is_empty and not cleaned_data.get('DELETE') and self.has_changed():
-            if any(self.cleaned_data.values()): 
-                self.add_error(None, "Dokumen wajib diisi: Unggah file atau berikan keterangan/link.")
+        if cleaned_data.get('DELETE'):
+            return cleaned_data
+
+        is_being_filled = tipe_dokumen or file_dokumen or keterangan
+
+        if is_being_filled:
+            # Periksa jika ada field yang kosong, dan tambahkan error secara spesifik.
+            # (Validasi required=True di __init__ sudah membantu, tapi ini memastikan pesan spesifik)
+            
+            # Jika user mengisi salah satu field tapi yang lain kosong, validasi gagal.
+            if not tipe_dokumen:
+                self.add_error('tipe_dokumen', "Jenis Dokumen wajib diisi.")
+            
+            # KOREKSI: Pengecekan AND (Harus keduanya ada)
+            if not file_dokumen:
+                 self.add_error('file_dokumen', "File Dokumen wajib diunggah.")
+            
+            if not keterangan:
+                 self.add_error('keterangan', "Keterangan/Link wajib diisi.")
             
         return cleaned_data
+
+# --- DokumenProyek Base Formset (Validasi Minimal 1 Dokumen Lengkap) ---
+class DokumenProyekBaseFormSet(BaseModelFormSet):
+    
+    def clean(self):
+        super().clean()
         
-# KOREKSI UTAMA DILAKUKAN DI BAWAH: Argumen 'prefix' dihapus dari factory.
+        if self.has_changed() or self.initial:
+            total_valid_forms = 0
+            for form in self.forms:
+                # Lewati form yang memiliki error, yang ditandai DELETE
+                if form.errors:
+                    continue
+                if form.cleaned_data.get('DELETE'):
+                    continue
+                
+                tipe = form.cleaned_data.get('tipe_dokumen')
+                file = form.cleaned_data.get('file_dokumen')
+                keterangan = form.cleaned_data.get('keterangan')
+                
+                # Hanya hitung sebagai form valid jika SEMUA field diisi (AND Logic)
+                if tipe and file and keterangan:
+                    total_valid_forms += 1
+            
+            if total_valid_forms < 1:
+                raise forms.ValidationError("Anda wajib menyediakan minimal satu Dokumen Proyek yang lengkap (Jenis Dokumen, File, dan Keterangan harus diisi).")
+
+
+# --- Formset Factory ---
 DokumenProyekFormSet = modelformset_factory(
     DokumenProyek, 
     form=DokumenProyekForm,
+    formset=DokumenProyekBaseFormSet,
     fields=('tipe_dokumen', 'file_dokumen', 'keterangan'),
-    extra=1, 
+    extra=0, 
     max_num=5, 
     can_delete=True,
-    # Hapus: prefix='dokumen'
+    min_num=1,
+    validate_min=True,
 )

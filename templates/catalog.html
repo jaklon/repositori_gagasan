@@ -471,13 +471,57 @@
       </div>
     </section>
 
-    <footer class="bg-[#004D40] text-teal-100 py-10 border-t border-teal-800">
-      <div class="max-w-7xl mx-auto px-4 text-center">
-        <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-8 w-8 mx-auto mb-4 opacity-50 brightness-0 invert" />
-        <p class="font-medium text-sm">&copy; 2025 Gagasan - Politeknik Negeri Jakarta</p>
-        <p class="text-xs text-teal-400 mt-2">Innovating for the Future</p>
-      </div>
-    </footer>
+    <footer class="bg-[#00382E] text-white py-10 border-t border-teal-800 text-sm font-sans">
+    <div class="max-w-6xl mx-auto px-6">
+        
+        {# GRID UTAMA: Kiri (Branding) & Kanan (Kontak) #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-8">
+            
+            {# Bagian KIRI: Branding (Lebih Ringkas) #}
+            <div class="text-center md:text-left space-y-3">
+                <div class="flex items-center justify-center md:justify-start gap-3">
+                    <img src="{% static 'images/LOGO GAGASAN.png' %}" alt="Logo" class="h-8 w-8 brightness-0 invert opacity-90" />
+                    <span class="text-lg font-bold tracking-tight text-white">GAGASAN</span>
+                </div>
+                <p class="text-teal-200/80 text-xs leading-relaxed max-w-sm mx-auto md:mx-0">
+                    Platform inovasi unggulan Politeknik Negeri Jakarta. Menjembatani ide kreatif mahasiswa dengan kebutuhan industri nyata.
+                </p>
+            </div>
+
+            {# Bagian KANAN: Kartu Kontak (Versi Compact) #}
+            <div class="bg-gradient-to-br from-teal-800/40 to-teal-900/40 border border-teal-700/30 p-5 rounded-xl flex flex-col sm:flex-row items-center gap-4 shadow-lg backdrop-blur-sm hover:border-teal-600/50 transition-colors">
+                
+                {# Ikon Kecil #}
+                <div class="w-10 h-10 rounded-full bg-teal-600/80 flex items-center justify-center text-white shadow-md shrink-0">
+                    <i class="fas fa-briefcase text-sm"></i>
+                </div>
+                
+                {# Teks & Tombol #}
+                <div class="flex-1 text-center sm:text-left w-full">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h4 class="font-bold text-sm text-white">Mitra Industri & Bisnis</h4>
+                            <p class="text-[11px] text-teal-300">Diskusikan potensi kolaborasi strategis.</p>
+                        </div>
+                        
+                        {# Link Email dengan Kata-kata Formal #}
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=unitbisnis.pnj@gmail.com&su=Penjajakan%20Kerjasama%20Strategis%20%26%20Hilirisasi%20Inovasi&body=Yth.%20Tim%20Unit%20Bisnis%20PNJ%2C%0A%0AMelalui%20platform%20Gagasan%2C%20kami%20tertarik%20untuk%20menjajaki%20potensi%20sinergi%20dan%20kolaborasi%20komersial.%0A%0AKami%20melihat%20adanya%20peluang%20strategis%20yang%20dapat%20dikembangkan%20bersama.%20Mohon%20informasi%20terkait%20prosedur%20diskusi%20atau%20pertemuan%20lanjutan.%0A%0ATerima%20kasih.%0A%0A%5BNama%20Anda%2FInstansi%5D" 
+                           target="_blank"
+                           class="inline-flex items-center justify-center px-4 py-2 bg-white text-teal-900 text-xs font-bold rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-all shadow-sm whitespace-nowrap group">
+                            <i class="fas fa-envelope mr-2 group-hover:scale-110 transition-transform"></i> Hubungi Kami
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Footer Bawah (Copyright) #}
+        <div class="border-t border-teal-800/40 pt-6 flex flex-col md:flex-row justify-between items-center text-[11px] text-teal-500 gap-3">
+            <p>&copy; 2025 Gagasan - Politeknik Negeri Jakarta</p>
+            <p class="tracking-wider uppercase opacity-70 font-semibold">Innovating for the Future</p>
+        </div>
+    </div>
+</footer>
 
     <script>
       // Filter Toggle Functionality
