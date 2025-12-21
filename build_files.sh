@@ -1,3 +1,7 @@
+echo "Building the project..."
 pip install -r requirements.txt
-python3.12 manage.py collectstatic --noinput
-python3.12 manage.py migrate
+
+echo "Collecting static files..."
+python3.12 manage.py collectstatic --noinput --clear
+
+echo "Build Process Completed!"
