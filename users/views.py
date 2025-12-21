@@ -77,24 +77,48 @@ def login_view(request):
 
 
 def register_view(request):
-    # KOREKSI: Menggunakan UserRegistrationForm
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST) 
+        # 1. Buat salinan data POST agar bisa kita edit
+        # (request.POST asli tidak bisa diedit/immutable)
+        data = request.POST.copy()
+        
+        # 2. Ambil peran yang dipilih user
+        peran = data.get('peran')
+
+        # 3. LOGIKA UTAMA: Pindahkan isi dari input spesifik ke field 'bidang_keahlian' yang dikenali database
+        if peran == 'dosen':
+            # Ambil isi 'bidang_keahlian_dosen', masukkan ke 'bidang_keahlian'
+            data['bidang_keahlian'] = data.get('bidang_keahlian_dosen')
+        elif peran == 'mitra':
+            # Ambil isi 'bidang_keahlian_mitra', masukkan ke 'bidang_keahlian'
+            data['bidang_keahlian'] = data.get('bidang_keahlian_mitra')
+        
+        # 4. Masukkan data yang SUDAH DIRAPIKAN ke dalam Form
+        form = UserRegistrationForm(data) 
 
         if form.is_valid():
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data.get('password'))
+            
+            # Set password (jika form tidak otomatis handle ini)
+            if 'password' in form.cleaned_data:
+                user.set_password(form.cleaned_data['password'])
+            
             user.save()
             
             messages.success(request, 'Akun berhasil dibuat! Akun Anda perlu disetujui oleh Unit Bisnis sebelum bisa login.')
             return redirect('login')
             
         else:
+            # Tampilkan error pertama yang ditemukan
             first_error = next(iter(form.errors.values()))[0] if form.errors else 'Terjadi kesalahan saat membuat akun.'
             messages.error(request, f'Pendaftaran gagal: {first_error}')
-            return redirect('register')
+            # Kembalikan form agar user tidak perlu mengetik ulang semuanya (opsional)
+            return render(request, 'register.html', {'form': form})
+            
     else:
-        return render(request, 'register.html')
+        # GET Request
+        form = UserRegistrationForm()
+        return render(request, 'register.html', {'form': form})
 
 @login_required
 def logout_view(request):
