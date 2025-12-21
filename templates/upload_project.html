@@ -210,26 +210,35 @@
 
 {% block extra_scripts %}
 <script>
-    // Styling Helper: Add classes to Django Form Widgets
     document.addEventListener("DOMContentLoaded", function() {
+        // Styling Helper (Biarkan seperti semula)
         const inputs = document.querySelectorAll('input[type="text"], input[type="url"], textarea, select');
         inputs.forEach(input => {
-            if (!input.classList.contains('w-full')) {
+            if (!input.classList.contains('w-full') && input.type !== 'checkbox' && input.type !== 'file' && input.type !== 'hidden') {
                 input.classList.add('w-full', 'px-4', 'py-3', 'bg-white', 'border', 'border-gray-200', 'rounded-xl', 'focus:ring-2', 'focus:ring-teal-500', 'focus:border-teal-500', 'transition-all', 'text-sm', 'outline-none');
             }
-            // Khusus input dengan icon (padding left lebih besar)
             if (input.parentElement.classList.contains('relative') && input.parentElement.querySelector('i')) {
                 input.classList.add('pl-11');
             }
         });
 
-        // Formset Logic
+        // --- FORMSET LOGIC (FIXED) ---
         const addButton = document.getElementById('add-document-form');
         const formsetContainer = document.getElementById('formset-container');
-        const totalFormsInput = document.querySelector('#id_dokumen-TOTAL_FORMS');
-        const maxForms = parseInt(document.querySelector('#id_dokumen-MAX_NUM').value);
         
-        // Template String for New Form
+        // Selector ID yang Benar (Sesuai standard Django ManagementForm)
+        const totalFormsInput = document.querySelector('#id_dokumen-TOTAL_FORMS');
+        const maxFormsInput = document.querySelector('#id_dokumen-MAX_NUM_FORMS'); // Perbaikan disini (_FORMS)
+
+        // Safety Check: Jika elemen tidak ditemukan, stop script agar tidak error console
+        if (!totalFormsInput || !maxFormsInput) {
+            console.error("Error: Formset Management Form tidak ditemukan. Pastikan {{ dokumen_formset.management_form }} ada di template dan prefix sesuai.");
+            return;
+        }
+
+        const maxForms = parseInt(maxFormsInput.value);
+
+        // Template string
         const emptyFormTemplate = `
             <div class="p-5 bg-white border border-gray-200 rounded-xl relative file-form-wrapper hover:border-teal-300 transition-colors mb-4 slide-in" id="dokumen-form-__prefix__">
                 <input type="hidden" name="dokumen-__prefix__-id" id="id_dokumen-__prefix__-id">
@@ -265,7 +274,7 @@
 
         function updateDeleteListeners() {
              const wrappers = formsetContainer.querySelectorAll('.file-form-wrapper');
-             wrappers.forEach((wrapper, index) => {
+             wrappers.forEach((wrapper) => {
                 const deleteInput = wrapper.querySelector('input[name$="-DELETE"]');
                 if(deleteInput) {
                     deleteInput.addEventListener('change', function() {
@@ -283,21 +292,23 @@
         
         updateDeleteListeners();
 
-        addButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            let totalForms = parseInt(totalFormsInput.value);
+        if(addButton) {
+            addButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                let totalForms = parseInt(totalFormsInput.value);
 
-            if (totalForms >= maxForms) {
-                alert(`Maksimum ${maxForms} dokumen.`);
-                return;
-            }
+                if (totalForms >= maxForms) {
+                    alert(`Maksimum ${maxForms} dokumen.`);
+                    return;
+                }
 
-            const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, totalForms);
-            formsetContainer.insertAdjacentHTML('beforeend', newFormHtml);
-            
-            totalFormsInput.value = totalForms + 1;
-            updateDeleteListeners();
-        });
+                const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, totalForms);
+                formsetContainer.insertAdjacentHTML('beforeend', newFormHtml);
+                
+                totalFormsInput.value = totalForms + 1;
+                updateDeleteListeners();
+            });
+        }
     });
 </script>
 
