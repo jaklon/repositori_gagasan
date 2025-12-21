@@ -67,4 +67,9 @@ urlpatterns = [
     path('access-requests/handle/<int:request_id>/<str:action>/', views.handle_access_request_view, name='handle_access_request'),
     path('access-requests/', views.access_requests_view, name='access_requests'),
     path('access-requests/detail/<int:request_id>/', views.request_source_code_detail_view, name='request_source_code_detail'),
+    
+    # URLs untuk Manajemen Kategori Produk
+    path('manage-products/categories/', views.manage_categories, name='manage_categories'),
+    path('manage-products/categories/add/', views.add_category, name='add_category'),
+    path('manage-products/categories/delete/<int:pk>/', views.delete_category, name='delete_category'),
 ]
