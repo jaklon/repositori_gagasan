@@ -1,9 +1,9 @@
 from django import forms
 from django.forms import modelformset_factory
-from django.forms.models import BaseModelFormSet # Diperlukan untuk Formset kustom model
-from .models import Produk, Kategori, DokumenProyek
+from django.forms.models import BaseModelFormSet 
+from django.db import transaction, IntegrityError # <--- PENTING: Tambahkan Import Ini
+from .models import Produk, Kategori, DokumenProyek, Tag
 from users.models import CustomUser 
-from .models import Tag 
 
 # --- ProdukForm (SEMUA FIELD WAJIB DIISI) ---
 class ProdukForm(forms.ModelForm):
@@ -71,15 +71,33 @@ class ProdukForm(forms.ModelForm):
             instance.save()
             self.save_m2m() 
             
+            # --- FIX 1: Update Program Studi User (Safe) ---
             if program_studi_value and instance.id_pemilik.peran == 'mahasiswa':
-                instance.id_pemilik.program_studi = program_studi_value
-                instance.id_pemilik.save()
+                try:
+                    # Menggunakan atomic block agar aman jika terjadi masalah DB saat update user
+                    with transaction.atomic():
+                        instance.id_pemilik.program_studi = program_studi_value
+                        instance.id_pemilik.save()
+                except Exception as e:
+                    # Log error jika perlu, tapi biarkan proses penyimpanan produk tetap berlanjut
+                    print(f"Warning: Gagal update program studi user: {e}")
             
+            # --- FIX 2: Handle Tags (Mengatasi TransactionManagementError) ---
             if tags_input:
                 tag_names = [name.strip() for name in tags_input.split(',') if name.strip()]
                 instance.tags.clear()
+                
                 for tag_name in tag_names:
-                    tag, created = Tag.objects.get_or_create(nama=tag_name)
+                    # Masalah: get_or_create di Postgres bisa melempar IntegrityError jika ada race condition,
+                    # yang menyebabkan transaksi utama 'rusak' (aborted) meskipun di-catch.
+                    # Solusi: Bungkus dengan transaction.atomic()
+                    try:
+                        with transaction.atomic():
+                            tag, created = Tag.objects.get_or_create(nama=tag_name)
+                    except IntegrityError:
+                        # Jika atomic block gagal (misal duplikasi unik), ambil tag yang sudah ada
+                        tag = Tag.objects.get(nama=tag_name)
+                    
                     instance.tags.add(tag)
 
         return instance
@@ -124,13 +142,9 @@ class DokumenProyekForm(forms.ModelForm):
 
         if is_being_filled:
             # Periksa jika ada field yang kosong, dan tambahkan error secara spesifik.
-            # (Validasi required=True di __init__ sudah membantu, tapi ini memastikan pesan spesifik)
-            
-            # Jika user mengisi salah satu field tapi yang lain kosong, validasi gagal.
             if not tipe_dokumen:
                 self.add_error('tipe_dokumen', "Jenis Dokumen wajib diisi.")
             
-            # KOREKSI: Pengecekan AND (Harus keduanya ada)
             if not file_dokumen:
                  self.add_error('file_dokumen', "File Dokumen wajib diunggah.")
             
@@ -148,7 +162,7 @@ class DokumenProyekBaseFormSet(BaseModelFormSet):
         if self.has_changed() or self.initial:
             total_valid_forms = 0
             for form in self.forms:
-                # Lewati form yang memiliki error, yang ditandai DELETE
+                # Lewati form yang memiliki error atau ditandai DELETE
                 if form.errors:
                     continue
                 if form.cleaned_data.get('DELETE'):
