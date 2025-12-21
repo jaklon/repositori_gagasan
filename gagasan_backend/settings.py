@@ -30,6 +30,7 @@ ALLOWED_HOSTS = ['*'] # Bisa diperketat nanti menjadi ['.vercel.app', 'localhost
 # Penting untuk Vercel agar form POST (Login/Upload) berfungsi
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
+    'https://repositori-gagasan.vercel.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
