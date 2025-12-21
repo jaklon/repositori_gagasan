@@ -6,7 +6,7 @@
         },
         {
             "source": "/(.*)",
-            "destination": "gagasan_backend/wsgi.py"
+            "destination": "api/index.py"
         }
     ]
 }
