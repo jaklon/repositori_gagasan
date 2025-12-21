@@ -1,0 +1,2 @@
+# Paksa semua file shell script menggunakan LF (Linux format)
+*.sh text eol=lf
