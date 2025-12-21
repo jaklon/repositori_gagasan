@@ -1,12 +1,24 @@
 {
-    "rewrites": [
+    "builds": [
         {
-            "source": "/static/(.*)",
-            "destination": "/static/$1"
+            "src": "gagasan_backend/wsgi.py",
+            "use": "@vercel/python",
+            "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
         },
         {
-            "source": "/(.*)",
-            "destination": "api/index.py"
+            "src": "build.sh",
+            "use": "@vercel/static-build",
+            "config": { "distDir": "staticfiles" }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "gagasan_backend/wsgi.py"
         }
     ]
 }
