@@ -217,7 +217,7 @@ class AssessmentForm(forms.Form):
         'Dokumentasi Teknis & Panduan Pengguna': 15,
     }
     skor_choices_from_model = list(AspekPenilaian._meta.get_field('skor').choices or [])
-    SCORE_CHOICES = skor_choices_from_model
+    SCORE_CHOICES = [('', 'Pilih Skor')] + skor_choices_from_model
 
     def __init__(self, *args, **kwargs):
         initial_scores = kwargs.pop('initial_scores', {}) 
@@ -623,65 +623,113 @@ def project_detail_view(request, project_id):
     return render(request, 'project_detail.html', context)
 
 # --- VIEW BARU UNTUK HANDLE REQUEST SOURCE CODE ---
+# ==========================================
+# 1. VIEW: MENGIRIM PERMINTAAN AKSES (CREATE)
+# ==========================================
 @login_required
-@require_POST  
+@require_POST  # Memastikan view ini hanya bisa diakses via method POST
 def request_source_code_view(request, project_id):
+    """
+    Menangani pembuatan request akses source code baru oleh user.
+    """
     project = get_object_or_404(Produk, id=project_id)
     user = request.user
 
+    # Validasi 1: Pemilik tidak boleh request ke proyek sendiri
     if project.id_pemilik == user:
-        messages.error(request, "Anda adalah pemilik proyek ini.")
+        messages.error(request, "Anda adalah pemilik proyek ini, tidak perlu meminta akses.")
         return redirect('project_detail', project_id=project.id)
 
+    # Validasi 2: Cek apakah sudah pernah request sebelumnya
     existing_request = RequestSourceCode.objects.filter(
         id_produk=project,
         id_pemohon=user
     ).first()
 
     if existing_request:
+        status_label = existing_request.get_status_display()
         messages.info(
             request,
-            f"Anda sudah pernah meminta akses untuk proyek ini (Status: {existing_request.get_status_display()})."
+            f"Anda sudah memiliki permintaan akses untuk proyek ini dengan status: {status_label}."
         )
         return redirect('project_detail', project_id=project.id)
 
+    # Validasi 3: Cek kelengkapan alasan
     alasan = request.POST.get('alasan_request', '').strip()
     if not alasan:
-        messages.error(request, "Alasan Permintaan (Alasan Request) wajib diisi.")
+        messages.error(request, "Wajib menyertakan alasan mengapa Anda membutuhkan source code ini.")
         return redirect('project_detail', project_id=project.id)
 
-    RequestSourceCode.objects.create(
-        id_produk=project,
-        id_pemohon=user,
-        alasan_request=alasan,  
-        status='pending'
-    )
+    # Proses Simpan ke Database
+    try:
+        RequestSourceCode.objects.create(
+            id_produk=project,
+            id_pemohon=user,
+            alasan_request=alasan,
+            status='pending'  # Default status
+        )
+        messages.success(request, f"Permintaan akses untuk '{project.title}' berhasil dikirim. Menunggu persetujuan pemilik.")
+    except Exception as e:
+        # Menangani error tak terduga
+        messages.error(request, "Terjadi kesalahan saat memproses permintaan. Silakan coba lagi.")
+        print(f"Error request source code: {e}")
 
-    messages.success(
-        request,
-        f"Permintaan akses source code untuk '{project.title}' telah terkirim."
-    )
     return redirect('project_detail', project_id=project.id)
-# --- AKHIR VIEW REQUEST SOURCE CODE ---
+
+
+# ==========================================
+# 2. VIEW: DETAIL & AKSI PERMINTAAN (READ/UPDATE)
+# ==========================================
 @login_required
 def request_source_code_detail_view(request, request_id):
-    # Mengambil detail request atau return 404 jika tidak ada
+    """
+    Menampilkan detail permintaan dan menangani aksi (Terima/Tolak) oleh pemilik.
+    """
     req_object = get_object_or_404(RequestSourceCode, id=request_id)
-    
-    # Pastikan hanya pemilik proyek, pemohon, atau unit bisnis yang bisa melihat
     user = request.user
+
+    # Cek Hak Akses (Permissions)
     is_owner = req_object.id_produk.id_pemilik == user
     is_pemohon = req_object.id_pemohon == user
-    is_unit_bisnis = user.peran == 'unit_bisnis'
+    is_unit_bisnis = getattr(user, 'peran', '') == 'unit_bisnis' # Menggunakan getattr untuk keamanan jika field 'peran' tidak ada
 
+    # Jika user bukan siapa-siapa dalam konteks ini, tolak akses
     if not (is_owner or is_pemohon or is_unit_bisnis):
-        messages.error(request, "Anda tidak memiliki izin melihat detail permintaan ini.")
-        return redirect('access_requests')
+        messages.error(request, "Anda tidak memiliki izin untuk melihat detail permintaan ini.")
+        return redirect('dashboard_mahasiswa') # Sesuaikan dengan url dashboard utama Anda
 
+    # --- LOGIKA POST: MENANGANI AKSI TERIMA/TOLAK ---
+    if request.method == 'POST':
+        # Hanya pemilik atau unit bisnis yang boleh mengubah status
+        if not (is_owner or is_unit_bisnis):
+            messages.error(request, "Anda tidak berhak mengubah status permintaan ini.")
+            return redirect('request_source_code_detail', request_id=request_id)
+
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            req_object.status = 'approved'
+            req_object.save()
+            messages.success(request, f"Permintaan dari {req_object.id_pemohon.username} telah DISETUJUI.")
+            
+        elif action == 'reject':
+            req_object.status = 'rejected'
+            req_object.save()
+            messages.warning(request, f"Permintaan dari {req_object.id_pemohon.username} telah DITOLAK.")
+        
+        # Refresh halaman untuk melihat perubahan status
+        return redirect('request_source_code_detail', request_id=request_id)
+
+    # --- LOGIKA GET: RENDER HALAMAN ---
     context = {
         'req_object': req_object,
+        'is_owner': is_owner, # Kirim flag ini ke template untuk logika tombol
     }
+    
+    # Pastikan template ini ada
     return render(request, 'dashboard/access_request_detail.html', context)
+# --- AKHIR VIEW REQUEST SOURCE CODE ---
+
 # --- VIEW BARU: ACCESS REQUESTS (DAFTAR) ---
 @login_required
 def access_requests_view(request):
@@ -1685,3 +1733,40 @@ def delete_own_project_view(request, project_id):
         messages.error(request, f"Terjadi kesalahan saat menghapus proyek: {e}")
     
     return redirect(redirect_url)
+
+@login_required
+def manage_categories(request):
+    # Ambil semua kategori untuk ditampilkan di list
+    categories = Kategori.objects.all().order_by('nama')
+    
+    context = {
+        'categories': categories,
+        'total_categories': categories.count()
+    }
+    return render(request, 'manage_categories.html', context)
+
+@login_required
+def add_category(request):
+    if request.method == 'POST':
+        nama_kategori = request.POST.get('nama_kategori')
+        if nama_kategori:
+            # Cek duplikasi
+            if Kategori.objects.filter(nama__iexact=nama_kategori).exists():
+                messages.error(request, f'Kategori "{nama_kategori}" sudah ada.')
+            else:
+                Kategori.objects.create(nama=nama_kategori)
+                messages.success(request, 'Kategori baru berhasil ditambahkan.')
+        else:
+            messages.error(request, 'Nama kategori tidak boleh kosong.')
+            
+    return redirect('manage_categories')
+
+@login_required
+def delete_category(request, pk):
+    if request.method == 'POST':
+        kategori = get_object_or_404(Kategori, pk=pk)
+        nama = kategori.nama
+        kategori.delete()
+        messages.success(request, f'Kategori "{nama}" berhasil dihapus.')
+        
+    return redirect('manage_categories')
