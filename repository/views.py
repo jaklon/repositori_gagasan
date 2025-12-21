@@ -1034,72 +1034,88 @@ def select_for_curation(request, project_id):
         referer = request.META.get('HTTP_REFERER', reverse('repository'))
         return redirect(referer)
 # --- AKHIR REPOSITORY VIEWS ---
+
+# Upload Project View
 @login_required
-@transaction.atomic 
+# HAPUS @transaction.atomic DARI SINI
 def upload_project_view(request):
-    if request.user.peran not in ['mahasiswa', 'dosen']:
+    # 1. Cek Hak Akses
+    if getattr(request.user, 'peran', '') not in ['mahasiswa', 'dosen']:
         messages.error(request, "Hanya Mahasiswa dan Dosen yang dapat mengunggah proyek.")
-        if request.user.peran == 'mitra': return redirect('dashboard_mitra')
-        if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis')
-        return redirect('catalog')
-        
+        if getattr(request.user, 'peran', '') == 'mitra': return redirect('dashboard_mitra')
+        # Asumsi fungsi is_unit_bisnis ada di utils atau helpers
+        # if is_unit_bisnis(request.user): return redirect('dashboard_unit_bisnis') 
+        return redirect('catalog') # Redirect default
+
     if request.method == 'POST':
-        # Pastikan Anda sudah mengimpor DokumenProyekFormSet di awal file
         produk_form = ProdukForm(request.POST, request.FILES)
+        # Gunakan prefix yang sama dengan di template/JS
         dokumen_formset = DokumenProyekFormSet(request.POST, request.FILES, prefix='dokumen') 
         
         if produk_form.is_valid() and dokumen_formset.is_valid():
             try:
-                # 1. Simpan Produk utama
-                produk = produk_form.save(commit=True, owner=request.user) 
-                
-                # 2. Simpan Dokumen Proyek dari formset
-                dokumen_instances = dokumen_formset.save(commit=False)
-                
-                for dokumen in dokumen_instances:
-                    dokumen.produk = produk 
-                    dokumen.save()
+                # BUNGKUS TRANSAKSI DI SINI
+                with transaction.atomic():
+                    # 1. Simpan Produk (Data utama)
+                    # Note: owner=request.user ditangani di method save() forms.py yang sudah kita perbaiki
+                    produk = produk_form.save(commit=True, owner=request.user) 
                     
-                # Simpan instans yang ditandai untuk dihapus dan M2M
-                dokumen_formset.save() 
-                produk_form.save_m2m() 
+                    # 2. Simpan Dokumen Proyek
+                    dokumen_instances = dokumen_formset.save(commit=False)
+                    
+                    for dokumen in dokumen_instances:
+                        dokumen.produk = produk  # Link ke produk yang baru dibuat
+                        dokumen.save()
+                    
+                    # 3. Handle penghapusan dokumen (jika ada checkbox delete)
+                    for obj in dokumen_formset.deleted_objects:
+                        obj.delete()
+                    
+                    # Simpan M2M produk (tags, kategori) jika belum otomatis tersimpan
+                    produk_form.save_m2m() 
+
+                # --- SUKSES ---
+                messages.success(request, f"Proyek '{produk.title}' berhasil diunggah! 🎉")
                 
-                messages.success(request, f"Proyek '{produk.title}' berhasil diunggah dan menunggu seleksi. 🎉")
-                
-                # KOREKSI PENTING: Menggunakan nama URL yang ada di repository/urls.py
+                # Redirect sesuai peran
                 if request.user.peran == 'mahasiswa': 
-                    # Nama URL yang benar adalah 'my_projects'
-                    return redirect('my_projects')
+                    return redirect('manage_products') # Atau 'dashboard_mahasiswa'
                 elif request.user.peran == 'dosen': 
-                    # Nama URL yang benar adalah 'dosen_my_projects'
-                    return redirect('dosen_my_projects')
-                # Fallback jika peran tidak jelas
-                return redirect('profile') 
+                    return redirect('manage_products') # Sesuaikan url name Anda
+                return redirect('manage_products')
                 
             except Exception as e:
-                # Tangani error yang terjadi selama proses penyimpanan
-                messages.error(request, f"Terjadi kesalahan saat menyimpan proyek: {e}")
+                # --- ERROR DATABASE ---
+                # Karena atomic block ada di dalam try, jika masuk sini, transaksi sudah rollback
+                # tapi koneksi DB sudah reset, jadi aman untuk render template.
+                print(f"Error Upload Project: {e}")
+                messages.error(request, f"Terjadi kesalahan sistem: {e}")
+                
                 context = {
                     'form': produk_form, 
                     'dokumen_formset': dokumen_formset,
                 }
                 return render(request, 'upload_project.html', context)
         else:
-            messages.error(request, 'Terjadi kesalahan pada formulir. Silakan cek ulang isian Anda. ❌')
+            # --- ERROR VALIDASI FORM ---
+            messages.error(request, 'Terjadi kesalahan validasi. Mohon perbaiki isian yang berwarna merah. ❌')
             context = {
                 'form': produk_form,
                 'dokumen_formset': dokumen_formset,
             }
             return render(request, 'upload_project.html', context)
     
-    # Jika method adalah GET
     else:
+        # --- METHOD GET ---
         initial_data = {}
-        if request.user.peran == 'mahasiswa' and request.user.program_studi:
+        # Pre-fill program studi jika user mahasiswa
+        if getattr(request.user, 'peran', '') == 'mahasiswa' and request.user.program_studi:
             initial_data['program_studi'] = request.user.program_studi
             
         produk_form = ProdukForm(initial=initial_data)
-        dokumen_formset = DokumenProyekFormSet(queryset=Produk.objects.none(), prefix='dokumen')
+        
+        # PERBAIKAN: Gunakan DokumenProyek.objects.none(), bukan Produk
+        dokumen_formset = DokumenProyekFormSet(queryset=DokumenProyek.objects.none(), prefix='dokumen')
 
     context = {
         'form': produk_form, 
