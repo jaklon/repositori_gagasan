@@ -5,9 +5,9 @@ echo "Collecting static files..."
 python3.12 manage.py collectstatic --noinput --clear
 
 echo "Make migrations..."
-python3.9 manage.py makemigrations --noinput
+python3.12 manage.py makemigrations --noinput
 
 echo "Migrating database..."
-python3.9 manage.py migrate --noinput
+python3.12 manage.py migrate --noinput
 
 echo "Build Process Completed!"
